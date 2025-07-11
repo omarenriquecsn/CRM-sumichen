@@ -95,6 +95,18 @@ export interface Reunion {
   recordatorio: boolean;
 }
 
+export interface ICrearReunion {
+  cliente_id: string;
+  vendedor_id: string;
+  titulo: string;
+  descripcion: string;
+  fechaInicio: Date;
+  fechaFin: Date;
+  ubicacion?: string;
+  estado: "programada" | "completada" | "cancelada";
+  recordatorio: boolean;
+}
+
 export interface Ticket {
   id: string;
   cliente_id: string;
@@ -157,6 +169,17 @@ export interface Metrica {
 export interface Oportunidad {
   id: string;
   cliente_id: string;
+  vendedor_id: string;
+  titulo: string;
+  descripcion: string;
+  valor: number;
+  probabilidad: number;
+  etapa: "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado";
+  fecha_creacion: Date;
+}
+
+export interface ICreateOportunidad {
+   cliente_id: string;
   vendedor_id: string;
   titulo: string;
   descripcion: string;

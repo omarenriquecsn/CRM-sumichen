@@ -5,6 +5,7 @@ import { ICrearActividad } from "../../types";
 type props = {
   onSubmit: (data: ICrearActividad) => void;
   id?: string;
+  accion:string
 };
 
 const CrearActividad = ({ id, onSubmit }: props) => {
@@ -18,7 +19,7 @@ const CrearActividad = ({ id, onSubmit }: props) => {
     descripcion: "",
     fecha: new Date(),
     fecha_vencimiento: new Date(),
-    completado: false,
+    completado: true,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,103 +40,95 @@ const CrearActividad = ({ id, onSubmit }: props) => {
   };
 
   return (
-    <form className="space-y-6" action="">
-      <div>
-        <label
-          htmlFor="tipo"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Tipo de Actividad
-        </label>
-        <input
-          type="select"
-          name="tipo"
-          id="tipo"
-          value={formData.tipo}
-          onChange={handleChange}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        />
-        <option value="email">email</option>
-        <option value="llamada">llamada</option>
-        <option value="reunion">reunion</option>
-        <option value="nota">nota</option>
-        <option value="tarea">tarea</option>
+    <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="flex gap-2">
+        <div className="flex flex-col w-1/2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Título
+          </label>
+          <input
+            type="text"
+            name="titulo"
+            id="titulo"
+            value={formData.titulo}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+          />
+        </div>
+        <div className="w-1/2 flex flex-col">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tipo de Actividad
+          </label>
+          <select
+            name="tipo"
+            id="tipo"
+            value={formData.tipo}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+          >
+            <option value="email">email</option>
+            <option value="llamada">llamada</option>
+            <option value="reunion">reunion</option>
+            <option value="nota">nota</option>
+            <option value="tarea">tarea</option>
+          </select>
+        </div>
       </div>
 
       <div>
-        <label
-          htmlFor="titulo"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Título
-        </label>
-        <input
-          type="text"
-          name="titulo"
-          id="titulo"
-          value={formData.titulo}
-          onChange={handleChange}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        />
-      </div>
-
-      <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Descripción
         </label>
         <textarea
-          name="description"
-          id="description"
-          value={formData.descripcion}
+          name="descripcion"
+          placeholder="Descripcion"
+          value={formData.descripcion ?? ""}
           onChange={handleChange}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px]"
         />
       </div>
 
-      <div>
-        <label
-          htmlFor="fecha"
-          className="block text-sm font-medium text-gray-700"
+      <div className="flex gap-3">
+        <div className="w-1/2">
+          <label
+            htmlFor="fecha"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Fecha
+          </label>
+          <input
+            type="date"
+            name="fecha"
+            id="fecha"
+            value={formData.fecha?.toLocaleString()}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+          />
+        </div>
+
+        <div className="w-1/2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Fecha de Vencimiento
+          </label>
+          <input
+            type="date"
+            name="fecha_vencimiento"
+            id="fecha_vencimiento"
+            value={formData.fecha_vencimiento?.toLocaleString()}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4">
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-6 py-2 rounded-lg font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          Fecha
-        </label>
-        <input
-          type="date"
-          name="fecha"
-          id="fecha"
-          value={formData.fecha?.toLocaleString()}
-          onChange={handleChange}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        />
+          Crear Actividad
+        </button>
       </div>
-
-      <div>
-        <label
-          htmlFor="fecha"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Fecha de Vencimiento
-        </label>
-        <input
-          type="date"
-          name="fecha_vencimiento"
-          id="fecha_vencimiento"
-          value={formData.fecha_vencimiento?.toLocaleString()}
-          onChange={handleChange}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        />
-      </div>
-
-      <button
-        type="submit"
-        className="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        onClick={handleSubmit}
-      >
-        Crear Actividad
-      </button>
     </form>
   );
 };
