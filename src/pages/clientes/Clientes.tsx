@@ -62,8 +62,6 @@ export const Clientes: React.FC = () => {
     }
   };
 
- 
-
   const getEstadoColor = (estado: string) => {
     switch (estado) {
       case "cliente":
