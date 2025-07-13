@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layout } from '../../components/layout/Layout';
+import React, { useState } from "react";
+import { Layout } from "../../components/layout/Layout";
 import {
   Plus,
   Search,
@@ -10,140 +10,127 @@ import {
   XCircle,
   User,
   Calendar,
-  MessageSquare
-} from 'lucide-react';
+  MessageSquare,
+} from "lucide-react";
+import { useSupabase } from "../../hooks/useSupabase";
+import { toast } from "react-toastify";
+import dayjs from "dayjs";
 
 export const Tickets: React.FC = () => {
-  const [filtroEstado, setFiltroEstado] = useState('todos');
-  const [filtroPrioridad, setFiltroPrioridad] = useState('todas');
+  const supabase = useSupabase();
+  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [filtroPrioridad, setFiltroPrioridad] = useState("todas");
 
-  const tickets = [
-    {
-      id: '1',
-      titulo: 'Error en facturación automática',
-      descripcion: 'El sistema no está generando las facturas automáticamente desde la última actualización',
-      cliente: 'TechCorp S.A.',
-      contacto: 'Ana García',
-      estado: 'abierto',
-      prioridad: 'alta',
-      categoria: 'tecnico',
-      fechaCreacion: new Date('2024-01-15T09:30:00'),
-      fechaActualizacion: new Date('2024-01-15T14:20:00')
-    },
-    {
-      id: '2',
-      titulo: 'Solicitud de capacitación adicional',
-      descripcion: 'El equipo necesita capacitación en las nuevas funcionalidades del módulo de reportes',
-      cliente: 'Innovación Digital',
-      contacto: 'Carlos López',
-      estado: 'en_proceso',
-      prioridad: 'media',
-      categoria: 'servicio',
-      fechaCreacion: new Date('2024-01-14T11:15:00'),
-      fechaActualizacion: new Date('2024-01-15T10:45:00')
-    },
-    {
-      id: '3',
-      titulo: 'Problema con integración API',
-      descripcion: 'La integración con el sistema contable está devolviendo errores 500',
-      cliente: 'Soluciones Empresariales',
-      contacto: 'María Rodríguez',
-      estado: 'resuelto',
-      prioridad: 'urgente',
-      categoria: 'tecnico',
-      fechaCreacion: new Date('2024-01-13T16:20:00'),
-      fechaActualizacion: new Date('2024-01-14T09:30:00')
-    },
-    {
-      id: '4',
-      titulo: 'Consulta sobre facturación',
-      descripcion: 'Dudas sobre el proceso de facturación y los descuentos aplicables',
-      cliente: 'Global Tech',
-      contacto: 'Fernando López',
-      estado: 'cerrado',
-      prioridad: 'baja',
-      categoria: 'facturacion',
-      fechaCreacion: new Date('2024-01-12T14:00:00'),
-      fechaActualizacion: new Date('2024-01-13T11:20:00')
-    }
-  ];
+// tickets
+  const {
+    data: tickets,
+    isLoading: loadingTickets,
+    error: errorTickets,
+  } = supabase.useTickets();
+
+  // clientes
+  const {
+    data: clientes,
+    isLoading: loadingClientes,
+    error: errorClientes,
+  } = supabase.useClientes();
+
+
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
-      case 'abierto':
-        return 'bg-red-100 text-red-800';
-      case 'en_proceso':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'resuelto':
-        return 'bg-green-100 text-green-800';
-      case 'cerrado':
-        return 'bg-gray-100 text-gray-800';
+      case "abierto":
+        return "bg-red-100 text-red-800";
+      case "en_proceso":
+        return "bg-yellow-100 text-yellow-800";
+      case "resuelto":
+        return "bg-green-100 text-green-800";
+      case "cerrado":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPrioridadColor = (prioridad: string) => {
     switch (prioridad) {
-      case 'urgente':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'alta':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'media':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'baja':
-        return 'bg-green-100 text-green-800 border-green-200';
+      case "urgente":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "alta":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "media":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "baja":
+        return "bg-green-100 text-green-800 border-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getCategoriaColor = (categoria: string) => {
     switch (categoria) {
-      case 'tecnico':
-        return 'bg-blue-100 text-blue-800';
-      case 'facturacion':
-        return 'bg-purple-100 text-purple-800';
-      case 'producto':
-        return 'bg-indigo-100 text-indigo-800';
-      case 'servicio':
-        return 'bg-teal-100 text-teal-800';
+      case "tecnico":
+        return "bg-blue-100 text-blue-800";
+      case "facturacion":
+        return "bg-purple-100 text-purple-800";
+      case "producto":
+        return "bg-indigo-100 text-indigo-800";
+      case "servicio":
+        return "bg-teal-100 text-teal-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
-      case 'abierto':
+      case "abierto":
         return <AlertCircle className="h-4 w-4" />;
-      case 'en_proceso':
+      case "en_proceso":
         return <Clock className="h-4 w-4" />;
-      case 'resuelto':
+      case "resuelto":
         return <CheckCircle className="h-4 w-4" />;
-      case 'cerrado':
+      case "cerrado":
         return <XCircle className="h-4 w-4" />;
       default:
         return <AlertCircle className="h-4 w-4" />;
     }
   };
 
-  const ticketsFiltrados = tickets.filter(ticket => {
-    const matchesEstado = filtroEstado === 'todos' || ticket.estado === filtroEstado;
-    const matchesPrioridad = filtroPrioridad === 'todas' || ticket.prioridad === filtroPrioridad;
+  if (errorTickets || errorClientes) {
+    toast.error("Error al cargar los tickets");
+    return;
+  }
+
+  if (loadingTickets || loadingClientes) {
+    return <p>Cargando...</p>;
+  }
+
+  if (!tickets || !clientes) {
+    return <p>No hay tickets</p>;
+  }
+
+  const clientesMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
+
+
+  const ticketsFiltrados = tickets.filter((ticket) => {
+    const matchesEstado =
+      filtroEstado === "todos" || ticket.estado === filtroEstado;
+    const matchesPrioridad =
+      filtroPrioridad === "todas" || ticket.prioridad === filtroPrioridad;
     return matchesEstado && matchesPrioridad;
   });
 
   const estadisticas = {
     total: tickets.length,
-    abiertos: tickets.filter(t => t.estado === 'abierto').length,
-    enProceso: tickets.filter(t => t.estado === 'en_proceso').length,
-    resueltos: tickets.filter(t => t.estado === 'resuelto').length,
-    urgentes: tickets.filter(t => t.prioridad === 'urgente').length
+    abiertos: tickets.filter((t) => t.estado === "abierto").length,
+    enProceso: tickets.filter((t) => t.estado === "en_proceso").length,
+    resueltos: tickets.filter((t) => t.estado === "resuelto").length,
+    urgentes: tickets.filter((t) => t.prioridad === "urgente").length,
   };
 
   return (
-    <Layout 
+    <Layout
       title="Tickets de Soporte"
       subtitle="Gestiona las solicitudes y problemas de tus clientes"
     >
@@ -155,39 +142,57 @@ export const Tickets: React.FC = () => {
               <MessageSquare className="h-5 w-5 text-blue-600" />
               <span className="text-sm font-medium text-gray-600">Total</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 mt-2">{estadisticas.total}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {estadisticas.total}
+            </p>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4 border border-gray-100">
             <div className="flex items-center space-x-2">
               <AlertCircle className="h-5 w-5 text-red-600" />
-              <span className="text-sm font-medium text-gray-600">Abiertos</span>
+              <span className="text-sm font-medium text-gray-600">
+                Abiertos
+              </span>
             </div>
-            <p className="text-2xl font-bold text-red-600 mt-2">{estadisticas.abiertos}</p>
+            <p className="text-2xl font-bold text-red-600 mt-2">
+              {estadisticas.abiertos}
+            </p>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4 border border-gray-100">
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-yellow-600" />
-              <span className="text-sm font-medium text-gray-600">En Proceso</span>
+              <span className="text-sm font-medium text-gray-600">
+                En Proceso
+              </span>
             </div>
-            <p className="text-2xl font-bold text-yellow-600 mt-2">{estadisticas.enProceso}</p>
+            <p className="text-2xl font-bold text-yellow-600 mt-2">
+              {estadisticas.enProceso}
+            </p>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4 border border-gray-100">
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium text-gray-600">Resueltos</span>
+              <span className="text-sm font-medium text-gray-600">
+                Resueltos
+              </span>
             </div>
-            <p className="text-2xl font-bold text-green-600 mt-2">{estadisticas.resueltos}</p>
+            <p className="text-2xl font-bold text-green-600 mt-2">
+              {estadisticas.resueltos}
+            </p>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4 border border-gray-100">
             <div className="flex items-center space-x-2">
               <AlertCircle className="h-5 w-5 text-red-600" />
-              <span className="text-sm font-medium text-gray-600">Urgentes</span>
+              <span className="text-sm font-medium text-gray-600">
+                Urgentes
+              </span>
             </div>
-            <p className="text-2xl font-bold text-red-600 mt-2">{estadisticas.urgentes}</p>
+            <p className="text-2xl font-bold text-red-600 mt-2">
+              {estadisticas.urgentes}
+            </p>
           </div>
         </div>
 
@@ -203,7 +208,7 @@ export const Tickets: React.FC = () => {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
               />
             </div>
-            
+
             {/* Filtros */}
             <div className="flex items-center space-x-2">
               <Filter className="h-5 w-5 text-gray-400" />
@@ -218,7 +223,7 @@ export const Tickets: React.FC = () => {
                 <option value="resuelto">Resueltos</option>
                 <option value="cerrado">Cerrados</option>
               </select>
-              
+
               <select
                 value={filtroPrioridad}
                 onChange={(e) => setFiltroPrioridad(e.target.value)}
@@ -232,7 +237,7 @@ export const Tickets: React.FC = () => {
               </select>
             </div>
           </div>
-          
+
           {/* Botón nuevo ticket */}
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
             <Plus className="h-5 w-5" />
@@ -246,13 +251,27 @@ export const Tickets: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Ticket</th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Cliente</th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Estado</th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Prioridad</th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Categoría</th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Fecha</th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">Acciones</th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Ticket
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Cliente
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Estado
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Prioridad
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Categoría
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Fecha
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -260,11 +279,17 @@ export const Tickets: React.FC = () => {
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <div className="flex items-start space-x-3">
-                        <div className={`p-2 rounded-lg ${getEstadoColor(ticket.estado)}`}>
+                        <div
+                          className={`p-2 rounded-lg ${getEstadoColor(
+                            ticket.estado
+                          )}`}
+                        >
                           {getEstadoIcon(ticket.estado)}
                         </div>
                         <div>
-                          <h4 className="font-medium text-gray-900">{ticket.titulo}</h4>
+                          <h4 className="font-medium text-gray-900">
+                            {ticket.titulo}
+                          </h4>
                           <p className="text-sm text-gray-500 mt-1 max-w-md">
                             {ticket.descripcion}
                           </p>
@@ -275,23 +300,43 @@ export const Tickets: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <User className="h-4 w-4 text-gray-400" />
                         <div>
-                          <p className="font-medium text-gray-900">{ticket.cliente}</p>
-                          <p className="text-sm text-gray-500">{ticket.contacto}</p>
+                          <p className="font-medium text-gray-900">
+                            {clientesMap.get(ticket.cliente_id)?.nombre ??
+                              "Cliente"}
+                            {" "}
+                            {clientesMap.get(ticket.cliente_id)?.apellido ??
+                              "Cliente"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {ticket.contacto}
+                          </p>
                         </div>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEstadoColor(ticket.estado)}`}>
-                        {ticket.estado.replace('_', ' ')}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEstadoColor(
+                          ticket.estado
+                        )}`}
+                      >
+                        {ticket.estado.replace("_", " ")}
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${getPrioridadColor(ticket.prioridad)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${getPrioridadColor(
+                          ticket.prioridad
+                        )}`}
+                      >
                         {ticket.prioridad}
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getCategoriaColor(ticket.categoria)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getCategoriaColor(
+                          ticket.categoria
+                        )}`}
+                      >
                         {ticket.categoria}
                       </span>
                     </td>
@@ -300,11 +345,16 @@ export const Tickets: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-900">
-                            {ticket.fechaCreacion.toLocaleDateString()}
+                            {dayjs(ticket.fecha_actualizacion).format(
+                              "DD/MM/YYYY"
+                            )}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">
-                          Actualizado: {ticket.fechaActualizacion.toLocaleDateString()}
+                          Actualizado:{" "}
+                          {dayjs(ticket.fecha_actualizacion).format(
+                            "DD/MM/YYYY"
+                          )}
                         </p>
                       </div>
                     </td>

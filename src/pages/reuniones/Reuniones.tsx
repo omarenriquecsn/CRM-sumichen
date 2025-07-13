@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Layout } from "../../components/layout/Layout";
 import {
   Calendar,
@@ -33,6 +33,7 @@ export const Reuniones: React.FC = () => {
     "lista"
   );
   const [filtroEstado, setFiltroEstado] = useState("todas");
+  const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [isModalReunion, setModalReunion] = useState(false);
   const [reunionSeleccionada, setReunionSeleccionada] =
     useState<Reunion | null>(null);
@@ -69,8 +70,59 @@ export const Reuniones: React.FC = () => {
   const { mutate: crearReunion, isPending: pendingCrearReunion } =
     supabase.useCrearReunion();
 
+  const clientesMap = useMemo(() => {
+    if (!clientes) return new Map();
+    return new Map(clientes.map((cliente) => [cliente.id, cliente]));
+  }, [clientes]);
+
+  // filtros
+  const reunionesFiltradas = useMemo(() => {
+    if (!reuniones) return [];
+    const busquedaLower = terminoBusqueda.toLowerCase();
+
+    return reuniones.filter((reunion) => {
+      // Filtro por estado
+      const pasaFiltroEstado =
+        filtroEstado === "todas" || reunion.estado === filtroEstado;
+
+      // Filtro por término de búsqueda
+      const clienteNombre = clientesMap.get(reunion.cliente_id)?.nombre ?? "";
+      const pasaFiltroBusqueda =
+        terminoBusqueda.trim() === "" ||
+        reunion.titulo.toLowerCase().includes(busquedaLower) ||
+        (reunion.descripcion?.toLowerCase().includes(busquedaLower) ?? false) ||
+        clienteNombre.toLowerCase().includes(busquedaLower);
+
+      return pasaFiltroEstado && pasaFiltroBusqueda;
+    });
+  }, [reuniones, filtroEstado, terminoBusqueda, clientesMap]);
+
+  const proximasReuniones = useMemo(() => {
+    if (!reuniones) return [];
+    return reuniones
+      .filter(
+        (r) =>
+          r.estado === "programada" && new Date(r.fecha_inicio) > new Date()
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.fecha_inicio).getTime() -
+          new Date(b.fecha_inicio).getTime()
+      )
+      .slice(0, 3);
+  }, [reuniones]);
+
   if (loadinReuniones || loadingClientes) {
-    return <p>Cargando ...</p>;
+    return (
+      <Layout
+        title="Gestión de Reuniones"
+        subtitle="Programa y gestiona tus reuniones con clientes"
+      >
+        <div className="flex justify-center items-center h-64">
+          <p>Cargando datos...</p>
+        </div>
+      </Layout>
+    );
   }
 
   if (errorsReuniones || errorClientes) {
@@ -80,11 +132,34 @@ export const Reuniones: React.FC = () => {
   }
 
   if (!reuniones || !clientes) {
-    <p>nada para mostrar</p>;
-    return;
+    return <p>No hay datos para mostrar.</p>;
   }
 
-  const CreandoReunion = (data: IFormReunion) => {
+  const formatReunionPayload = (data: IFormReunion) => {
+    const { fecha, inicio, fin, ...rest } = data;
+
+    const fecha_inicio = new Date(
+      dayjs(fecha)
+        .hour(Number(inicio.split(":")[0]))
+        .minute(Number(inicio.split(":")[1]))
+        .second(0)
+        .millisecond(0)
+        .toISOString()
+    );
+
+    const fecha_fin = new Date(
+      dayjs(fecha)
+        .hour(Number(fin.split(":")[0]))
+        .minute(Number(fin.split(":")[1]))
+        .second(0)
+        .millisecond(0)
+        .toISOString()
+    );
+
+    return { ...rest, fecha_inicio, fecha_fin };
+  };
+
+  const handleCrearReunion = (data: IFormReunion) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
       navigate("/login");
@@ -96,27 +171,11 @@ export const Reuniones: React.FC = () => {
       return;
     }
 
-    const { fecha, inicio, fin, ...rest } = data;
-
-    const fecha_inicio = dayjs(fecha)
-      .hour(Number(inicio.split(":")[0]))
-      .minute(Number(inicio.split(":")[1]))
-      .second(0)
-      .millisecond(0)
-      .toISOString();
-
-    const fecha_fin = dayjs(fecha)
-      .hour(Number(fin.split(":")[0]))
-      .minute(Number(fin.split(":")[1]))
-      .second(0)
-      .millisecond(0)
-      .toISOString();
+    const formattedPayload = formatReunionPayload(data);
 
     const newReunion = {
-      ...rest,
+      ...formattedPayload,
       cliente_id: clienteSeleccionado,
-      fecha_inicio: new Date(fecha_inicio),
-      fecha_fin: new Date(fecha_fin),
     };
     console.log(newReunion);
     crearReunion(
@@ -126,22 +185,18 @@ export const Reuniones: React.FC = () => {
       },
       {
         onSuccess: () => {
-          toast.success("Reunion editada con exito");
-          setModalReunion(false);
+          toast.success("Reunión creada con éxito");
+          setModalReunionVisible(false);
         },
         onError: () => {
-          toast.error("Error al editar la reunion");
+          toast.error("Error al crear la reunión");
           return;
         },
       }
     );
   };
 
-  const handleCliente = (cliente_id: string) => {
-    return clientes.find((c) => c.id === cliente_id);
-  };
-
-  const CambiarReunion = (data: IFormReunion) => {
+  const handleCambiarReunion = (data: IFormReunion) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
       navigate("/login");
@@ -152,33 +207,18 @@ export const Reuniones: React.FC = () => {
       return;
     }
 
-    const { fecha, inicio, fin, ...rest } = data;
-
-    const fecha_inicio = dayjs(fecha)
-      .hour(Number(inicio.split(":")[0]))
-      .minute(Number(inicio.split(":")[1]))
-      .second(0)
-      .millisecond(0)
-      .toISOString();
-
-    const fecha_fin = dayjs(fecha)
-      .hour(Number(fin.split(":")[0]))
-      .minute(Number(fin.split(":")[1]))
-      .second(0)
-      .millisecond(0)
-      .toISOString();
+    const formattedPayload = formatReunionPayload(data);
 
     const newReunion = {
-      ...rest,
+      ...formattedPayload,
       id: reunionSeleccionada.id, // Aseguramos que el id esté presente
-      fecha_inicio: new Date(fecha_inicio),
-      fecha_fin: new Date(fecha_fin),
     };
     console.log(newReunion);
 
     actualizarReunion(
       {
-        ReunionData: newReunion,
+        // Es más seguro enviar solo los campos que cambian
+        ReunionData: newReunion as Partial<Reunion>,
         currentUser,
       },
       {
@@ -254,34 +294,14 @@ export const Reuniones: React.FC = () => {
   const confirmarCancelacion = () => {
     if (!reunionIdSeleccionada) return;
 
-    const laReunionEditada = reuniones.find(
-      (r) => r.id === reunionIdSeleccionada
-    );
-    if (!laReunionEditada) return;
-
-    const { clientes, ...rest } = laReunionEditada;
-    rest.estado = "cancelada";
-    console.log(clientes);
-    handleActualizarReunion(rest);
+    handleActualizarReunion({
+      id: reunionIdSeleccionada,
+      estado: "cancelada",
+    });
 
     setMostrarToast(false);
     setReunionIdSeleccionada(null);
   };
-
-  // filtros
-  const reunionesFiltradas = reuniones.filter((reunion) => {
-    if (filtroEstado === "todas") return true;
-    return reunion.estado === filtroEstado;
-  });
-
-  const proximasReuniones = reuniones
-    .filter(
-      (r) =>
-        r.estado === "programada" &&
-        r.fecha_inicio > new Date().toLocaleString()
-    )
-    // .sort((a, b) => a.fecha_inicio.getTime() - b.fecha_inicio.getTime())
-    .slice(0, 3);
 
   return (
     <Layout
@@ -298,6 +318,8 @@ export const Reuniones: React.FC = () => {
               <input
                 type="text"
                 placeholder="Buscar reuniones..."
+                value={terminoBusqueda}
+                onChange={(e) => setTerminoBusqueda(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
               />
             </div>
@@ -376,7 +398,13 @@ export const Reuniones: React.FC = () => {
                       <h4 className="font-medium text-gray-900 text-sm">
                         {reunion.titulo}
                       </h4>
-                      <p className="text-xs text-gray-500">{reunion.cliente}</p>
+                      <p className="text-xs text-gray-500">
+                        {clientesMap.get(reunion.cliente_id)?.nombre ??
+                          "Cliente"}{" "}
+                        {clientesMap.get(reunion.cliente_id)?.apellido ??
+                          "Cliente"}
+                        {""}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -460,10 +488,13 @@ export const Reuniones: React.FC = () => {
                           <User className="h-4 w-4 text-gray-400" />
                           <div>
                             <p className="font-medium text-gray-900">
-                              {handleCliente(reunion.cliente_id).nombre}
+                              {clientesMap.get(reunion.cliente_id)?.nombre ||
+                                "Cliente no encontrado"}{" "}
+                              {clientesMap.get(reunion.cliente_id)?.apellido ||
+                                ""}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {handleCliente(reunion.cliente_id).telefono}
+                              {clientesMap.get(reunion.cliente_id)?.telefono}
                             </p>
                           </div>
                         </div>
@@ -568,7 +599,7 @@ export const Reuniones: React.FC = () => {
       >
         <CrearReunion
           accion={!pendingReunion ? "Editar Reunion" : "Creando..."}
-          onSubmit={CambiarReunion}
+          onSubmit={handleCambiarReunion}
           initialData={reunionSeleccionada}
         />
       </Modal>
@@ -582,7 +613,7 @@ export const Reuniones: React.FC = () => {
       >
         <CrearReunion
           accion={!pendingCrearReunion ? "Crear Reunion" : "Creando..."}
-          onSubmit={CreandoReunion}
+          onSubmit={handleCrearReunion}
         />
       </Modal>
 
@@ -609,7 +640,7 @@ export const Reuniones: React.FC = () => {
           <Select
             options={clientes.map((c) => ({
               value: c.id,
-              label: c.nombre,
+              label: c.nombre + " " + c.apellido,
             }))}
             onChange={(opcion) => setClienteSeleccionado(opcion?.value)}
             placeholder="Selecciona un cliente"
