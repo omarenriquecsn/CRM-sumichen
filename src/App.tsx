@@ -21,6 +21,7 @@ import { Analitica } from "./pages/analitica/Analitica";
 import { Configuracion } from "./pages/configuracion/Configuracion";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
+import TicketDetail from "./pages/tickets/TicketsDetail";
 
 const queryClientet = new QueryClient();
 
@@ -104,6 +105,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Tickets />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/tickets/:id"
+                element={
+                  <ProtectedRoute>
+                    <TicketDetail />
                   </ProtectedRoute>
                 }
               />

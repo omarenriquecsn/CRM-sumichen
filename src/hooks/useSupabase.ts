@@ -9,8 +9,8 @@ import {
   ICreateOportunidad,
   Pedido,
   Reunion,
-  Ticket,
 } from "../types";
+import { Ticket } from "../types";
 
 export const useSupabase = () => {
   const queryClient = useQueryClient();
@@ -224,7 +224,7 @@ export const useSupabase = () => {
         ticketData,
         currentUser,
       }: {
-        ticketData: Ticket;
+        ticketData: Partial<Ticket>;
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
@@ -348,6 +348,31 @@ export const useSupabase = () => {
     });
   };
 
+  const useActualizarTicket = () => {
+    return useMutation({
+      mutationFn: async ({
+        TicketData,
+        currentUser,
+      }: {
+        TicketData: Partial<Ticket>;
+        currentUser: User;
+      }) => {
+        if (!currentUser) throw new Error("Usuario no Autenticado");
+        const { data, error } = await supabase
+          .from("tickets")
+          .update(TicketData)
+          .eq("id", TicketData.id)
+          .select()
+          .single();
+          if(error) throw new Error(error.message);
+          return data
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({queryKey: ["tickets"]})
+      }
+    });
+  };
+
   return {
     useClientes,
     useActividades,
@@ -363,5 +388,6 @@ export const useSupabase = () => {
     useCrearOportunidades,
     useActualizarCliente,
     useActualizarReunion,
+    useActualizarTicket,
   };
 };

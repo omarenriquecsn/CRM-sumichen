@@ -15,13 +15,29 @@ import {
 import { useSupabase } from "../../hooks/useSupabase";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
+import { Ticket } from "../../types";
+import CrearTicket from "../../components/forms/CrearTicket";
+import Modal from "../../components/ui/Modal";
+import Select from "react-select";
 
 export const Tickets: React.FC = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const supabase = useSupabase();
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroPrioridad, setFiltroPrioridad] = useState("todas");
+  const [mostrarToast, setMostrarToast] = useState(false);
+  const [ticketIdSeleccionada, setReunionIdSeleccionada] = useState<
+    string | null
+  >(null);
+  const [modalTicket, setModalTicket] = useState(false);
+  const [cliente_id, setCliente_id] = useState<string>("");
+  const [modalClienteVisible, setModalClienteVisible] = useState(false);
 
-// tickets
+  // tickets
   const {
     data: tickets,
     isLoading: loadingTickets,
@@ -35,7 +51,14 @@ export const Tickets: React.FC = () => {
     error: errorClientes,
   } = supabase.useClientes();
 
+  // Actualizar Ticket
 
+  const { mutate: mutateTicket } = supabase.useActualizarTicket();
+
+  // Crear ticket
+
+  const { mutate: crearTicket, isPending: pendingCrearReunion } =
+    supabase.useCrearTicket();
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
@@ -112,6 +135,50 @@ export const Tickets: React.FC = () => {
 
   const clientesMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
 
+  const actualizarTicket = (data: Partial<Ticket>) => {
+    if (!currentUser) {
+      toast.error("No estás logueado");
+      return;
+    }
+    mutateTicket(
+      {
+        TicketData: data,
+        currentUser,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Ticket actualizado correctamente");
+        },
+        onError: (error) => {
+          toast.error(error.message);
+        },
+      }
+    );
+  };
+
+  const creaandoTicket = (ticketData: Partial<Ticket>) => {
+    if (!currentUser) {
+      toast.error("Usuario no logueado");
+      navigate("/login");
+      return;
+    }
+
+    crearTicket(
+      {
+        ticketData,
+        currentUser,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Ticket creado con éxito");
+          setModalTicket(false);
+        },
+        onError: (error) => {
+          toast.error(error.message);
+        },
+      }
+    );
+  };
 
   const ticketsFiltrados = tickets.filter((ticket) => {
     const matchesEstado =
@@ -127,6 +194,24 @@ export const Tickets: React.FC = () => {
     enProceso: tickets.filter((t) => t.estado === "en_proceso").length,
     resueltos: tickets.filter((t) => t.estado === "resuelto").length,
     urgentes: tickets.filter((t) => t.prioridad === "urgente").length,
+  };
+
+  const prepararCancelacion = (reunion_id: string) => {
+    setReunionIdSeleccionada(reunion_id);
+    setMostrarToast(true); // Aquí solo se lanza el toast
+  };
+
+  const confirmarCancelacion = () => {
+    if (!ticketIdSeleccionada) return;
+
+    actualizarTicket({
+      id: ticketIdSeleccionada,
+      estado: "resuelto",
+      fecha_actualizacion: new Date(),
+    });
+
+    setMostrarToast(false);
+    setReunionIdSeleccionada(null);
   };
 
   return (
@@ -239,7 +324,10 @@ export const Tickets: React.FC = () => {
           </div>
 
           {/* Botón nuevo ticket */}
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <button
+            onClick={() => setModalClienteVisible(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
             <Plus className="h-5 w-5" />
             <span>Nuevo Ticket</span>
           </button>
@@ -302,8 +390,7 @@ export const Tickets: React.FC = () => {
                         <div>
                           <p className="font-medium text-gray-900">
                             {clientesMap.get(ticket.cliente_id)?.nombre ??
-                              "Cliente"}
-                            {" "}
+                              "Cliente"}{" "}
                             {clientesMap.get(ticket.cliente_id)?.apellido ??
                               "Cliente"}
                           </p>
@@ -360,12 +447,21 @@ export const Tickets: React.FC = () => {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
-                        <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        <button
+                          onClick={() => navigate(`/tickets/${ticket.id}`)}
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        >
                           Ver
                         </button>
-                        <button className="text-green-600 hover:text-green-700 text-sm font-medium">
-                          Resolver
-                        </button>
+                        {ticket.estado !== "resuelto" &&
+                          ticket.estado !== "cerrado" && (
+                            <button
+                              onClick={() => prepararCancelacion(ticket.id)}
+                              className="text-green-600 hover:text-green-700 text-sm font-medium"
+                            >
+                              Resolver
+                            </button>
+                          )}
                       </div>
                     </td>
                   </tr>
@@ -375,6 +471,58 @@ export const Tickets: React.FC = () => {
           </div>
         </div>
       </div>
+      <ConfirmarAccionToast
+        visible={mostrarToast}
+        setVisible={setMostrarToast}
+        onConfirm={confirmarCancelacion}
+        texto="¿Estás seguro de que deseas Resolver este Ticket?"
+        posicion="bottom-right"
+        tema="dark"
+        modoModal={true}
+      />
+      <Modal
+        isOpen={modalTicket}
+        onClose={() => {
+          setModalTicket(false);
+        }}
+      >
+        <CrearTicket
+          onSubmit={creaandoTicket}
+          accion={!pendingCrearReunion ? "Crear Ticket" : "Creando..."}
+          cliente_id={cliente_id}
+          estado="abierto"
+        />
+      </Modal>
+
+      <Modal
+        isOpen={modalClienteVisible}
+        onClose={() => setModalClienteVisible(false)}
+      >
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900">
+            Selecciona un cliente
+          </h3>
+          <Select
+            options={clientes.map((c) => ({
+              value: c.id,
+              label: c.nombre + " " + c.apellido,
+            }))}
+            onChange={(opcion) => setCliente_id(opcion?.value)}
+            placeholder="Selecciona un cliente"
+            isSearchable
+          />
+          <button
+            disabled={!cliente_id}
+            onClick={() => {
+              setModalClienteVisible(false);
+              setModalTicket(true);
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+          >
+            Continuar
+          </button>
+        </div>
+      </Modal>
     </Layout>
   );
 };
