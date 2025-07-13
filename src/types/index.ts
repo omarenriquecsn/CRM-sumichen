@@ -70,7 +70,6 @@ export interface Actividad {
   fecha_vencimiento?: Date;
 }
 
-
 export interface ICrearActividad {
   cliente_id: string;
   vendedor_id: string;
@@ -88,9 +87,10 @@ export interface Reunion {
   vendedor_id: string;
   titulo: string;
   descripcion: string;
-  fechaInicio: Date;
-  fechaFin: Date;
+  fecha_inicio: Date;
+  fecha_fin: Date;
   ubicacion?: string;
+  tipo: "presencial" | "virtual" | "telefonica";
   estado: "programada" | "completada" | "cancelada";
   recordatorio: boolean;
 }
@@ -100,9 +100,24 @@ export interface ICrearReunion {
   vendedor_id: string;
   titulo: string;
   descripcion: string;
-  fechaInicio: Date;
-  fechaFin: Date;
+  fecha_inicio: Date;
+  fecha_fin: Date;
   ubicacion?: string;
+   tipo: "presencial" | "virtual" | "telefonica";
+  estado: "programada" | "completada" | "cancelada";
+  recordatorio: boolean;
+}
+
+export interface IFormReunion {
+  cliente_id: string;
+  vendedor_id: string;
+  titulo: string;
+  descripcion: string;
+  fecha: Date;
+  inicio: string;
+  fin: string;
+  ubicacion?: string;
+  tipo: "presencial" | "virtual" | "telefonica";
   estado: "programada" | "completada" | "cancelada";
   recordatorio: boolean;
 }
@@ -179,7 +194,7 @@ export interface Oportunidad {
 }
 
 export interface ICreateOportunidad {
-   cliente_id: string;
+  cliente_id: string;
   vendedor_id: string;
   titulo: string;
   descripcion: string;

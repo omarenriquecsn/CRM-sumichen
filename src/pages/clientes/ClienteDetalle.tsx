@@ -15,7 +15,12 @@ import {
   FileText,
   Clock,
 } from "lucide-react";
-import { Cliente, ClienteFormData, ICrearActividad } from "../../types";
+import {
+  Cliente,
+  ClienteFormData,
+  ICrearActividad,
+  IFormReunion,
+} from "../../types";
 import Modal from "../../components/ui/Modal";
 import ClienteForm from "../../components/forms/ClienteFom";
 import { useAuth } from "../../context/useAuth";
@@ -23,6 +28,8 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { toast } from "react-toastify";
 import CrearActividad from "../../components/forms/CrearActividad";
 import { isMobile } from "react-device-detect";
+import CrearReunion from "../../components/forms/CrearReunion";
+import dayjs from "dayjs";
 
 export const ClienteDetalle: React.FC = () => {
   const { currentUser } = useAuth();
@@ -33,6 +40,7 @@ export const ClienteDetalle: React.FC = () => {
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [isModalBOpen, setModalBOpen] = useState(false);
+  const [isModalCOpen, setModalCopen] = useState(false);
 
   const {
     data: actividadesTodas,
@@ -45,6 +53,9 @@ export const ClienteDetalle: React.FC = () => {
 
   const { mutate: crearActividad, isPending: pendingActividad } =
     supabase.useCrearActividad();
+
+  const { mutate: crearReunion, isPending: pendingReunion } =
+    supabase.useCrearReunion();
 
   if (error) {
     toast.error("Error para mostrar datos del cliente");
@@ -126,6 +137,63 @@ export const ClienteDetalle: React.FC = () => {
           },
         }
       );
+    };
+
+    const handleCrearReunion = (data: IFormReunion) => {
+      if (!currentUser) {
+        toast.error("Error usuario no logueado");
+        navigate("/login");
+        return;
+      }
+      const { fecha, inicio, fin, ...rest } = data;
+
+      const fecha_inicio = dayjs(fecha)
+        .hour(Number(inicio.split(":")[0]))
+        .minute(Number(inicio.split(":")[1]))
+        .second(0)
+        .millisecond(0)
+        .toISOString();
+
+      const fecha_fin = dayjs(fecha)
+        .hour(Number(fin.split(":")[0]))
+        .minute(Number(fin.split(":")[1]))
+        .second(0)
+        .millisecond(0)
+        .toISOString();
+
+      const newReunion = {
+        ...rest,
+        fecha_inicio: new Date(fecha_inicio),
+        fecha_fin: new Date(fecha_fin),
+      };
+
+      crearReunion(
+        {
+          reunionData: newReunion,
+          currentUser,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Reunion creada con exito");
+            setModalCopen(false);
+          },
+          onError: () => {
+            toast.error("Error al crear la reunion");
+            return;
+          },
+        }
+      );
+      const actividadReunion: ICrearActividad = {
+        cliente_id: data.cliente_id,
+        vendedor_id: data.vendedor_id,
+        tipo: "reunion",
+        titulo: data.titulo,
+        descripcion: data.descripcion,
+        fecha: new Date(fecha_inicio),
+        fecha_vencimiento: new Date(fecha_fin),
+        completado: false,
+      };
+      handleCrearActividad(actividadReunion);
     };
 
     const abrirGmail = () => {
@@ -432,23 +500,27 @@ export const ClienteDetalle: React.FC = () => {
                     </a>
                   )}
                   {isMobile ? (
-
                     <a
-                    href={`mailto:${cliente.email}?subject=Contacto desde CRM&body=Hola ${cliente.nombre},`}
+                      href={`mailto:${cliente.email}?subject=Contacto desde CRM&body=Hola ${cliente.nombre},`}
                     >
                       <button className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
                         <Mail className="h-4 w-4" />
                         <span>Enviar Email</span>
                       </button>
                     </a>
-                    ) :(
-                        <button onClick={abrirGmail} className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
-                        <Mail className="h-4 w-4" />
-                        <span>Enviar Email</span>
-                      </button>
-                    )
-                  }
-                  <button className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
+                  ) : (
+                    <button
+                      onClick={abrirGmail}
+                      className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      <span>Enviar Email</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setModalCopen(true)}
+                    className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                  >
                     <Calendar className="h-4 w-4" />
                     <span>Agendar Reunión</span>
                   </button>
@@ -508,6 +580,19 @@ export const ClienteDetalle: React.FC = () => {
             accion={!pendingActividad ? "Crear Actividad" : "Creando..."}
             id={id}
             onSubmit={handleCrearActividad}
+          />
+        </Modal>
+        <Modal
+          isOpen={isModalCOpen}
+          onClose={() => {
+            setModalCopen(false);
+          }}
+          title={"Crear Reunion"}
+        >
+          <CrearReunion
+            accion={!pendingReunion ? "Crear Reunion" : "Creando..."}
+            cliente_id={id}
+            onSubmit={handleCrearReunion}
           />
         </Modal>
       </Layout>

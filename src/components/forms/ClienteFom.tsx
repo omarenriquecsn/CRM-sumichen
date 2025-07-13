@@ -21,9 +21,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
     fecha_creacion: initialData?.fecha_creacion
       ? new Date(initialData.fecha_creacion)
       : new Date(),
-    ultima_actividad: initialData?.ultima_actividad
-      ? new Date(initialData.ultima_actividad)
-      : new Date(),
+    ultima_actividad: new Date(),
     notas: initialData?.notas || "",
     direccion: initialData?.direccion || "",
     ciudad: initialData?.ciudad || "",
@@ -190,7 +188,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
                 type="date"
                 name="fechaCreacion"
                 value={form.fecha_creacion.toISOString().split("T")[0]}
-                onChange={handleChange}
+                disabled
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
               />
             </div>
@@ -202,7 +200,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
                 type="date"
                 name="ultimaActividad"
                 value={form.ultima_actividad.toISOString().split("T")[0]}
-                onChange={handleChange}
+                disabled
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
               />
             </div>

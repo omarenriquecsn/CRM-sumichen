@@ -5,7 +5,7 @@ import { ICrearActividad } from "../../types";
 type props = {
   onSubmit: (data: ICrearActividad) => void;
   id?: string;
-  accion:string
+  accion: string;
 };
 
 const CrearActividad = ({ id, onSubmit }: props) => {

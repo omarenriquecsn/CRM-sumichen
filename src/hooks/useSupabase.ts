@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 import {
   Cliente,
   ICrearActividad,
+  ICrearReunion,
   ICreateOportunidad,
   Pedido,
   Reunion,
@@ -196,7 +197,7 @@ export const useSupabase = () => {
         reunionData,
         currentUser,
       }: {
-        reunionData: Reunion;
+        reunionData: ICrearReunion;
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
@@ -322,6 +323,31 @@ export const useSupabase = () => {
     });
   };
 
+  const useActualizarReunion = () => {
+    return useMutation({
+      mutationFn: async ({
+        ReunionData,
+        currentUser,
+      }: {
+        ReunionData: Partial<Reunion>;
+        currentUser: User;
+      }) => {
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        const { data, error } = await supabase
+          .from("reuniones")
+          .update(ReunionData)
+          .eq("id", ReunionData.id)
+          .select()
+          .single();
+        if (error) throw new Error(error.message);
+        return data;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["reuniones"] });
+      },
+    });
+  };
+
   return {
     useClientes,
     useActividades,
@@ -336,5 +362,6 @@ export const useSupabase = () => {
     useCrearPedido,
     useCrearOportunidades,
     useActualizarCliente,
+    useActualizarReunion,
   };
 };
