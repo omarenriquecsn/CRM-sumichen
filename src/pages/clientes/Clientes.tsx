@@ -5,7 +5,6 @@ import {
   Plus,
   Search,
   Filter,
-  MoreVertical,
   Phone,
   Mail,
   Building,
@@ -200,9 +199,7 @@ export const Clientes: React.FC = () => {
                     <th className="text-left py-4 px-6 font-medium text-gray-900">
                       Última Actividad
                     </th>
-                    <th className="text-left py-4 px-6 font-medium text-gray-900">
-                      Acciones
-                    </th>
+                   
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -282,14 +279,6 @@ export const Clientes: React.FC = () => {
                             {cliente.ultima_actividad.toLocaleString()}
                           </span>
                         </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <button
-                          className="text-gray-400 hover:text-gray-600"
-                          onClick={() => navigate(`/clientes/${cliente.id}`)}
-                        >
-                          <MoreVertical className="h-5 w-5" />
-                        </button>
                       </td>
                     </tr>
                   ))}

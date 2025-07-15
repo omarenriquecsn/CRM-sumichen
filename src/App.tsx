@@ -1,4 +1,4 @@
-import React from "react";
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -22,6 +22,7 @@ import { Configuracion } from "./pages/configuracion/Configuracion";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
 import TicketDetail from "./pages/tickets/TicketsDetail";
+import PedidosDetail from "./pages/pedidos/PedidosDetail";
 
 const queryClientet = new QueryClient();
 
@@ -126,6 +127,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/pedidos/:id"
+                element={
+                  <ProtectedRoute>
+                    <PedidosDetail />
+                  </ProtectedRoute>
+                }
+              />
+
 
               <Route
                 path="/analitica"

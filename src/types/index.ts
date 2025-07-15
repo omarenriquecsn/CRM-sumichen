@@ -28,6 +28,7 @@ export interface Cliente {
   direccion?: string;
   ciudad?: string;
   codigo_postal?: string;
+  rol: 'vendedor' | 'admin'
 }
 
 type Estado = "prospecto" | "cliente" | "inactivo";
@@ -140,18 +141,18 @@ export interface Pedido {
   cliente_id: string;
   vendedor_id: string;
   numero: string;
-  productos: ProductoPedido[];
+  estado: string;
+  subtotal: number;
+  impuestos: number;
   total: number;
-  estado:
-    | "borrador"
-    | "enviado"
-    | "aprobado"
-    | "rechazado"
-    | "procesando"
-    | "completado";
-  fecha_creacion: Date;
-  fecha_entrega?: Date;
+  fecha_entrega: string;       
   notas?: string;
+  fecha_creacion: string;
+  fecha_actualizacion?: string;
+  tipo_pago: 'contado' | 'credito';
+  dias_credito?: number;
+  moneda: 'usd' | 'bs';
+  transporte: 'interno' | 'externo';
 }
 
 export interface ProductoPedido {
@@ -202,4 +203,15 @@ export interface ICreateOportunidad {
   probabilidad: number;
   etapa: "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado";
   fecha_creacion: Date;
+}
+
+export interface ProductoPedido {
+  id: string;                 
+  pedido_id: string;         
+  nombre: string;
+  descripcion?: string;    
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+  fecha_creacion: string;   
 }

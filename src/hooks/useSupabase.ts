@@ -106,7 +106,7 @@ export const useSupabase = () => {
         const { data, error } = await supabase
           .from("pedidos")
           .select(
-            `*, clientes (nombre, apellido, empresa), productos_pedido (*)`
+            `*, clientes (nombre, apellido, empresa, telefono, email), productos_pedido (*)`
           )
           .eq("vendedor_id", currentUser.id)
           .order("fecha_creacion", { ascending: false });
@@ -261,7 +261,7 @@ export const useSupabase = () => {
             ...pedidoData,
             vendedor_id: currentUser.id,
           })
-          .select()
+          .select("*, productos_pedido(*)")
           .single();
         if (error) throw new Error(error.message);
         return data;
@@ -364,12 +364,37 @@ export const useSupabase = () => {
           .eq("id", TicketData.id)
           .select()
           .single();
-          if(error) throw new Error(error.message);
-          return data
+        if (error) throw new Error(error.message);
+        return data;
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({queryKey: ["tickets"]})
-      }
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      },
+    });
+  };
+
+  const useActualizarPedido = () => {
+    return useMutation({
+      mutationFn: async ({
+        PedidoData,
+        currentUser,
+      }: {
+        PedidoData: Partial<Pedido>;
+        currentUser: User;
+      }) => {
+        if (!currentUser) throw new Error();
+        const { data, error } = await supabase
+          .from("pedidos")
+          .update(PedidoData)
+          .eq("id", PedidoData.id)
+          .select()
+          .single();
+        if (error) throw new Error(error.message);
+        return data;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      },
     });
   };
 
@@ -389,5 +414,6 @@ export const useSupabase = () => {
     useActualizarCliente,
     useActualizarReunion,
     useActualizarTicket,
+    useActualizarPedido,
   };
 };
