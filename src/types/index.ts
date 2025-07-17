@@ -28,7 +28,7 @@ export interface Cliente {
   direccion?: string;
   ciudad?: string;
   codigo_postal?: string;
-  rol: 'vendedor' | 'admin'
+  rol: "vendedor" | "admin";
 }
 
 type Estado = "prospecto" | "cliente" | "inactivo";
@@ -104,7 +104,7 @@ export interface ICrearReunion {
   fecha_inicio: Date;
   fecha_fin: Date;
   ubicacion?: string;
-   tipo: "presencial" | "virtual" | "telefonica";
+  tipo: "presencial" | "virtual" | "telefonica";
   estado: "programada" | "completada" | "cancelada";
   recordatorio: boolean;
 }
@@ -141,27 +141,21 @@ export interface Pedido {
   cliente_id: string;
   vendedor_id: string;
   numero: string;
-  estado: string;
   subtotal: number;
   impuestos: number;
   total: number;
-  fecha_entrega: string;       
+  fecha_entrega: Date;
   notas?: string;
-  fecha_creacion: string;
-  fecha_actualizacion?: string;
-  tipo_pago: 'contado' | 'credito';
+  fecha_creacion: Date;
+  fecha_actualizacion?: Date;
+  tipo_pago: "contado" | "credito";
   dias_credito?: number;
-  moneda: 'usd' | 'bs';
-  transporte: 'interno' | 'externo';
+  moneda: "usd" | "bs";
+  transporte: "interno" | "externo";
+  descuento: number;
+  productos_pedido: ProductoPedido[];
 }
 
-export interface ProductoPedido {
-  id: string;
-  nombre: string;
-  cantidad: number;
-  precio: number;
-  subtotal: number;
-}
 
 export interface Meta {
   id: string;
@@ -206,12 +200,43 @@ export interface ICreateOportunidad {
 }
 
 export interface ProductoPedido {
-  id: string;                 
-  pedido_id: string;         
+  pedido_id: string;
   nombre: string;
-  descripcion?: string;    
+  descripcion?: string;
   cantidad: number;
   precio_unitario: number;
   subtotal: number;
-  fecha_creacion: string;   
+  fecha_creacion: string;
+}
+
+export interface Producto {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precio_unitario: number;
+  unidad_medida: string;
+  stock: number;
+  activo: boolean;
+  fecha_creacion: string;
+}
+export type formProducto = {
+  producto_id: string;
+  cantidad: number;
+  precio_unitario: number;
+  nombre: string;
+  descripcion: string;
+};
+
+export interface PedidoData extends Pedido {
+  productos: formProducto[];
+}
+
+export interface ProductoPedido {
+  id: string;
+  pedido_id: string;
+  nombre: string;
+  cantidad: number;
+  precio: number;
+  subtotal: number;
+  producto_id: string;
 }

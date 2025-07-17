@@ -18,15 +18,26 @@ import { toast } from "react-toastify";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useSupabase } from "../../hooks/useSupabase";
 import dayjs from "dayjs";
-import { ProductoPedido } from "../../types";
+import { PedidoData, ProductoPedido } from "../../types";
 import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
-
-
+import Modal from "../../components/ui/Modal";
+import CrearPedido from "../../components/forms/CrearPedido";
+import SelectCliente from "../../components/ui/SelectCliente";
 export const Pedidos: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const supabase = useSupabase();
+
+  const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
+
+  const [modalClienteVisible, setModalClienteVisible] = useState(false);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<null | string>(
+    null
+  );
+  // const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(
+  //   null
+  // );
 
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
@@ -35,6 +46,9 @@ export const Pedidos: React.FC = () => {
     isLoading: loadingPedidos,
     error: errorPedidos,
   } = supabase.usePedidos();
+
+  const { mutate: nuevoPedido, isPending: isCreandoPedido } =
+    supabase.useCrearPedido();
 
   if (errorPedidos) {
     toast.error("Error al cargar los pedidos");
@@ -47,6 +61,12 @@ export const Pedidos: React.FC = () => {
 
   if (!pedidos) {
     toast.error("No hay pedidos");
+    return;
+  }
+
+  if (!currentUser) {
+    toast.error("Debes iniciar sesión para ver los pedidos");
+    navigate("/login");
     return;
   }
 
@@ -100,6 +120,44 @@ export const Pedidos: React.FC = () => {
     procesando: pedidos.filter((p) => p.estado === "procesando").length,
     completados: pedidos.filter((p) => p.estado === "completado").length,
     valorTotal: pedidos.reduce((sum, p) => sum + p.total, 0),
+  };
+
+  const handleCrearPedido = (data: PedidoData) => {
+    if (!currentUser || !data.productos) {
+      toast.error("Debes iniciar sesión para crear un pedido");
+      return;
+    }
+
+    if (!data.cliente_id && clienteSeleccionado) {
+      data.cliente_id = clienteSeleccionado;
+    }
+
+    const { productos, ...rest } = data;
+
+    rest.subtotal = productos.reduce(
+      (sum, p) => sum + p.precio_unitario * p.cantidad,
+      0
+    );
+
+    rest.total = rest.subtotal + rest.subtotal*rest.impuestos;
+
+    nuevoPedido(
+      {
+        pedidoData: { ...rest },
+        currentUser,
+        productosPedido: productos,
+      },
+      {
+        onError: (error: unknown) => {
+          if (error instanceof Error)
+            toast.error(`Error al crear el pedido: ${error.message}`);
+        },
+        onSuccess: () => {
+          toast.success("¡Pedido creado exitosamente!");
+          setModalPedidoVisible(false);
+        },
+      }
+    );
   };
 
   return (
@@ -214,7 +272,12 @@ export const Pedidos: React.FC = () => {
           </div>
 
           {/* Botón nuevo pedido */}
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <button
+            onClick={() => {
+              setModalClienteVisible(true);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
             <Plus className="h-5 w-5" />
             <span>Nuevo Pedido</span>
           </button>
@@ -333,9 +396,10 @@ export const Pedidos: React.FC = () => {
               <div className="border-t border-gray-200 pt-4 mt-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <button 
-                    onClick={() => navigate(`/pedidos/${pedido.id}`)}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    <button
+                      onClick={() => navigate(`/pedidos/${pedido.id}`)}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    >
                       Ver Detalles
                     </button>
                     {currentUser?.user_metadata.rol === "admin" && (
@@ -364,6 +428,30 @@ export const Pedidos: React.FC = () => {
           ))}
         </div>
       </div>
+      <Modal
+        isOpen={modalPedidoVisible}
+        onClose={() => {
+          setModalPedidoVisible(false);
+        }}
+      >
+        <CrearPedido
+          onSubmit={handleCrearPedido}
+          accion={isCreandoPedido ? "Creando" : "Crear Pedido"}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={modalClienteVisible}
+        onClose={() => {
+          setModalClienteVisible(false);
+        }}
+      >
+        <SelectCliente
+          setClienteSeleccionado={setClienteSeleccionado}
+          setModalClienteVisible={setModalClienteVisible}
+          setModalFormularioVisible={setModalPedidoVisible}
+        />
+      </Modal>
     </Layout>
   );
 };

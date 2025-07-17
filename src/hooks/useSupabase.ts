@@ -4,10 +4,12 @@ import { useAuth } from "../context/useAuth";
 import { User } from "@supabase/supabase-js";
 import {
   Cliente,
+  formProducto,
   ICrearActividad,
   ICrearReunion,
   ICreateOportunidad,
   Pedido,
+  // ProductoPedido,
   Reunion,
 } from "../types";
 import { Ticket } from "../types";
@@ -136,8 +138,26 @@ export const useSupabase = () => {
     });
   };
 
-  // Mutaciones para crear y actualizar registros
-  // Custom hooks para mutaciones
+  const useProductos = () => {
+    return useQuery({
+      queryKey: ["productos"],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from("productos")
+          .select("*")
+          .order("fecha_creacion", { ascending: false });
+        if (error) throw new Error(error.message);
+        return data || [];
+      },
+    });
+  };
+
+  type CrearPedidoParams = {
+    pedidoData: Partial<Pedido>;
+    productosPedido: formProducto[];
+    currentUser: User;
+  };
+
   const useCrearCliente = () => {
     return useMutation({
       mutationFn: async ({
@@ -249,25 +269,48 @@ export const useSupabase = () => {
     return useMutation({
       mutationFn: async ({
         pedidoData,
+        productosPedido,
         currentUser,
-      }: {
-        pedidoData: Pedido;
-        currentUser: User;
-      }) => {
+      }: CrearPedidoParams) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
+
+        // 1. Crear el pedido
+        const { data: pedido, error: errorPedido } = await supabase
           .from("pedidos")
           .insert({
             ...pedidoData,
             vendedor_id: currentUser.id,
           })
-          .select("*, productos_pedido(*)")
+          .select()
           .single();
-        if (error) throw new Error(error.message);
-        return data;
+
+        if (errorPedido || !pedido) throw new Error("Error creando pedido");
+
+        // 2. Asociar productos al pedido
+        const productosFormateados = productosPedido.map((p: formProducto) => ({
+          pedido_id: pedido.id,
+          producto_id: p.producto_id,
+          cantidad: p.cantidad,
+          nombre: p.nombre,
+          descripcion: p.descripcion,
+          precio_unitario: p.precio_unitario,
+        }));
+
+        const { error: errorProductos } = await supabase
+          .from("productos_pedido")
+          .insert(productosFormateados);
+
+        if (errorProductos) throw new Error("Error asociando productos");
+
+        return pedido;
       },
+
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      },
+
+      onError: (error: unknown) => {
+        if (error instanceof Error) throw new Error(error.message);
       },
     });
   };
@@ -398,6 +441,8 @@ export const useSupabase = () => {
     });
   };
 
+
+
   return {
     useClientes,
     useActividades,
@@ -415,5 +460,6 @@ export const useSupabase = () => {
     useActualizarReunion,
     useActualizarTicket,
     useActualizarPedido,
+    useProductos,
   };
 };

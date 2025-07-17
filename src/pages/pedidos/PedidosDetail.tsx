@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useSupabase } from "../../hooks/useSupabase";
@@ -20,9 +20,8 @@ import {
   Building,
 } from "lucide-react";
 import { Layout } from "../../components/layout/Layout";
-import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 import dayjs from "dayjs";
-import { Pedido, ProductoPedido } from "../../types";
+import { ProductoPedido } from "../../types";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 
 const PedidosDetail = () => {
@@ -30,12 +29,6 @@ const PedidosDetail = () => {
   const supabase = useSupabase();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const [accionConfirmar, setAccionConfirmar] = useState<{
-    accion: string;
-    nuevoEstado: Pedido["estado"];
-  } | null>(null);
-  const [mostrarModalConfirmacion, setMostrarModalConfirmacion] =
-    useState(false);
 
   // Pedidos
   const {
@@ -45,47 +38,9 @@ const PedidosDetail = () => {
   } = supabase.usePedidos();
 
   // Actualizar Pedido
-  const { mutate: actualizarPedido, isPending: isUpdatingPedido } =
-    supabase.useActualizarPedido();
 
-  const prepararActualizarEstado = (
-    accion: string,
-    nuevoEstado: Pedido["estado"]
-  ) => {
-    setAccionConfirmar({ accion, nuevoEstado });
-  };
 
-  const handleActualizarEstado = () => {
-    if (!currentUser) {
-      toast.error("Debes iniciar sesión para realizar esta acción.");
-      return;
-    }
-    const pedido = pedidos?.find((p) => p.id === id);
-    if (!pedido || !accionConfirmar) {
-      toast.error("No se pudo encontrar el pedido para actualizar.");
-      return;
-    }
-
-    actualizarPedido(
-      {
-        PedidoData: {
-          id: pedido.id,
-          estado: accionConfirmar.nuevoEstado,
-        },
-        currentUser,
-      },
-      {
-        onSuccess: () => {
-          toast.success(`¡Pedido marcado como ${accionConfirmar.nuevoEstado}!`);
-          setAccionConfirmar(null);
-        },
-        onError: (error: Error) => {
-          toast.error(`Error al actualizar el pedido: ${error.message}`);
-          setAccionConfirmar(null);
-        },
-      }
-    );
-  };
+ 
   useMemo(() => {
     const pedidosMap = pedidos?.find((p) => p.id === id);
     if (!pedidosMap) {
@@ -167,15 +122,7 @@ const PedidosDetail = () => {
           <Link to="/pedidos" className="flex items-center space-x-2" />
         </div>
       </div>
-      <ConfirmarAccionToast
-        visible={mostrarModalConfirmacion}
-        setVisible={setMostrarModalConfirmacion}
-        onConfirm={handleActualizarEstado}
-        texto={`¿Estás seguro de que deseas ${accionConfirmar?.accion} este pedido?`}
-        posicion="bottom-right"
-        tema="dark"
-        modoModal={true}
-      />
+     
       <div className="flex items-center space-x-4">
         <Link
           to="/pedidos"
@@ -360,60 +307,6 @@ const PedidosDetail = () => {
                   <span>Editar Pedido</span>
                 </button>
               )}
-
-              {pedido.estado === "enviado" &&
-                currentUser?.user_metadata.rol === "admin" && (
-                  <>
-                    <button
-                      onClick={() =>
-                        prepararActualizarEstado("aprobar", "aprobado")
-                      }
-                      disabled={isUpdatingPedido}
-                      className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Aprobar Pedido</span>
-                    </button>{" "}
-                    <button
-                      onClick={() =>
-                        prepararActualizarEstado("rechazar", "rechazado")
-                      }
-                      disabled={isUpdatingPedido}
-                      className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                    >
-                      <XCircle className="h-4 w-4" />
-                      <span>Rechazar Pedido</span>
-                    </button>
-                  </>
-                )}
-
-              {pedido.estado === "aprobado" &&
-                currentUser?.user_metadata.rol === "admin" && (
-                  <button
-                    onClick={() =>
-                      prepararActualizarEstado("procesar", "procesando")
-                    }
-                    disabled={isUpdatingPedido}
-                    className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                  >
-                    <Clock className="h-4 w-4" />
-                    <span>Marcar como Procesando</span>
-                  </button>
-                )}
-
-              {pedido.estado === "procesando" &&
-                currentUser?.user_metadata.rol === "admin" && (
-                  <button
-                    onClick={() =>
-                      prepararActualizarEstado("completar", "completado")
-                    }
-                    disabled={isUpdatingPedido}
-                    className="w-full bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                  >
-                    <Truck className="h-4 w-4" />
-                    <span>Marcar como Completado</span>
-                  </button>
-                )}
             </div>
           </div>
         </div>
