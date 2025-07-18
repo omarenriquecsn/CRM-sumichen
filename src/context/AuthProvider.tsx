@@ -146,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setSession(null);
     setUserData(null);
     setLoading(true);
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   const value = {
