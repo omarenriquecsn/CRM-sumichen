@@ -36,7 +36,7 @@ export const Clientes: React.FC = () => {
 
   if (error) {
     toast.error("Error al cargar los Clientes");
-    navigate("/login");
+    navigate("#/login");
     return;
   }
 
@@ -48,7 +48,7 @@ export const Clientes: React.FC = () => {
     try {
       if (!currentUser) {
         toast.error("Usuario no logueado");
-        navigate("/login");
+        navigate("#/login");
         return;
       }
 

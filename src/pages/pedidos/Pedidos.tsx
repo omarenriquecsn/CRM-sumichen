@@ -66,7 +66,7 @@ export const Pedidos: React.FC = () => {
 
   if (!currentUser) {
     toast.error("Debes iniciar sesión para ver los pedidos");
-    navigate("/login");
+    navigate("#/login");
     return;
   }
 
@@ -397,7 +397,7 @@ export const Pedidos: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <button
-                      onClick={() => navigate(`/pedidos/${pedido.id}`)}
+                      onClick={() => navigate(`#/pedidos/${pedido.id}`)}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                     >
                       Ver Detalles

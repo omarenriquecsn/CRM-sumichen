@@ -159,7 +159,7 @@ export const Tickets: React.FC = () => {
   const creaandoTicket = (ticketData: Partial<Ticket>) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
-      navigate("/login");
+      navigate("#/login");
       return;
     }
 
@@ -448,7 +448,7 @@ export const Tickets: React.FC = () => {
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => navigate(`/tickets/${ticket.id}`)}
+                          onClick={() => navigate(`#/tickets/${ticket.id}`)}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                         >
                           Ver

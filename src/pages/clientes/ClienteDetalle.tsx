@@ -59,7 +59,7 @@ export const ClienteDetalle: React.FC = () => {
 
   if (error) {
     toast.error("Error para mostrar datos del cliente");
-    navigate("/clientes");
+    navigate("#/clientes");
     return;
   }
 
@@ -114,7 +114,7 @@ export const ClienteDetalle: React.FC = () => {
     const handleCrearActividad = async (data: ICrearActividad) => {
       if (!currentUser) {
         toast.error("Error el usuario no logueado");
-        navigate("/login");
+        navigate("#/login");
         return;
       }
       crearActividad(
@@ -142,7 +142,7 @@ export const ClienteDetalle: React.FC = () => {
     const handleCrearReunion = (data: IFormReunion) => {
       if (!currentUser) {
         toast.error("Error usuario no logueado");
-        navigate("/login");
+        navigate("#/login");
         return;
       }
       const { fecha, inicio, fin, ...rest } = data;
