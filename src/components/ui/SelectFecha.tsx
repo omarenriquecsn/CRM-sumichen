@@ -17,7 +17,7 @@ export const FechaEntregaSelector = ({
   const navigate = useNavigate();
 
   if (!pedidoOriginal) {
-    navigate("#/pedidos");
+    navigate("/pedidos");
     return;
   }
 

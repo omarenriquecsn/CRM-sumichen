@@ -39,7 +39,7 @@ const CrearReunion = ({
   });
   if (!currentUser) {
     toast.error("Error usuario no logueado");
-    navigate("#/login");
+    navigate("/login");
     return;
   }
 

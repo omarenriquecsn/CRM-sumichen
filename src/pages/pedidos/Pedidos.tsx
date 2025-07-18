@@ -66,7 +66,7 @@ export const Pedidos: React.FC = () => {
 
   if (!currentUser) {
     toast.error("Debes iniciar sesión para ver los pedidos");
-    navigate("#/login");
+    navigate("/login");
     return;
   }
 

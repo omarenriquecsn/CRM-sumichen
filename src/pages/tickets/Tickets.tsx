@@ -159,7 +159,7 @@ export const Tickets: React.FC = () => {
   const creaandoTicket = (ticketData: Partial<Ticket>) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
-      navigate("#/login");
+      navigate("/login");
       return;
     }
 

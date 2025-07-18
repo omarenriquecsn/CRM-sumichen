@@ -127,7 +127,7 @@ export const Reuniones: React.FC = () => {
 
   if (errorsReuniones || errorClientes) {
     toast.error("Error al cargar las reuniones ");
-    navigate("#/dasboard");
+    navigate("/dasboard");
     return;
   }
 
@@ -162,7 +162,7 @@ export const Reuniones: React.FC = () => {
   const handleCrearReunion = (data: IFormReunion) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
-      navigate("#/login");
+      navigate("/login");
       return;
     }
 
@@ -199,7 +199,7 @@ export const Reuniones: React.FC = () => {
   const handleCambiarReunion = (data: IFormReunion) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
-      navigate("#/login");
+      navigate("/login");
       return;
     }
     if (!reunionSeleccionada) {
@@ -237,7 +237,7 @@ export const Reuniones: React.FC = () => {
   const handleActualizarReunion = (data: Partial<Reunion>) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
-      navigate("#/login");
+      navigate("/login");
       return;
     }
 

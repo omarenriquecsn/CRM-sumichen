@@ -60,7 +60,7 @@ export const Register: React.FC = () => {
       
       setSuccess('¡Cuenta creada exitosamente! Redirigiendo al dashboard...');
       setTimeout(() => {
-        navigate('#/dashboard');
+        navigate('/dashboard');
       }, 2000);
     } catch (error: any) {
       console.error('Registration error:', error);

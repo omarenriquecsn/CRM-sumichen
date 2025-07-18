@@ -19,7 +19,7 @@ export const Login: React.FC = () => {
 
     try {
       await signIn(email, password);
-      navigate('#/dashboard');
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
       if (error.message.includes('Invalid login credentials')) {

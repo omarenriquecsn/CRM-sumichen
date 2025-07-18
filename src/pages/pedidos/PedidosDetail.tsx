@@ -45,13 +45,13 @@ const PedidosDetail = () => {
     const pedidosMap = pedidos?.find((p) => p.id === id);
     if (!pedidosMap) {
       toast.error("No se encontró el pedido.");
-      navigate("#/pedidos");
+      navigate("/pedidos");
     }
   }, [pedidos, id, navigate]);
 
   if (errorPedidos) {
     toast.error("Error al cargar los datos del pedido.");
-    navigate("#/pedidos");
+    navigate("/pedidos");
     return;
   }
 
@@ -61,7 +61,7 @@ const PedidosDetail = () => {
 
   if (!pedidos) {
     toast.error("No se encontraron pedidos.");
-    navigate("#/pedidos");
+    navigate("/pedidos");
     return;
   }
 
@@ -69,7 +69,7 @@ const PedidosDetail = () => {
 
   if (!pedido) {
     toast.error("Pedido no encontrado.");
-    navigate("#/pedidos");
+    navigate("/pedidos");
     return;
   }
 
