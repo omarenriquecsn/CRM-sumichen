@@ -1,159 +1,232 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { User, Session } from '@supabase/supabase-js';
-import { UserData } from './types';
-import { AuthContext } from './AuthContext';
+import React, { useCallback, useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
+import { User, Session } from "@supabase/supabase-js";
+import { UserData } from "./types";
+import { AuthContext } from "./AuthContext";
+import { toast } from "react-toastify";
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
+ useEffect(() => {
+  supabase.auth.getSession().then((session) => {
+    if (session.data.session) {
+      setCurrentUser(session.data.session.user);
+      setSession(session.data.session);
+    }
+  });
+}, []);
+
   const fetchUserData = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('vendedores')
-        .select('*')
-        .eq('id', userId)
+        .from("vendedores")
+        .select("*")
+        .eq("id", userId)
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching user data:', error);
-        return null;
+        throw new Error(`Error fetching user data: ${error.message}`);
       }
 
       if (!data) {
-        console.warn('No user data found for userId:', userId);
-        return null;
+        throw new Error(`No user data found for userId: ${userId}`);
       }
 
-      const userSesion = await supabase.auth.getUser();
-      const user: User | null = userSesion.data.user;
+      const { data: user } = await supabase.auth.getUser();
+      console.log(user.user?.email);
 
       return {
         id: data.id,
-        email: user?.email || '',
+        email: user.user?.email || "",
         nombre: data.nombre,
         apellido: data.apellido,
         rol: data.rol,
         activo: data.activo,
         telefono: data.telefono,
-        avatar: user?.user_metadata?.avatar_url || ''
+        avatar: user.user?.user_metadata?.avatar_url || "",
       };
     } catch (error) {
-      console.error('Error in fetchUserData:', error);
-      return null;
+      console.error("Error in fetchUserData:", error);
+      throw error;
     }
   }, []);
 
   const refreshUserData = async () => {
-    if (currentUser) {
-      const data = await fetchUserData(currentUser.id);
+    try {
+      if (!currentUser) {
+        setUserData(null);
+        toast.error("Usuario no logueado");
+        window.location.href = "/login";
+        return;
+      }
+      const data = await fetchUserData(currentUser?.id);
       setUserData(data);
-    }
-    else{
+    } catch (error) {
+      console.error(error);
       setUserData(null);
     }
   };
 
-  useEffect(() => {
-    // Obtener sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setCurrentUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserData(session.user.id).then(setUserData);
+ 
+useEffect(() => {
+  const fetchSession = async () => {
+    try {
+      const session = await supabase.auth.getSession();
+      if (session) {
+        setSession(session.data.session);
+        localStorage.setItem('supabase_session', JSON.stringify(session.data.session));
+      } else {
+        await supabase.auth.refreshSession();
+        const newSession = await supabase.auth.getSession();
+        if (newSession) {
+          setSession(newSession.data.session);
+          localStorage.setItem('supabase_session', JSON.stringify(newSession.data.session));
+        }
       }
-      setLoading(false);
-    });
+    } catch (error) {
+      console.error(error);
+      setTimeout(fetchSession, 1000); // Reintenta establecer la sesión después de 1 segundo
+    }
+  };
+  fetchSession();
+}, []);
 
-    // Escuchar cambios de autenticación
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+  useEffect(() => {
+    const fetchInitialSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setSession(session);
       setCurrentUser(session?.user ?? null);
-      
       if (session?.user) {
         const data = await fetchUserData(session.user.id);
         setUserData(data);
-      } else {
-        setUserData(null);
       }
-      
       setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    fetchInitialSession();
+
+    const authSubscription = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setSession(session);
+        setCurrentUser(session?.user ?? null);
+
+        if (session?.user) {
+          const data = await fetchUserData(session.user.id);
+          setUserData(data);
+        } else {
+          setUserData(null);
+        }
+
+        setLoading(false);
+      }
+    );
+
+    return () => authSubscription.data.subscription.unsubscribe();
   }, [fetchUserData]);
 
-  const signUp = async (email: string, password: string, userData: { nombre: string; apellido: string; rol?: string }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nombre: userData.nombre,
-          apellido: userData.apellido,
-          rol: userData.rol || 'vendedor'
-        }
-      }
+  const COLUMNAS_VENDEDOR = {
+    ID: "id",
+    NOMBRE: "nombre",
+    APELLIDO: "apellido",
+    ROL: "rol",
+  };
+
+  const crearPerfilVendedor = async (userData: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    rol?: string;
+  }) => {
+    const { error: profileError } = await supabase.from("vendedores").insert({
+      [COLUMNAS_VENDEDOR.ID]: userData.id,
+      [COLUMNAS_VENDEDOR.NOMBRE]: userData.nombre,
+      [COLUMNAS_VENDEDOR.APELLIDO]: userData.apellido,
+      [COLUMNAS_VENDEDOR.ROL]: userData.rol || "vendedor",
     });
 
-    if (error) {
-      throw error;
-    }
-
-    // Si el usuario se crea exitosamente, crear el perfil en la tabla vendedores
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('vendedores')
-        .insert({
-          id: data.user.id,
-          nombre: userData.nombre,
-          apellido: userData.apellido,
-          rol: userData.rol as 'vendedor' | 'admin' || 'vendedor'
-        });
-
-      if (profileError) {
-        console.error('Error creating user profile:', profileError);
-        throw profileError;
-      }
+    if (profileError) {
+      console.error("Error creando perfil:", profileError);
+      throw profileError;
     }
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+  const signUp = async (
+    email: string,
+    password: string,
+    userData: { nombre: string; apellido: string; rol?: string }
+  ) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nombre: userData.nombre,
+            apellido: userData.apellido,
+            rol: userData.rol || "vendedor",
+          },
+        },
+      });
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        await crearPerfilVendedor({ ...userData, id: data.user.id });
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error signing up:", error);
       throw error;
     }
   };
+  const signIn = async (email: string, password: string): Promise<void> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-  const signOut = async () => {
-    const session = supabase.auth.getSession();
-    if (!session) {
-      console.warn('No active session found for sign out');
-      localStorage.removeItem('sb-syaiyhcnqhhzdhmifynh-auth-token');
+      if (error) {
+        throw error;
+      }
+
+      // If the sign in is successful, you can set the current user and session here
+      setCurrentUser(data.user);
+      setSession(data.session);
+    } catch (error) {
+      console.error("Error signing in:", error);
+    }
+  };
+
+  const signOut = async (): Promise<void> => {
+    try {
+   
+      console.log(supabase.auth);
+      const session = supabase.auth.getSession();
+      if (!session) {
+        console.warn("No hay sesión activa");
+      } else {
+        await supabase.auth.signOut();
+      }
+      localStorage.removeItem("sb-syaiyhcnqhhzdhmifynh-auth-token");
       setCurrentUser(null);
       setSession(null);
       setUserData(null);
       setLoading(true);
-      return;
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      throw error;
-    }
-    localStorage.removeItem('sb-syaiyhcnqhhzdhmifynh-auth-token'); // Limpiar token de localStorage
-    setCurrentUser(null);
-    setSession(null);
-    setUserData(null);
-    setLoading(true);
   };
 
   const value = {
@@ -164,12 +237,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
-    refreshUserData
+    refreshUserData,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

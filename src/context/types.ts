@@ -1,11 +1,11 @@
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session } from "@supabase/supabase-js";
 
 export interface UserData {
   id: string;
   email: string;
   nombre: string;
   apellido: string;
-  rol: 'vendedor' | 'admin';
+  rol: "vendedor" | "admin";
   activo: boolean;
   telefono?: string;
   avatar?: string;
@@ -16,7 +16,11 @@ export interface AuthContextType {
   session: Session | null;
   userData: UserData | null;
   loading: boolean;
-  signUp: (email: string, password: string, userData: { nombre: string; apellido: string; rol?: string }) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    userData: { nombre: string; apellido: string; rol?: string }
+  ) => Promise<{ user: User | null; session: Session | null }>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
