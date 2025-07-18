@@ -1,52 +1,63 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
-import { Building2, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import {
+  Building2,
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 
 export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    rol: 'vendedor'
+    nombre: "",
+    apellido: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    rol: "vendedor",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
   const { signUp } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     // Validaciones
     if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError("Las contraseñas no coinciden");
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+      setError("La contraseña debe tener al menos 6 caracteres");
       setLoading(false);
       return;
     }
 
     if (!formData.nombre.trim() || !formData.apellido.trim()) {
-      setError('El nombre y apellido son obligatorios');
+      setError("El nombre y apellido son obligatorios");
       setLoading(false);
       return;
     }
@@ -55,23 +66,30 @@ export const Register: React.FC = () => {
       await signUp(formData.email, formData.password, {
         nombre: formData.nombre.trim(),
         apellido: formData.apellido.trim(),
-        rol: formData.rol
+        rol: formData.rol,
       });
-      
-      setSuccess('¡Cuenta creada exitosamente! Redirigiendo al dashboard...');
+
+      setSuccess("¡Cuenta creada exitosamente! Redirigiendo al dashboard...");
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }, 2000);
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      if (error.message.includes('User already registered')) {
-        setError('Este email ya está registrado. Por favor, usa otro email o inicia sesión.');
-      } else if (error.message.includes('Password should be at least 6 characters')) {
-        setError('La contraseña debe tener al menos 6 caracteres.');
-      } else if (error.message.includes('Invalid email')) {
-        setError('Por favor, ingresa un email válido.');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+        console.error("Registration error:", error);
+        if (error.message.includes("User already registered")) {
+          setError(
+            "Este email ya está registrado. Por favor, usa otro email o inicia sesión."
+          );
+        } else if (
+          error.message.includes("Password should be at least 6 characters")
+        ) {
+          setError("La contraseña debe tener al menos 6 caracteres.");
+        } else if (error.message.includes("Invalid email")) {
+          setError("Por favor, ingresa un email válido.");
+        }
       } else {
-        setError('Error al crear la cuenta. Por favor, intenta nuevamente.');
+        setError("Error al crear la cuenta. Por favor, intenta nuevamente.");
       }
     } finally {
       setLoading(false);
@@ -111,7 +129,10 @@ export const Register: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="nombre"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Nombre
                 </label>
                 <div className="relative">
@@ -130,7 +151,10 @@ export const Register: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="apellido" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="apellido"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Apellido
                 </label>
                 <div className="relative">
@@ -150,7 +174,10 @@ export const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Correo Electrónico
               </label>
               <div className="relative">
@@ -169,7 +196,10 @@ export const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="rol" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="rol"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Rol
               </label>
               <select
@@ -185,7 +215,10 @@ export const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Contraseña
               </label>
               <div className="relative">
@@ -193,7 +226,7 @@ export const Register: React.FC = () => {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
                   className="pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
@@ -205,13 +238,20 @@ export const Register: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Confirmar Contraseña
               </label>
               <div className="relative">
@@ -240,15 +280,18 @@ export const Register: React.FC = () => {
                   <span>Creando cuenta...</span>
                 </div>
               ) : (
-                'Crear Cuenta'
+                "Crear Cuenta"
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              ¿Ya tienes una cuenta?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              ¿Ya tienes una cuenta?{" "}
+              <Link
+                to="/login"
+                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
                 Inicia sesión aquí
               </Link>
             </p>

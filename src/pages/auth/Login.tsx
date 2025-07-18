@@ -1,33 +1,37 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/useAuth';
-import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await signIn(email, password);
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.message.includes('Invalid login credentials')) {
-        setError('Credenciales incorrectas. Por favor, verifica tu email y contraseña.');
-      } else if (error.message.includes('Email not confirmed')) {
-        setError('Por favor, confirma tu email antes de iniciar sesión.');
+      navigate("/dashboard");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Login error:", error);
+        if (error.message.includes("Invalid login credentials")) {
+          setError(
+            "Credenciales incorrectas. Por favor, verifica tu email y contraseña."
+          );
+        } else if (error.message.includes("Email not confirmed")) {
+          setError("Por favor, confirma tu email antes de iniciar sesión.");
+        }
       } else {
-        setError('Error al iniciar sesión. Por favor, intenta nuevamente.');
+        setError("Error al iniciar sesión. Por favor, intenta nuevamente.");
       }
     } finally {
       setLoading(false);
@@ -59,7 +63,10 @@ export const Login: React.FC = () => {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Correo Electrónico
               </label>
               <div className="relative">
@@ -77,14 +84,17 @@ export const Login: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Contraseña
               </label>
               <div className="relative">
                 <Lock className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
@@ -96,7 +106,11 @@ export const Login: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -112,15 +126,18 @@ export const Login: React.FC = () => {
                   <span>Iniciando sesión...</span>
                 </div>
               ) : (
-                'Iniciar Sesión'
+                "Iniciar Sesión"
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              ¿No tienes una cuenta?{' '}
-              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              ¿No tienes una cuenta?{" "}
+              <Link
+                to="/register"
+                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
                 Regístrate aquí
               </Link>
             </p>
