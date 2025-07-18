@@ -1,10 +1,14 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  optimizeDeps: {
-    exclude: ['lucide-react'],
+  build: {
+    outDir: 'dist',
   },
-});
+  // 👇 importante para fallback en el deploy
+  server: {
+  // @ts-expect-error historyApiFallback is not typed in @vitejs/plugin-react
+historyApiFallback: true,
+  }
+})
