@@ -62,7 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Obtener sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setCurrentUser(session?.user ?? null);
       if (session?.user) {
         fetchUserData(session.user.id).then(setUserData);
       }
@@ -74,7 +73,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      setCurrentUser(session?.user ?? null);
+      if (!session?.user) return;
+      const solicitarnuevoCurrentUser = await fetch(
+        `http://localhost:3000/usuarios/${session?.user.id}`
+      );
+
+      const nuevoCurrentUser = await solicitarnuevoCurrentUser.json();
+      console.log(nuevoCurrentUser);
+
+      if (!nuevoCurrentUser) {
+        return;
+      }
+
+      setCurrentUser(nuevoCurrentUser);
 
       if (session?.user) {
         const data = await fetchUserData(session.user.id);
@@ -130,6 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signIn = async (email: string, password: string) => {
+    setCurrentUser(null);
+    setSession(null);
+    setUserData(null);
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,

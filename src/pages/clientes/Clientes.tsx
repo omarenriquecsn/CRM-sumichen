@@ -9,8 +9,9 @@ import {
   Mail,
   Building,
   User,
-  Calendar,
+  // Calendar,
   DollarSign,
+  IdCard,
 } from "lucide-react";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../context/useAuth";
@@ -18,7 +19,6 @@ import Modal from "../../components/ui/Modal";
 import ClienteForm from "../../components/forms/ClienteFom";
 import { ClienteFormData } from "../../types";
 import { toast } from "react-toastify";
-
 
 export const Clientes: React.FC = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -33,14 +33,19 @@ export const Clientes: React.FC = () => {
 
   const { data: clientes, isLoading, error } = supabase.useClientes();
   const { mutate, isPending } = supabase.useCrearCliente();
+  const {
+    data: pedidos,
+    isLoading: isLoadingPedidos,
+    error: errorPedidos,
+  } = supabase.usePedidos();
 
-  if (error) {
+  if (error || errorPedidos) {
     toast.error("Error al cargar los Clientes");
     navigate("/login");
     return;
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingPedidos) {
     return <p>Cargando ...</p>;
   }
 
@@ -112,6 +117,13 @@ export const Clientes: React.FC = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const pedidosPorCliente = (clienteId: string) => {
+    const pedidosFiltrados = pedidos?.filter(
+      (pedido) => pedido.cliente_id === clienteId
+    );
+    return pedidosFiltrados;
   };
 
   const filteredClientes = clientes?.filter((cliente) => {
@@ -194,12 +206,11 @@ export const Clientes: React.FC = () => {
                       Etapa
                     </th>
                     <th className="text-left py-4 px-6 font-medium text-gray-900">
-                      Valor Potencial
+                      Ventas
                     </th>
                     <th className="text-left py-4 px-6 font-medium text-gray-900">
-                      Última Actividad
+                      Rif
                     </th>
-                   
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -240,9 +251,6 @@ export const Clientes: React.FC = () => {
                             <p className="font-medium text-gray-900">
                               {cliente.empresa}
                             </p>
-                            <p className="text-sm text-gray-500">
-                              {cliente.cargo}
-                            </p>
                           </div>
                         </div>
                       </td>
@@ -268,16 +276,20 @@ export const Clientes: React.FC = () => {
                         <div className="flex items-center space-x-1">
                           <DollarSign className="h-4 w-4 text-green-600" />
                           <span className="font-medium text-gray-900">
-                            ${cliente.valor_potencial.toLocaleString()}
+                            $
+                            {Number(
+                              pedidosPorCliente(cliente.id)?.reduce(
+                                (total, pedido) => total + pedido.total,
+                                0
+                              )
+                            ).toLocaleString()}
                           </span>
                         </div>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center space-x-1 text-sm text-gray-500">
-                          <Calendar className="h-4 w-4" />
-                          <span>
-                            {cliente.ultima_actividad.toLocaleString()}
-                          </span>
+                          <IdCard className="h-4 w-4" />
+                          <span>{cliente.rif.toLocaleString()}</span>
                         </div>
                       </td>
                     </tr>
@@ -309,7 +321,7 @@ export const Clientes: React.FC = () => {
                 </span>
               </div>
               <p className="text-2xl font-bold text-gray-900 mt-2">
-                {clientes?.filter((c) => c.estado === "cliente").length}
+                {clientes?.filter((c) => c.estado === "activo").length}
               </p>
             </div>
 
@@ -329,14 +341,14 @@ export const Clientes: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <DollarSign className="h-5 w-5 text-green-600" />
                 <span className="text-sm font-medium text-gray-600">
-                  Valor Total
+                  Total Vendido
                 </span>
               </div>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 $
-                {clientes
-                  .reduce((sum, c) => sum + c.valor_potencial, 0)
-                  .toLocaleString()}
+                {Number(
+                  pedidos?.reduce((total, pedido) => total + pedido.total, 0)
+                ).toLocaleString()}
               </p>
             </div>
           </div>
@@ -345,7 +357,6 @@ export const Clientes: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => {
             setModalOpen(false);
-            // setEditCliente(null);
           }}
           title={"Crear Cliente"}
         >

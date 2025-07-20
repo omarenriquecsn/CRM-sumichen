@@ -18,20 +18,19 @@ export interface Cliente {
   email: string;
   telefono: string;
   empresa?: string;
-  cargo?: string;
+
   estado: Estado;
   etapa_venta: EtapaVenta;
-  valor_potencial: number;
+  // rif: number;
   fecha_creacion: Date;
-  ultima_actividad: Date;
   notas?: string;
   direccion?: string;
   ciudad?: string;
-  codigo_postal?: string;
-  rol: "vendedor" | "admin";
+
+  rif: string;
 }
 
-type Estado = "prospecto" | "cliente" | "inactivo";
+export type Estado = "prospecto" | "activo" | "inactivo";
 
 type EtapaVenta =
   | "inicial"
@@ -47,16 +46,13 @@ export interface ClienteFormData {
   email: string;
   telefono: string;
   empresa?: string;
-  cargo?: string;
   estado: Estado;
   etapa_venta: EtapaVenta;
-  valor_potencial: number;
+  rif: string;
   fecha_creacion: Date;
-  ultima_actividad: Date;
   notas?: string;
   direccion?: string;
   ciudad?: string;
-  codigo_postal?: string;
 }
 
 export interface Actividad {
@@ -144,6 +140,7 @@ export interface Pedido {
   subtotal: number;
   impuestos: number;
   total: number;
+  estado: "pendiente" | "procesado";
   fecha_entrega: Date;
   notas?: string;
   fecha_creacion: Date;
@@ -152,10 +149,8 @@ export interface Pedido {
   dias_credito?: number;
   moneda: "usd" | "bs";
   transporte: "interno" | "externo";
-  descuento: number;
   productos_pedido: ProductoPedido[];
 }
-
 
 export interface Meta {
   id: string;
@@ -237,6 +232,7 @@ export interface ProductoPedido {
   nombre: string;
   cantidad: number;
   precio: number;
-  subtotal: number;
+  total: number;
   producto_id: string;
+  producto: Producto;
 }

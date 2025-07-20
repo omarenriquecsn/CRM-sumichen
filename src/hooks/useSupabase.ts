@@ -15,24 +15,170 @@ import {
 import { Ticket } from "../types";
 
 export const useSupabase = () => {
+  const URL = import.meta.env.VITE_BACKEND_URL;
   const queryClient = useQueryClient();
+  const { session } = useAuth();
 
   // Hook para obtener clientes
   const useClientes = () => {
-    const { currentUser } = useAuth();
-    return useQuery({
+    const { currentUser, session } = useAuth();
+    return useQuery<Cliente[]>({
       queryKey: ["clientes", currentUser?.id],
       queryFn: async () => {
-        if (!currentUser) return [];
-        const { data, error } = await supabase
-          .from("clientes")
-          .select("*")
-          .eq("vendedor_id", currentUser.id)
-          .order("fecha_creacion", { ascending: false });
-        if (error) throw new Error(error.message);
+        if (!currentUser || !session?.access_token)
+          throw new Error("Usuario no logueado o sin sesión");
+        const clientesData = await fetch(`${URL}/clientes/${currentUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        });
+        const data: Promise<Cliente[]> = await clientesData.json();
         return data || [];
       },
       enabled: !!currentUser,
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    });
+  };
+
+  // Hook para crear cliente
+  const useCrearCliente = () => {
+    return useMutation({
+      mutationFn: async ({
+        clienteData,
+        currentUser,
+      }: {
+        clienteData: Partial<Cliente>;
+        currentUser: User;
+      }) => {
+        if (!currentUser || !session?.access_token)
+          throw new Error("Usuario no autenticado o no hay token");
+
+        clienteData.vendedor_id = currentUser.id;
+        await fetch(`${URL}/clientes`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(clienteData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al crear el cliente");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["clientes"] });
+      },
+    });
+  };
+
+  // Hook para Actualizar Clientes
+  const useActualizarCliente = () => {
+    return useMutation({
+      mutationFn: async ({
+        clienteData,
+        currentUser,
+      }: {
+        clienteData: Cliente;
+        currentUser: User;
+      }) => {
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        console.log(clienteData, "Cliente Data");
+        await fetch(`${URL}/clientes/${clienteData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(clienteData),
+        }).then((response) => {
+          console.log(response);
+          if (!response.ok) {
+            throw new Error("Error al actualizar el cliente");
+          }
+        });
+      },
+
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["clientes"] });
+      },
+    });
+  };
+
+
+   // Hook para obtener pedidos
+  const usePedidos = () => {
+    const { currentUser, session } = useAuth();
+    return useQuery({
+      queryKey: ["pedidos", currentUser?.id],
+      queryFn: async () => {
+        if (!currentUser || !session?.access_token)
+          throw new Error("Usuario no logueado o sin sesión");
+        const pedidosData = await fetch(`${URL}/pedidos/${currentUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        });
+        const data: Promise<Pedido[]> = await pedidosData.json();
+        console.log(data);
+        return data || [];
+      },
+      enabled: !!currentUser,
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    });
+  };
+
+// Hook para crear pedido
+    const useCrearPedido = () => {
+    return useMutation({
+      mutationFn: async ({
+        pedidoData,
+        productosPedido,
+        currentUser,
+      }: CrearPedidoParams) => {
+        if (!currentUser) throw new Error("Usuario no autenticado");
+
+        // 1. Crear el pedido
+        const { data: pedido, error: errorPedido } = await supabase
+          .from("pedidos")
+          .insert({
+            ...pedidoData,
+            vendedor_id: currentUser.id,
+          })
+          .select()
+          .single();
+
+        if (errorPedido || !pedido) throw new Error("Error creando pedido");
+
+        // 2. Asociar productos al pedido
+        const productosFormateados = productosPedido.map((p: formProducto) => ({
+          pedido_id: pedido.id,
+          producto_id: p.producto_id,
+          cantidad: p.cantidad,
+          nombre: p.nombre,
+          descripcion: p.descripcion,
+          precio_unitario: p.precio_unitario,
+        }));
+
+        const { error: errorProductos } = await supabase
+          .from("productos_pedido")
+          .insert(productosFormateados);
+
+        if (errorProductos) throw new Error("Error asociando productos");
+
+        return pedido;
+      },
+
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      },
+
+      onError: (error: unknown) => {
+        if (error instanceof Error) throw new Error(error.message);
+      },
     });
   };
 
@@ -98,27 +244,6 @@ export const useSupabase = () => {
     });
   };
 
-  // Hook para obtener pedidos
-  const usePedidos = () => {
-    const { currentUser } = useAuth();
-    return useQuery({
-      queryKey: ["pedidos", currentUser?.id],
-      queryFn: async () => {
-        if (!currentUser) return [];
-        const { data, error } = await supabase
-          .from("pedidos")
-          .select(
-            `*, clientes (nombre, apellido, empresa, telefono, email), productos_pedido (*)`
-          )
-          .eq("vendedor_id", currentUser.id)
-          .order("fecha_creacion", { ascending: false });
-        if (error) throw new Error(error.message);
-        return data || [];
-      },
-      enabled: !!currentUser,
-    });
-  };
-
   // Hook para obtener oportunidades (pipeline)
   const useOportunidades = () => {
     const { currentUser } = useAuth();
@@ -138,6 +263,7 @@ export const useSupabase = () => {
     });
   };
 
+  // Hook para obtener productos
   const useProductos = () => {
     return useQuery({
       queryKey: ["productos"],
@@ -156,32 +282,6 @@ export const useSupabase = () => {
     pedidoData: Partial<Pedido>;
     productosPedido: formProducto[];
     currentUser: User;
-  };
-
-  const useCrearCliente = () => {
-    return useMutation({
-      mutationFn: async ({
-        clienteData,
-        currentUser,
-      }: {
-        clienteData: Partial<Cliente>;
-        currentUser: User;
-      }) => {
-        if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
-          .from("clientes")
-          .insert({
-            ...clienteData,
-            vendedor_id: currentUser.id,
-          })
-          .select();
-        if (error) throw new Error(error.message);
-        return data;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["clientes"] });
-      },
-    });
   };
 
   const useCrearActividad = () => {
@@ -265,55 +365,7 @@ export const useSupabase = () => {
     });
   };
 
-  const useCrearPedido = () => {
-    return useMutation({
-      mutationFn: async ({
-        pedidoData,
-        productosPedido,
-        currentUser,
-      }: CrearPedidoParams) => {
-        if (!currentUser) throw new Error("Usuario no autenticado");
 
-        // 1. Crear el pedido
-        const { data: pedido, error: errorPedido } = await supabase
-          .from("pedidos")
-          .insert({
-            ...pedidoData,
-            vendedor_id: currentUser.id,
-          })
-          .select()
-          .single();
-
-        if (errorPedido || !pedido) throw new Error("Error creando pedido");
-
-        // 2. Asociar productos al pedido
-        const productosFormateados = productosPedido.map((p: formProducto) => ({
-          pedido_id: pedido.id,
-          producto_id: p.producto_id,
-          cantidad: p.cantidad,
-          nombre: p.nombre,
-          descripcion: p.descripcion,
-          precio_unitario: p.precio_unitario,
-        }));
-
-        const { error: errorProductos } = await supabase
-          .from("productos_pedido")
-          .insert(productosFormateados);
-
-        if (errorProductos) throw new Error("Error asociando productos");
-
-        return pedido;
-      },
-
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
-      },
-
-      onError: (error: unknown) => {
-        if (error instanceof Error) throw new Error(error.message);
-      },
-    });
-  };
 
   const useCrearOportunidades = () => {
     return useMutation({
@@ -337,31 +389,6 @@ export const useSupabase = () => {
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
-      },
-    });
-  };
-
-  const useActualizarCliente = () => {
-    return useMutation({
-      mutationFn: async ({
-        clienteData,
-        currentUser,
-      }: {
-        clienteData: Cliente;
-        currentUser: User;
-      }) => {
-        if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
-          .from("clientes")
-          .update(clienteData)
-          .eq("id", clienteData.id)
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["clientes"] });
       },
     });
   };
@@ -440,8 +467,6 @@ export const useSupabase = () => {
       },
     });
   };
-
-
 
   return {
     useClientes,
