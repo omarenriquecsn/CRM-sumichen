@@ -1,14 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/useAuth";
 import { User } from "@supabase/supabase-js";
 import {
+  Actividad,
   Cliente,
   formProducto,
   ICrearActividad,
   ICrearReunion,
   ICreateOportunidad,
   Pedido,
+  PedidoDb,
+  // PedidoDb,
+  ProductoDb,
   // ProductoPedido,
   Reunion,
 } from "../types";
@@ -107,8 +110,7 @@ export const useSupabase = () => {
     });
   };
 
-
-   // Hook para obtener pedidos
+  // Hook para obtener pedidos
   const usePedidos = () => {
     const { currentUser, session } = useAuth();
     return useQuery({
@@ -122,7 +124,6 @@ export const useSupabase = () => {
           },
         });
         const data: Promise<Pedido[]> = await pedidosData.json();
-        console.log(data);
         return data || [];
       },
       enabled: !!currentUser,
@@ -131,8 +132,14 @@ export const useSupabase = () => {
     });
   };
 
-// Hook para crear pedido
-    const useCrearPedido = () => {
+  type CrearPedidoParams = {
+    pedidoData: Partial<Pedido>;
+    productosPedido: formProducto[];
+    currentUser: User;
+  };
+
+  // Hook para crear pedido
+  const useCrearPedido = () => {
     return useMutation({
       mutationFn: async ({
         pedidoData,
@@ -140,38 +147,39 @@ export const useSupabase = () => {
         currentUser,
       }: CrearPedidoParams) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-
-        // 1. Crear el pedido
-        const { data: pedido, error: errorPedido } = await supabase
-          .from("pedidos")
-          .insert({
-            ...pedidoData,
-            vendedor_id: currentUser.id,
-          })
-          .select()
-          .single();
-
-        if (errorPedido || !pedido) throw new Error("Error creando pedido");
-
-        // 2. Asociar productos al pedido
-        const productosFormateados = productosPedido.map((p: formProducto) => ({
-          pedido_id: pedido.id,
+        const pedidoDB: PedidoDb = {
+          vendedor_id: currentUser.id,
+          cliente_id: pedidoData.cliente_id || "",
+          impuestos:
+            pedidoData.impuestos && pedidoData.impuestos > 0 ? "iva" : "exento",
+          moneda: pedidoData.moneda || "usd",
+          tipo_pago: pedidoData.tipo_pago || "contado",
+          transporte: pedidoData.transporte || "interno",
+          dias_credito: pedidoData.dias_credito,
+          fecha_entrega: pedidoData.fecha_entrega || new Date(),
+        };
+        const productosFormateados = productosPedido.map((p: ProductoDb) => ({
           producto_id: p.producto_id,
           cantidad: p.cantidad,
-          nombre: p.nombre,
-          descripcion: p.descripcion,
           precio_unitario: p.precio_unitario,
         }));
-
-        const { error: errorProductos } = await supabase
-          .from("productos_pedido")
-          .insert(productosFormateados);
-
-        if (errorProductos) throw new Error("Error asociando productos");
-
-        return pedido;
+        // 1. Crear el pedido
+        await fetch(`${URL}/pedidos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            ...pedidoDB,
+            productos: productosFormateados,
+          }),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al crear el pedido");
+          }
+        });
       },
-
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["pedidos"] });
       },
@@ -189,20 +197,45 @@ export const useSupabase = () => {
       queryKey: ["actividades", currentUser?.id, clienteId],
       queryFn: async () => {
         if (!currentUser) return [];
-        let query = supabase
-          .from("actividades")
-          .select(`*, clientes (nombre, apellido, empresa)`)
-          .eq("vendedor_id", currentUser.id);
-        if (clienteId) {
-          query = query.eq("cliente_id", clienteId);
-        }
-        const { data, error } = await query.order("fecha", {
-          ascending: false,
-        });
-        if (error) throw new Error(error.message);
+        const ActividadesData = await fetch(`${URL}/actividades`, {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }).then((response) => response.json());
+        const data: Promise<Actividad[]> = ActividadesData;
         return data || [];
       },
       enabled: !!currentUser,
+    });
+  };
+
+  // Hook para crear actividad
+  const useCrearActividad = () => {
+    return useMutation({
+      mutationFn: async ({
+        actividadData,
+        currentUser,
+      }: {
+        actividadData: ICrearActividad;
+        currentUser: User;
+      }) => {
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        await fetch(`${URL}/actividades`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(actividadData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al crear la actividad");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["actividades"] });
+      },
     });
   };
 
@@ -212,13 +245,13 @@ export const useSupabase = () => {
     return useQuery({
       queryKey: ["reuniones", currentUser?.id],
       queryFn: async () => {
-        if (!currentUser) return [];
-        const { data, error } = await supabase
-          .from("reuniones")
-          .select(`*, clientes (nombre, apellido, empresa)`)
-          .eq("vendedor_id", currentUser.id)
-          .order("fecha_inicio", { ascending: true });
-        if (error) throw new Error(error.message);
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        const reunionesData = await fetch(`${URL}/reuniones`, {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }).then((response) => response.json());
+        const data: Promise<Reunion[]> = reunionesData;
         return data || [];
       },
       enabled: !!currentUser,
@@ -231,13 +264,13 @@ export const useSupabase = () => {
     return useQuery({
       queryKey: ["tickets", currentUser?.id],
       queryFn: async () => {
-        if (!currentUser) return [];
-        const { data, error } = await supabase
-          .from("tickets")
-          .select(`*, clientes (nombre, apellido, empresa)`)
-          .eq("vendedor_id", currentUser.id)
-          .order("fecha_creacion", { ascending: false });
-        if (error) throw new Error(error.message);
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        const ticketsData = await fetch(`${URL}/tickets/${currentUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }).then((response) => response.json());
+        const data: Promise<Ticket[]> = ticketsData;
         return data || [];
       },
       enabled: !!currentUser,
@@ -250,14 +283,15 @@ export const useSupabase = () => {
     return useQuery({
       queryKey: ["oportunidades", currentUser?.id],
       queryFn: async () => {
-        if (!currentUser) return [];
-        const { data, error } = await supabase
-          .from("oportunidades")
-          .select(`*, clientes (nombre, apellido, empresa)`)
-          .eq("vendedor_id", currentUser.id)
-          .order("fecha_creacion", { ascending: false });
-        if (error) throw new Error(error.message);
-        return data || [];
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        const reunionesDataB = await fetch(`${URL}/reuniones`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+        }).then((res) => res.json);
+        return reunionesDataB;
       },
       enabled: !!currentUser,
     });
@@ -268,49 +302,21 @@ export const useSupabase = () => {
     return useQuery({
       queryKey: ["productos"],
       queryFn: async () => {
-        const { data, error } = await supabase
-          .from("productos")
-          .select("*")
-          .order("fecha_creacion", { ascending: false });
-        if (error) throw new Error(error.message);
-        return data || [];
+        const productos = await fetch(`${URL}/productos`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+        }).then((response) => response.json());
+        return productos || [];
       },
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
     });
   };
 
-  type CrearPedidoParams = {
-    pedidoData: Partial<Pedido>;
-    productosPedido: formProducto[];
-    currentUser: User;
-  };
-
-  const useCrearActividad = () => {
-    return useMutation({
-      mutationFn: async ({
-        actividadData,
-        currentUser,
-      }: {
-        actividadData: ICrearActividad;
-        currentUser: User;
-      }) => {
-        if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
-          .from("actividades")
-          .insert({
-            ...actividadData,
-            vendedor_id: currentUser.id,
-          })
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["actividades"] });
-      },
-    });
-  };
-
+  // hook para crear Reuniones
   const useCrearReunion = () => {
     return useMutation({
       mutationFn: async ({
@@ -321,16 +327,18 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
-          .from("reuniones")
-          .insert({
-            ...reunionData,
-            vendedor_id: currentUser.id,
-          })
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
+        await fetch(`${URL}/reuniones`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(reunionData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al crear la reunion");
+          }
+        });
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["reuniones"] });
@@ -348,24 +356,27 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
-          .from("tickets")
-          .insert({
-            ...ticketData,
-            vendedor_id: currentUser.id,
-          })
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
+        await fetch(`${URL}/tickets`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({...ticketData, vendedor_id: currentUser.id}),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al crear el ticket");
+          }
+          return response.json().then((data) => {
+            return data;
+          });
+        });
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["tickets"] });
       },
     });
   };
-
-
 
   const useCrearOportunidades = () => {
     return useMutation({
@@ -377,15 +388,21 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
-          .from("oportunidades")
-          .insert({
-            ...oportunidadData,
-          })
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
+        await fetch(`${URL}/oportunidades`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(oportunidadData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al crear la oportunidad");
+          }
+          return response.json().then((data) => {
+            return data;
+          });
+        });
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
@@ -393,6 +410,7 @@ export const useSupabase = () => {
     });
   };
 
+  // Actualizar Reuniones
   const useActualizarReunion = () => {
     return useMutation({
       mutationFn: async ({
@@ -403,14 +421,18 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const { data, error } = await supabase
-          .from("reuniones")
-          .update(ReunionData)
-          .eq("id", ReunionData.id)
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
+        await fetch(`${URL}/reuniones/${ReunionData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(ReunionData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al actualizar la reunion");
+          }
+        });
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["reuniones"] });
@@ -428,14 +450,18 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no Autenticado");
-        const { data, error } = await supabase
-          .from("tickets")
-          .update(TicketData)
-          .eq("id", TicketData.id)
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
+        await fetch(`${URL}/tickets/${TicketData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(TicketData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al actualizar el ticket");
+          }
+        });
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["tickets"] });
@@ -453,14 +479,21 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error();
-        const { data, error } = await supabase
-          .from("pedidos")
-          .update(PedidoData)
-          .eq("id", PedidoData.id)
-          .select()
-          .single();
-        if (error) throw new Error(error.message);
-        return data;
+        await fetch(`${URL}/pedidos/${PedidoData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(PedidoData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al actualizar el pedido");
+          }
+          return response.json().then((data) => {
+            return data;
+          });
+        });
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["pedidos"] });

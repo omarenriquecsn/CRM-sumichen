@@ -79,7 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       const nuevoCurrentUser = await solicitarnuevoCurrentUser.json();
-      console.log(nuevoCurrentUser);
 
       if (!nuevoCurrentUser) {
         return;

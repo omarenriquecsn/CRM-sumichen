@@ -12,17 +12,23 @@ import {
   Settings,
   LogOut,
   Shield,
-  Building2
+  Building2,
+  X,
 } from 'lucide-react';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { userData, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -54,9 +60,23 @@ export const Sidebar: React.FC = () => {
   const links = userData?.rol === 'admin' ? adminLinks : vendedorLinks;
 
   return (
-    <div className="bg-white h-screen w-64 shadow-lg flex flex-col border-r border-gray-200">
+    <>
+      {/* Backdrop para móvil */}
+      <div
+        className={`fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden transition-opacity ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      ></div>
+
+      <div
+        className={`fixed lg:relative inset-y-0 left-0 transform ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 transition-transform duration-300 ease-in-out bg-white h-screen w-64 shadow-lg flex flex-col border-r border-gray-200 z-40`}
+      >
       {/* Logo y título */}
-      <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-xl">
             <Building2 className="h-6 w-6 text-white" />
@@ -66,6 +86,9 @@ export const Sidebar: React.FC = () => {
             <p className="text-sm text-gray-500">Sistema de Ventas</p>
           </div>
         </div>
+          <button onClick={onClose} className="lg:hidden text-gray-500 hover:text-gray-800">
+            <X className="h-6 w-6" />
+          </button>
       </div>
 
       {/* Información del usuario */}
@@ -88,7 +111,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {links.map((link) => (
           <NavLink
             key={link.to}
@@ -117,6 +140,7 @@ export const Sidebar: React.FC = () => {
           <span className="font-medium">Cerrar Sesión</span>
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

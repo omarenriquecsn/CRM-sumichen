@@ -208,10 +208,7 @@ export interface Producto {
   id: string;
   nombre: string;
   descripcion: string;
-  precio_unitario: number;
   unidad_medida: string;
-  stock: number;
-  activo: boolean;
   fecha_creacion: string;
 }
 export type formProducto = {
@@ -235,4 +232,22 @@ export interface ProductoPedido {
   total: number;
   producto_id: string;
   producto: Producto;
+}
+
+export interface ProductoDb {
+  producto_id: string;
+  cantidad: number;
+  precio_unitario: number;
+}
+
+export interface PedidoDb {
+  cliente_id: string;
+  vendedor_id: string;
+  fecha_entrega: Date;
+  notas?: string;
+  tipo_pago: "contado" | "credito";
+  dias_credito?: number;
+  moneda: "usd" | "bs";
+  transporte: "interno" | "externo";
+  impuestos: 'iva' | 'exento';
 }

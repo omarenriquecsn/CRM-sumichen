@@ -46,33 +46,24 @@ export const ClienteDetalle: React.FC = () => {
   const [isModalBOpen, setModalBOpen] = useState(false);
   const [isModalCOpen, setModalCopen] = useState(false);
 
-  const {
-    data: actividadesTodas,
-    isLoading: loadinActividades,
-    error: errorActividades,
-  } = supabase.useActividades();
+  // Actividades
+  const { data: actividadesTodas, error: errorActividades  } = supabase.useActividades();
 
-  const { data: clientes, isLoading, error } = supabase.useClientes();
+  // Clientes
+  const { data: clientes } = supabase.useClientes();
   const { mutate: editarCliente, isPending: pendigEditar } =
     supabase.useActualizarCliente();
-
-  const { data: pedidos, isLoading: loadingPedidos } = supabase.usePedidos();
 
   const { mutate: crearActividad, isPending: pendingActividad } =
     supabase.useCrearActividad();
 
+  // Pedidos
+  const { data: pedidos } = supabase.usePedidos();
+
+  // Reuniones
   const { mutate: crearReunion, isPending: pendingReunion } =
     supabase.useCrearReunion();
 
-  if (error) {
-    toast.error("Error para mostrar datos del cliente");
-    navigate("/clientes");
-    return;
-  }
-
-  if (isLoading || loadinActividades || loadingPedidos) {
-    return <p>Cargando...</p>;
-  }
   const handleEditCliente = () => {
     setModalOpen(true);
   };
@@ -83,6 +74,7 @@ export const ClienteDetalle: React.FC = () => {
     const cliente = clientes.find((c) => c.id === id);
     const actividades = actividadesTodas?.filter((a) => a.cliente_id === id);
 
+    
     if (!cliente) {
       toast.error("Cliente no encontrado");
       navigate("/clientes");
@@ -99,17 +91,18 @@ export const ClienteDetalle: React.FC = () => {
     };
     const hoy = new Date();
 
-    const ultimaCompra = pedidosFiltrados()?.length ?? 0> 0
-      ? pedidosFiltrados()?.reduce((prev: Pedido, curr: Pedido) => {
-          const fechaPrev = new Date(prev.fecha_creacion);
-          const fechaCurr = new Date(prev.fecha_creacion);
+    const ultimaCompra =
+      pedidosFiltrados()?.length ?? 0 > 0
+        ? pedidosFiltrados()?.reduce((prev: Pedido, curr: Pedido) => {
+            const fechaPrev = new Date(prev.fecha_creacion);
+            const fechaCurr = new Date(prev.fecha_creacion);
 
-          const diffPrev = Math.abs(hoy.getDate() - fechaPrev.getDate());
-          const diffCurr = Math.abs(hoy.getDate() - fechaCurr.getDate());
+            const diffPrev = Math.abs(hoy.getDate() - fechaPrev.getDate());
+            const diffCurr = Math.abs(hoy.getDate() - fechaCurr.getDate());
 
-          return diffCurr < diffPrev ? curr : prev;
-        })
-      : null;
+            return diffCurr < diffPrev ? curr : prev;
+          })
+        : null;
 
     const handleUpdateCliente = async (data: ClienteFormData) => {
       try {

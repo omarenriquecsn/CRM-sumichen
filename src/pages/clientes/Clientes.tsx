@@ -31,24 +31,17 @@ export const Clientes: React.FC = () => {
 
   const { currentUser } = useAuth();
 
-  const { data: clientes, isLoading, error } = supabase.useClientes();
+  // Clientes
+  const { data: clientes } = supabase.useClientes();
   const { mutate, isPending } = supabase.useCrearCliente();
+  
+  // Pedidos
   const {
     data: pedidos,
-    isLoading: isLoadingPedidos,
-    error: errorPedidos,
   } = supabase.usePedidos();
 
-  if (error || errorPedidos) {
-    toast.error("Error al cargar los Clientes");
-    navigate("/login");
-    return;
-  }
-
-  if (isLoading || isLoadingPedidos) {
-    return <p>Cargando ...</p>;
-  }
-
+ 
+ 
   const handleCreateCliente = async (user: ClienteFormData) => {
     try {
       if (!currentUser) {
@@ -282,7 +275,7 @@ export const Clientes: React.FC = () => {
                                 (total, pedido) => total + pedido.total,
                                 0
                               )
-                            ).toLocaleString()}
+                            ) || 0}
                           </span>
                         </div>
                       </td>
@@ -347,8 +340,8 @@ export const Clientes: React.FC = () => {
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 $
                 {Number(
-                  pedidos?.reduce((total, pedido) => total + pedido.total, 0)
-                ).toLocaleString()}
+                  pedidos?.reduce((total, pedido) => total + Number(pedido.total), 0)
+                ) || 0}
               </p>
             </div>
           </div>

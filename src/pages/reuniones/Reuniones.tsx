@@ -49,17 +49,13 @@ export const Reuniones: React.FC = () => {
   );
 
   //Reuniones
-  const {
-    data: reuniones,
-    isLoading: loadinReuniones,
-    error: errorsReuniones,
-  } = supabase.useReuniones();
+  const { data: reuniones, isLoading: isLoadingReuniones } =
+    supabase.useReuniones();
+
+    console.log(reuniones)
   //Clientes
-  const {
-    data: clientes,
-    isLoading: loadingClientes,
-    error: errorClientes,
-  } = supabase.useClientes();
+  const { data: clientes, isLoading: isLoadingClientes } =
+    supabase.useClientes();
   //Actualizar Reuniones
 
   const { mutate: actualizarReunion, isPending: pendingReunion } =
@@ -112,7 +108,7 @@ export const Reuniones: React.FC = () => {
       .slice(0, 3);
   }, [reuniones]);
 
-  if (loadinReuniones || loadingClientes) {
+  if (isLoadingReuniones || isLoadingClientes) {
     return (
       <Layout
         title="Gestión de Reuniones"
@@ -125,14 +121,17 @@ export const Reuniones: React.FC = () => {
     );
   }
 
-  if (errorsReuniones || errorClientes) {
-    toast.error("Error al cargar las reuniones ");
-    navigate("/dasboard");
-    return;
-  }
-
   if (!reuniones || !clientes) {
-    return <p>No hay datos para mostrar.</p>;
+    return (
+      <Layout
+        title="Gestión de Reuniones"
+        subtitle="Programa y gestiona tus reuniones con clientes"
+      >
+        <div className="flex justify-center items-center h-64">
+          <p>No se encontraron reuniones</p>
+        </div>
+      </Layout>
+    );
   }
 
   const formatReunionPayload = (data: IFormReunion) => {
@@ -642,7 +641,7 @@ export const Reuniones: React.FC = () => {
               value: c.id,
               label: c.nombre + " " + c.apellido,
             }))}
-            onChange={(opcion) => setClienteSeleccionado(opcion?.value)}
+            onChange={(opcion) => setClienteSeleccionado(opcion?.value ?? "")}
             placeholder="Selecciona un cliente"
             isSearchable
           />

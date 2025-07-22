@@ -15,7 +15,6 @@ import {
   FileText,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useSupabase } from "../../hooks/useSupabase";
 import dayjs from "dayjs";
 import { PedidoData, ProductoPedido } from "../../types";
@@ -41,34 +40,12 @@ export const Pedidos: React.FC = () => {
 
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
-  const {
-    data: pedidos,
-    isLoading: loadingPedidos,
-    error: errorPedidos,
-  } = supabase.usePedidos();
+  const { data: pedidos } = supabase.usePedidos();
 
-  const {
-    data: clientes,
-    isLoading: loadingClientes,
-    error: errorClientes,
-  } = supabase.useClientes();
+  const { data: clientes } = supabase.useClientes();
 
   const { mutate: nuevoPedido, isPending: isCreandoPedido } =
     supabase.useCrearPedido();
-
-  if (errorPedidos || errorClientes) {
-    toast.error("Error al cargar los pedidos");
-    return;
-  }
-
-  if (loadingPedidos || loadingClientes) {
-    return <LoadingSpinner />;
-  }
-
-  if (!pedidos) {
-    toast.error("No hay pedidos");
-    return;
-  }
 
   if (!currentUser) {
     toast.error("Debes iniciar sesión para ver los pedidos");
@@ -114,22 +91,21 @@ export const Pedidos: React.FC = () => {
     }
   };
 
-  console.log(pedidos);
-
-  const pedidosFiltrados = pedidos.filter((pedido) => {
+  const pedidosFiltrados = pedidos?.filter((pedido) => {
     if (filtroEstado === "todos") return true;
     return pedido.estado === filtroEstado;
   });
 
   const estadisticas = {
-    total: pedidos.length,
-    pendientes: pedidos.filter((p) => p.estado === "pendiente").length,
-    aprobados: pedidos.filter((p) => p.estado === "procesado").length,
+    total: pedidos?.length,
+    pendientes: pedidos?.filter((p) => p.estado === "pendiente").length,
+    aprobados: pedidos?.filter((p) => p.estado === "procesado").length,
 
-    valorTotal: pedidos.reduce((sum, p) => sum + p.total, 0),
+    valorTotal: pedidos?.reduce((sum, p) => sum + Number(p.total), 0),
   };
 
   const handleCrearPedido = (data: PedidoData) => {
+    console.log("data", data);
     if (!currentUser || !data.productos) {
       toast.error("Debes iniciar sesión para crear un pedido");
       return;
@@ -171,6 +147,7 @@ export const Pedidos: React.FC = () => {
     const cliente = clientes?.find((c) => c.id === cliente_id);
     return cliente;
   };
+
   return (
     <Layout
       title="Gestión de Pedidos"
@@ -245,7 +222,7 @@ export const Pedidos: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              ${estadisticas.valorTotal.toLocaleString()}
+              ${estadisticas.valorTotal}
             </p>
           </div>
         </div>
@@ -293,10 +270,14 @@ export const Pedidos: React.FC = () => {
             <span>Nuevo Pedido</span>
           </button>
         </div>
-
+        {!pedidosFiltrados?.length && (
+          <div className="text-center text-gray-600 mt-4">
+            No se encontraron pedidos
+          </div>
+        )}
         {/* Lista de pedidos */}
         <div className="space-y-4">
-          {pedidosFiltrados.map((pedido) => (
+          {pedidosFiltrados?.map((pedido) => (
             <div
               key={pedido.id}
               className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
@@ -311,9 +292,9 @@ export const Pedidos: React.FC = () => {
                     {getEstadoIcon(pedido.estado)}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {pedido.numero}
-                    </h3>
+                    {/* <h3 className="text-lg font-semibold text-gray-900">
+                     Pedido Nº {pedido.numero}
+                    </h3> */}
                     <div className="flex items-center space-x-4 mt-1">
                       <div className="flex items-center space-x-1">
                         <User className="h-4 w-4 text-gray-400" />
@@ -387,8 +368,6 @@ export const Pedidos: React.FC = () => {
                 </div>
               </div>
 
-            
-
               {/* Acciones */}
               <div className="border-t border-gray-200 pt-4 mt-4">
                 <div className="flex items-center justify-between">
@@ -425,6 +404,7 @@ export const Pedidos: React.FC = () => {
           ))}
         </div>
       </div>
+
       <Modal
         isOpen={modalPedidoVisible}
         onClose={() => {

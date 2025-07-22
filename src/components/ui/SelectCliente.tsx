@@ -47,9 +47,11 @@ const SelectCliente = ({
           value: c.id,
           label: c.nombre + " " + c.apellido,
         }))}
-        onChange={(opcion) => setClienteSeleccionado(opcion?.value)}
+        onChange={(opcion) => setClienteSeleccionado(opcion?.value?? null)}
         placeholder="Selecciona un cliente"
         isSearchable
+        menuPortalTarget={document.body}
+        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
         />
     <button
       onClick={() => {
