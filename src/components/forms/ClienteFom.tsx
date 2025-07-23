@@ -14,18 +14,18 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
     email: initialData?.email || "",
     telefono: initialData?.telefono || "",
     empresa: initialData?.empresa || "",
-    cargo: initialData?.cargo || "",
+    // cargo: initialData?.cargo || "",
     estado: initialData?.estado || "prospecto",
     etapa_venta: initialData?.etapa_venta || "inicial",
-    valor_potencial: initialData?.valor_potencial || 0,
+    rif: initialData?.rif || "",
     fecha_creacion: initialData?.fecha_creacion
       ? new Date(initialData.fecha_creacion)
       : new Date(),
-    ultima_actividad: new Date(),
+    // ultima_actividad: new Date(),
     notas: initialData?.notas || "",
     direccion: initialData?.direccion || "",
     ciudad: initialData?.ciudad || "",
-    codigo_postal: initialData?.codigo_postal || "",
+    // codigo_postal: initialData?.codigo_postal || "",
   });
 
   const handleChange = (
@@ -36,7 +36,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "valor_potencial" ? Number(value) : value,
+      [name]: value,
     }));
   };
 
@@ -118,19 +118,6 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cargo
-            </label>
-            <input
-              type="text"
-              name="cargo"
-              placeholder="Cargo"
-              value={form.cargo ?? ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-            />
-          </div>
         </div>
         <div className="space-y-4">
           <div>
@@ -168,13 +155,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Valor Potencial
+              Rif de la Empresa
             </label>
             <input
-              type="number"
-              name="valor_potencial"
-              placeholder="Valor Potencial"
-              value={form.valor_potencial}
+              type="text"
+              name="rif"
+              placeholder="Rif"
+              value={form.rif}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
             />
@@ -192,18 +179,6 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
               />
             </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Última Actividad
-              </label>
-              <input
-                type="date"
-                name="ultimaActividad"
-                value={form.ultima_actividad.toISOString().split("T")[0]}
-                disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-              />
-            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -217,47 +192,34 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px]"
             />
           </div>
-          <div className="flex space-x-2">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Dirección
-              </label>
-              <input
-                type="text"
-                name="direccion"
-                placeholder="Dirección"
-                value={form.direccion ?? ""}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ciudad
-              </label>
-              <input
-                type="text"
-                name="ciudad"
-                placeholder="Ciudad"
-                value={form.ciudad ?? ""}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Código Postal
-              </label>
-              <input
-                type="text"
-                name="codigoPostal"
-                placeholder="Código Postal"
-                value={form.codigo_postal ?? ""}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-              />
-            </div>
-          </div>
+        </div>
+      </div>
+      <div className="flex space-x-2">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Dirección
+          </label>
+          <input
+            type="text"
+            name="direccion"
+            placeholder="Dirección"
+            value={form.direccion ?? ""}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Ciudad
+          </label>
+          <input
+            type="text"
+            name="ciudad"
+            placeholder="Ciudad"
+            value={form.ciudad ?? ""}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+          />
         </div>
       </div>
       <div className="flex justify-end pt-4">

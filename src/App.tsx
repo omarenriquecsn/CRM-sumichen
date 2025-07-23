@@ -128,6 +128,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+            
               <Route
                 path="/pedidos/:id"
                 element={

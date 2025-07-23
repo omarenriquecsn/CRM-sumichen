@@ -15,7 +15,6 @@ import {
   FileText,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { useSupabase } from "../../hooks/useSupabase";
 import dayjs from "dayjs";
 import { PedidoData, ProductoPedido } from "../../types";
@@ -26,7 +25,7 @@ import CrearPedido from "../../components/forms/CrearPedido";
 import SelectCliente from "../../components/ui/SelectCliente";
 export const Pedidos: React.FC = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, session } = useAuth();
   const supabase = useSupabase();
 
   const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
@@ -41,28 +40,12 @@ export const Pedidos: React.FC = () => {
 
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
-  const {
-    data: pedidos,
-    isLoading: loadingPedidos,
-    error: errorPedidos,
-  } = supabase.usePedidos();
+  const { data: pedidos } = supabase.usePedidos();
+
+  const { data: clientes } = supabase.useClientes();
 
   const { mutate: nuevoPedido, isPending: isCreandoPedido } =
     supabase.useCrearPedido();
-
-  if (errorPedidos) {
-    toast.error("Error al cargar los pedidos");
-    return;
-  }
-
-  if (loadingPedidos) {
-    return <LoadingSpinner />;
-  }
-
-  if (!pedidos) {
-    toast.error("No hay pedidos");
-    return;
-  }
 
   if (!currentUser) {
     toast.error("Debes iniciar sesión para ver los pedidos");
@@ -108,21 +91,21 @@ export const Pedidos: React.FC = () => {
     }
   };
 
-  const pedidosFiltrados = pedidos.filter((pedido) => {
+  const pedidosFiltrados = pedidos?.filter((pedido) => {
     if (filtroEstado === "todos") return true;
     return pedido.estado === filtroEstado;
   });
 
   const estadisticas = {
-    total: pedidos.length,
-    enviados: pedidos.filter((p) => p.estado === "enviado").length,
-    aprobados: pedidos.filter((p) => p.estado === "aprobado").length,
-    procesando: pedidos.filter((p) => p.estado === "procesando").length,
-    completados: pedidos.filter((p) => p.estado === "completado").length,
-    valorTotal: pedidos.reduce((sum, p) => sum + p.total, 0),
+    total: pedidos?.length,
+    pendientes: pedidos?.filter((p) => p.estado === "pendiente").length,
+    aprobados: pedidos?.filter((p) => p.estado === "procesado").length,
+
+    valorTotal: pedidos?.reduce((sum, p) => sum + Number(p.total), 0),
   };
 
   const handleCrearPedido = (data: PedidoData) => {
+    console.log("data", data);
     if (!currentUser || !data.productos) {
       toast.error("Debes iniciar sesión para crear un pedido");
       return;
@@ -139,7 +122,7 @@ export const Pedidos: React.FC = () => {
       0
     );
 
-    rest.total = rest.subtotal + rest.subtotal*rest.impuestos;
+    rest.total = rest.subtotal + rest.subtotal * rest.impuestos;
 
     nuevoPedido(
       {
@@ -158,6 +141,11 @@ export const Pedidos: React.FC = () => {
         },
       }
     );
+  };
+
+  const cliente = (cliente_id: string) => {
+    const cliente = clientes?.find((c) => c.id === cliente_id);
+    return cliente;
   };
 
   return (
@@ -186,7 +174,7 @@ export const Pedidos: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-blue-600 mt-2">
-              {estadisticas.enviados}
+              {estadisticas.pendientes}
             </p>
           </div>
 
@@ -210,7 +198,7 @@ export const Pedidos: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-yellow-600 mt-2">
-              {estadisticas.procesando}
+              {estadisticas.pendientes}
             </p>
           </div>
 
@@ -222,7 +210,7 @@ export const Pedidos: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-emerald-600 mt-2">
-              {estadisticas.completados}
+              {estadisticas.aprobados}
             </p>
           </div>
 
@@ -234,7 +222,7 @@ export const Pedidos: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              ${estadisticas.valorTotal.toLocaleString()}
+              ${estadisticas.valorTotal}
             </p>
           </div>
         </div>
@@ -282,10 +270,14 @@ export const Pedidos: React.FC = () => {
             <span>Nuevo Pedido</span>
           </button>
         </div>
-
+        {!pedidosFiltrados?.length && (
+          <div className="text-center text-gray-600 mt-4">
+            No se encontraron pedidos
+          </div>
+        )}
         {/* Lista de pedidos */}
         <div className="space-y-4">
-          {pedidosFiltrados.map((pedido) => (
+          {pedidosFiltrados?.map((pedido) => (
             <div
               key={pedido.id}
               className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
@@ -300,21 +292,35 @@ export const Pedidos: React.FC = () => {
                     {getEstadoIcon(pedido.estado)}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {pedido.numero}
-                    </h3>
+                    {/* <h3 className="text-lg font-semibold text-gray-900">
+                     Pedido Nº {pedido.numero}
+                    </h3> */}
                     <div className="flex items-center space-x-4 mt-1">
                       <div className="flex items-center space-x-1">
                         <User className="h-4 w-4 text-gray-400" />
                         <span className="text-sm text-gray-600">
-                          {pedido.cliente}
+                          {cliente(pedido.cliente_id)?.nombre}{" "}
+                          {cliente(pedido.cliente_id)?.apellido}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">
-                          {dayjs(pedido.fechaCreacion).format("DD/MM/YYYY")}
-                        </span>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Fecha de Creación
+                        </p>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            {dayjs(pedido.fecha_creacion).format("DD/MM/YYYY")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-x-1">
+                        <p className="text-sm font-medium text-gray-600">
+                          Fecha de Entrega
+                        </p>
+                        <p className="text-gray-900">
+                          {dayjs(pedido.fecha_entrega).format("DD/MM/YYYY")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -345,51 +351,21 @@ export const Pedidos: React.FC = () => {
                     >
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">
-                          {producto.nombre}
+                          {producto.producto.nombre}
                         </p>
                         <p className="text-sm text-gray-500">
-                          Cantidad: {producto.cantidad} × ${producto.precio}
+                          Cantidad: {producto.cantidad} × $
+                          {producto.precio_unitario}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">
-                          ${producto.subtotal}
+                          ${producto.total}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Información adicional */}
-              <div className="border-t border-gray-200 pt-4 mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Contacto
-                    </p>
-                    <p className="text-gray-900">
-                      {pedido.clientes.nombre} {pedido.clientes.apellido}
-                    </p>
-                    <p>{pedido.clientes.telefono}</p>
-                    <p>{pedido.clientes.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Fecha de Entrega
-                    </p>
-                    <p className="text-gray-900">
-                      {dayjs(pedido.fechaEntrega).format("DD/MM/YYYY")}
-                    </p>
-                  </div>
-                </div>
-
-                {pedido.notas && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-600">Notas</p>
-                    <p className="text-gray-900 mt-1">{pedido.notas}</p>
-                  </div>
-                )}
               </div>
 
               {/* Acciones */}
@@ -402,7 +378,7 @@ export const Pedidos: React.FC = () => {
                     >
                       Ver Detalles
                     </button>
-                    {currentUser?.user_metadata.rol === "admin" && (
+                    {session?.user.user_metadata.rol === "admin" && (
                       <button className="text-green-600 hover:text-green-700 text-sm font-medium">
                         Editar
                       </button>
@@ -411,23 +387,24 @@ export const Pedidos: React.FC = () => {
                       Duplicar
                     </button>
                   </div>
-
-                  {pedido.estado === "enviado" && (
-                    <div className="flex items-center space-x-2">
-                      <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
-                        Aprobar
-                      </button>
-                      <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
-                        Rechazar
-                      </button>
-                    </div>
-                  )}
+                  {session?.user.user_metadata.rol === "admin" &&
+                    pedido.estado === "pendiente" && (
+                      <div className="flex items-center space-x-2">
+                        <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                          Aprobar
+                        </button>
+                        <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
       <Modal
         isOpen={modalPedidoVisible}
         onClose={() => {

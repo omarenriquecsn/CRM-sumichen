@@ -27,7 +27,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 const PedidosDetail = () => {
   const { id } = useParams();
   const supabase = useSupabase();
-  const { currentUser } = useAuth();
+  const { currentUser, session } = useAuth();
   const navigate = useNavigate();
 
   // Pedidos
@@ -36,6 +36,13 @@ const PedidosDetail = () => {
     isLoading: loadingPedidos,
     error: errorPedidos,
   } = supabase.usePedidos();
+
+  // Clientes
+  const {
+    data: clientes,
+    isLoading: loadingClientes,
+    error: errorClientes,
+  } = supabase.useClientes();
 
   // Actualizar Pedido
 
@@ -49,25 +56,26 @@ const PedidosDetail = () => {
     }
   }, [pedidos, id, navigate]);
 
-  if (errorPedidos) {
+  if (errorPedidos || errorClientes || !currentUser || !session?.user.user_metadata) {
     toast.error("Error al cargar los datos del pedido.");
     navigate("/pedidos");
     return;
   }
 
-  if (loadingPedidos) {
+  if (loadingPedidos || loadingClientes) {
     return <LoadingSpinner />;
   }
 
-  if (!pedidos) {
+  if (!pedidos || !clientes) {
     toast.error("No se encontraron pedidos.");
     navigate("/pedidos");
     return;
   }
 
   const pedido = pedidos.find((p) => p.id === id);
+  const cliente = clientes.find((c) => c.id === pedido?.cliente_id);
 
-  if (!pedido) {
+  if (!pedido || !cliente) {
     toast.error("Pedido no encontrado.");
     navigate("/pedidos");
     return;
@@ -152,7 +160,7 @@ const PedidosDetail = () => {
                   </h2>
                   <p className="text-gray-600">
                     Creado el{" "}
-                    {dayjs(pedido.fechaCreacion).format("DD/MM/YYYY HH:mm")}
+                    {dayjs(pedido.fecha_creacion).format("DD/MM/YYYY HH:mm")}
                   </p>
                 </div>
               </div>
@@ -175,14 +183,14 @@ const PedidosDetail = () => {
                   >
                     <div>
                       <p className="font-medium text-gray-900">
-                        {producto.nombre}
+                        {producto.producto.nombre}
                       </p>{" "}
                       <p className="text-sm text-gray-600">
-                        Cantidad: {producto.cantidad} x ${producto.precio}
+                        Cantidad: {producto.cantidad} x ${producto.precio_unitario}
                       </p>
                     </div>
                     <p className="font-semibold text-gray-900">
-                      ${producto.subtotal.toLocaleString()}
+                      ${producto.precio_unitario * producto.cantidad}
                     </p>
                   </div>
                 ))}
@@ -257,7 +265,7 @@ const PedidosDetail = () => {
                 <div>
                   <p className="text-gray-500">Nombre</p>
                   <p className="font-medium text-gray-900">
-                    {pedido.clientes.nombre} {pedido.clientes.apellido}
+                    {cliente.nombre} {cliente.apellido}
                   </p>
                 </div>
               </div>
@@ -266,7 +274,7 @@ const PedidosDetail = () => {
                 <div>
                   <p className="text-gray-500">Fecha de Entrega</p>
                   <p className="font-medium text-gray-900">
-                    {dayjs(pedido.fechaEntrega).format("DD/MM/YYYY")}
+                    {dayjs(pedido.fecha_entrega).format("DD/MM/YYYY")}
                   </p>
                 </div>
               </div>
@@ -275,7 +283,7 @@ const PedidosDetail = () => {
                 <div>
                   <p className="text-gray-500">Última Actualización</p>
                   <p className="font-medium text-gray-900">
-                    {dayjs(pedido.fechaActualizacion).format(
+                    {dayjs(pedido.fecha_actualizacion).format(
                       "DD/MM/YYYY HH:mm"
                     )}
                   </p>
@@ -286,7 +294,7 @@ const PedidosDetail = () => {
                 <div>
                   <p className="text-gray-500">Empresa</p>
                   <p className="font-medium text-gray-900">
-                    {pedido.clientes.empresa}
+                    {cliente.empresa}
                   </p>
                 </div>
               </div>
@@ -298,7 +306,7 @@ const PedidosDetail = () => {
               Acciones del Pedido
             </h3>
             <div className="space-y-3">
-              {currentUser?.user_metadata.rol === "admin" && (
+            {session?.user.user_metadata.rol === "admin" && (
                 <button
                   onClick={() => navigate(`/pedidos/editar/${pedido.id}`)}
                   className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"

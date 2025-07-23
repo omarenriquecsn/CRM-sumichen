@@ -395,7 +395,7 @@ export const Tickets: React.FC = () => {
                               "Cliente"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {ticket.contacto}
+                            {clientesMap.get(ticket.cliente_id)?.email} {clientesMap.get(ticket.cliente_id)?.telefono}
                           </p>
                         </div>
                       </div>
@@ -507,9 +507,11 @@ export const Tickets: React.FC = () => {
               value: c.id,
               label: c.nombre + " " + c.apellido,
             }))}
-            onChange={(opcion) => setCliente_id(opcion?.value)}
+            onChange={(opcion) => setCliente_id(opcion?.value ?? "")}
             placeholder="Selecciona un cliente"
             isSearchable
+            menuPortalTarget={document.body}
+            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
           />
           <button
             disabled={!cliente_id}

@@ -8,18 +8,19 @@ import {
   Building,
   MapPin,
   Calendar,
-  DollarSign,
   Edit,
   Plus,
   MessageSquare,
   FileText,
   Clock,
+  IdCard,
 } from "lucide-react";
 import {
   Cliente,
   ClienteFormData,
   ICrearActividad,
   IFormReunion,
+  Pedido,
 } from "../../types";
 import Modal from "../../components/ui/Modal";
 import ClienteForm from "../../components/forms/ClienteFom";
@@ -30,8 +31,11 @@ import CrearActividad from "../../components/forms/CrearActividad";
 import { isMobile } from "react-device-detect";
 import CrearReunion from "../../components/forms/CrearReunion";
 import dayjs from "dayjs";
+import "dayjs/locale/es";
 
 export const ClienteDetalle: React.FC = () => {
+  dayjs.locale("es");
+
   const { currentUser } = useAuth();
   const supabase = useSupabase();
   const { id } = useParams<{ id: string }>();
@@ -42,37 +46,63 @@ export const ClienteDetalle: React.FC = () => {
   const [isModalBOpen, setModalBOpen] = useState(false);
   const [isModalCOpen, setModalCopen] = useState(false);
 
-  const {
-    data: actividadesTodas,
-    isLoading: loadinActividades,
-    error: errorActividades,
-  } = supabase.useActividades();
-  const { data: clientes, isLoading, error } = supabase.useClientes();
+  // Actividades
+  const { data: actividadesTodas, error: errorActividades  } = supabase.useActividades();
+
+  // Clientes
+  const { data: clientes } = supabase.useClientes();
   const { mutate: editarCliente, isPending: pendigEditar } =
     supabase.useActualizarCliente();
 
   const { mutate: crearActividad, isPending: pendingActividad } =
     supabase.useCrearActividad();
 
+  // Pedidos
+  const { data: pedidos } = supabase.usePedidos();
+
+  // Reuniones
   const { mutate: crearReunion, isPending: pendingReunion } =
     supabase.useCrearReunion();
 
-  if (error) {
-    toast.error("Error para mostrar datos del cliente");
-    navigate("/clientes");
-    return;
-  }
-
-  if (isLoading || loadinActividades) {
-    return <p>Cargando...</p>;
-  }
   const handleEditCliente = () => {
     setModalOpen(true);
   };
 
   if (clientes) {
+    // Cliente filtrado
+
     const cliente = clientes.find((c) => c.id === id);
     const actividades = actividadesTodas?.filter((a) => a.cliente_id === id);
+
+    
+    if (!cliente) {
+      toast.error("Cliente no encontrado");
+      navigate("/clientes");
+      return;
+    }
+
+    // Pedidos filtrados
+
+    const pedidosFiltrados = () => {
+      const pedidosFiltradosVendedor = pedidos?.filter(
+        (pedido) => pedido.cliente_id === cliente.id
+      );
+      return pedidosFiltradosVendedor;
+    };
+    const hoy = new Date();
+
+    const ultimaCompra =
+      pedidosFiltrados()?.length ?? 0 > 0
+        ? pedidosFiltrados()?.reduce((prev: Pedido, curr: Pedido) => {
+            const fechaPrev = new Date(prev.fecha_creacion);
+            const fechaCurr = new Date(prev.fecha_creacion);
+
+            const diffPrev = Math.abs(hoy.getDate() - fechaPrev.getDate());
+            const diffCurr = Math.abs(hoy.getDate() - fechaCurr.getDate());
+
+            return diffCurr < diffPrev ? curr : prev;
+          })
+        : null;
 
     const handleUpdateCliente = async (data: ClienteFormData) => {
       try {
@@ -258,7 +288,7 @@ export const ClienteDetalle: React.FC = () => {
     return (
       <Layout
         title={`${cliente?.nombre} ${cliente?.apellido}`}
-        subtitle={`${cliente?.empresa} • ${cliente?.cargo}`}
+        subtitle={`${cliente?.empresa}`}
       >
         <div className="space-y-6">
           {/* Navegación */}
@@ -288,7 +318,7 @@ export const ClienteDetalle: React.FC = () => {
                       <h2 className="text-2xl font-bold text-gray-900">
                         {cliente?.nombre} {cliente?.apellido}
                       </h2>
-                      <p className="text-gray-600">{cliente?.cargo}</p>
+
                       <div className="flex items-center space-x-3 mt-2">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEstadoColor(
@@ -360,17 +390,17 @@ export const ClienteDetalle: React.FC = () => {
                           {cliente?.direccion}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {cliente?.ciudad}, {cliente?.codigo_postal}
+                          {cliente?.ciudad}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center space-x-3">
-                      <DollarSign className="h-5 w-5 text-gray-400" />
+                      <IdCard className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-500">Valor Potencial</p>
+                        <p className="text-sm text-gray-500">Rif de Empresa</p>
                         <p className="font-medium text-gray-900">
-                          ${cliente?.valor_potencial.toLocaleString()}
+                          {cliente?.rif}
                         </p>
                       </div>
                     </div>
@@ -540,16 +570,32 @@ export const ClienteDetalle: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Valor Total</p>
                     <p className="text-2xl font-bold text-green-600">
-                      ${cliente?.valor_potencial.toLocaleString()}
+                      $
+                      {pedidosFiltrados()
+                        ? Number(
+                            pedidosFiltrados()?.reduce(
+                              (total, pedido) => total + pedido.total,
+                              0
+                            )
+                          ).toLocaleString()
+                        : "0"}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Pedidos Realizados</p>
-                    <p className="text-xl font-semibold text-gray-900">3</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {pedidosFiltrados()?.length}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Última Compra</p>
-                    <p className="text-sm text-gray-900">15 de Enero, 2024</p>
+                    <p className="text-sm text-gray-900">
+                      {ultimaCompra?.fecha_creacion
+                        ? dayjs(ultimaCompra.fecha_creacion).format(
+                            "D [de] MMMM [de] YYYY"
+                          )
+                        : "No ha comprdo"}
+                    </p>
                   </div>
                 </div>
               </div>

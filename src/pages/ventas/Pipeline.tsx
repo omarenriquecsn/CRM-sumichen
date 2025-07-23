@@ -1,85 +1,68 @@
-import React from "react";
+import React, { useState } from "react";
 import { Layout } from "../../components/layout/Layout";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
 import { DollarSign, User, Calendar, Plus } from "lucide-react";
+import { useSupabase } from "../../hooks/useSupabase";
+import Modal from "../../components/ui/Modal";
+import CrearOportunidad from "../../components/forms/CrearOportunida";
+// import { toast } from "react-toastify";
+import { Oportunidad } from "../../types";
+import { useAuth } from "../../context/useAuth";
+import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
 
 export const Pipeline: React.FC = () => {
+  const { currentUser } = useAuth();
+  const supabase = useSupabase();
+  const navigate = useNavigate();
+
+  const { data: Oportunidades } = supabase.useOportunidades();
+  const { data: clientes } = supabase.useClientes();
+
+  const { mutate: crearOportunidad, isPending: pendingOportunidad } =
+    supabase.useCrearOportunidades();
+
+  const { mutate: editarOportunidad } = supabase.useActualizarOportunidad();
+
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [etapaSeleccionada, setEtapaSeleccionada] = useState<string | null>(
+    null
+  );
+  const handleOportunidadSubmit = async (data: Partial<Oportunidad>) => {
+    if (!currentUser) {
+      navigate("/login");
+      throw new Error("Usuario no autenticado");
+    }
+
+    data.vendedor_id = currentUser.id;
+    crearOportunidad({ oportunidadData: data, currentUser });
+
+    setModalOpen(false);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+  };
+
+  const cliente = (cliente_id: string) => {
+    const cliente = clientes?.find((c) => c.id === cliente_id);
+    return cliente;
+  };
+
   const etapas = [
     { id: "inicial", titulo: "Inicial", color: "gray" },
-    { id: "calificado", titulo: "Calificado", color: "blue" },
+    { id: "calificado", titulo: "Contactado", color: "blue" },
     { id: "propuesta", titulo: "Propuesta", color: "yellow" },
     { id: "negociacion", titulo: "Negociación", color: "orange" },
     { id: "cerrado", titulo: "Cerrado", color: "green" },
   ];
 
-  const oportunidades = {
-    inicial: [
-      {
-        id: "1",
-        cliente: "TechStart Inc.",
-        contacto: "Luis Martín",
-        valor: 15000,
-        fechaCreacion: new Date("2024-01-10"),
-        probabilidad: 20,
-      },
-      {
-        id: "2",
-        cliente: "Digital Solutions",
-        contacto: "Carmen Ruiz",
-        valor: 8500,
-        fechaCreacion: new Date("2024-01-12"),
-        probabilidad: 15,
-      },
-    ],
-    calificado: [
-      {
-        id: "3",
-        cliente: "Innovación Corp",
-        contacto: "Roberto Silva",
-        valor: 32000,
-        fechaCreacion: new Date("2024-01-05"),
-        probabilidad: 40,
-      },
-    ],
-    propuesta: [
-      {
-        id: "4",
-        cliente: "TechCorp S.A.",
-        contacto: "Ana García",
-        valor: 45000,
-        fechaCreacion: new Date("2023-12-20"),
-        probabilidad: 70,
-      },
-      {
-        id: "5",
-        cliente: "Sistemas Avanzados",
-        contacto: "Miguel Torres",
-        valor: 28000,
-        fechaCreacion: new Date("2024-01-08"),
-        probabilidad: 60,
-      },
-    ],
-    negociacion: [
-      {
-        id: "6",
-        cliente: "Soluciones Empresariales",
-        contacto: "María Rodríguez",
-        valor: 78000,
-        fechaCreacion: new Date("2023-12-15"),
-        probabilidad: 85,
-      },
-    ],
-    cerrado: [
-      {
-        id: "7",
-        cliente: "Global Tech",
-        contacto: "Fernando López",
-        valor: 52000,
-        fechaCreacion: new Date("2023-11-30"),
-        probabilidad: 100,
-      },
-    ],
-  };
+  const oportunidades = [...(Oportunidades || [])];
 
   const getColorClasses = (color: string) => {
     switch (color) {
@@ -106,18 +89,58 @@ export const Pipeline: React.FC = () => {
   };
 
   const calcularTotalEtapa = (etapaId: string) => {
+    const oportunidadesFiltradas = Oportunidades?.filter(
+      (oportunidad) => oportunidad.etapa === etapaId
+    );
     return (
-      oportunidades[etapaId as keyof typeof oportunidades]?.reduce(
-        (sum, oportunidad) => sum + oportunidad.valor,
+      oportunidadesFiltradas?.reduce(
+        (sum, oportunidad) => sum + Number(oportunidad.valor),
         0
       ) || 0
     );
   };
 
-  const onDragEnd = (result: any) => {
-    // Aquí implementarías la lógica para mover las oportunidades entre etapas
-    console.log("Drag ended:", result);
+  const onDragEnd = (result: DropResult) => {
+    if (!currentUser) return;
+    const { source, destination, draggableId } = result;
+
+    if (!destination || destination.droppableId === source.droppableId) return;
+
+    const oportunidad = oportunidades.find((o) => o.id === draggableId);
+
+    console.log(draggableId);
+    if (!oportunidad) return;
+
+    const actualizada = {
+      ...oportunidad,
+      etapa: destination.droppableId as
+        | "inicial"
+        | "calificado"
+        | "propuesta"
+        | "negociacion"
+        | "cerrado",
+    };
+
+    editarOportunidad({ OportunidadData: actualizada, currentUser });
+
+    // Aquí podrías agregar lógica para sincronizar con Supabase
+    // supabase.updateOportunidadEtapa(oportunidad.id, destination.droppableId);
   };
+
+  if (!oportunidades) {
+    return (
+      <Layout
+        title="Pipeline de Ventas"
+        subtitle="Gestiona tus oportunidades de venta por etapas"
+      >
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900">
+            <p>No hay oportunidades Cargadas</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout
@@ -139,8 +162,11 @@ export const Pipeline: React.FC = () => {
                     etapa.color
                   )}`}
                 >
-                  {oportunidades[etapa.id as keyof typeof oportunidades]
-                    ?.length || 0}
+                  {
+                    oportunidades.filter(
+                      (oportunidad) => oportunidad.etapa === etapa.id
+                    ).length
+                  }
                 </span>
               </div>
               <p className="text-lg font-bold text-gray-900">
@@ -165,7 +191,12 @@ export const Pipeline: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">{etapa.titulo}</h3>
-                    <button className="p-1 hover:bg-white hover:bg-opacity-20 rounded">
+                    <button
+                      onClick={() => (
+                        setModalOpen(true), setEtapaSeleccionada(etapa.id)
+                      )}
+                      className="p-1 hover:bg-white hover:bg-opacity-20 rounded"
+                    >
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
@@ -183,81 +214,94 @@ export const Pipeline: React.FC = () => {
                         snapshot.isDraggingOver ? "bg-blue-50" : ""
                       }`}
                     >
-                      {oportunidades[
-                        etapa.id as keyof typeof oportunidades
-                      ]?.map((oportunidad, index) => (
-                        <Draggable
-                          key={oportunidad.id}
-                          draggableId={oportunidad.id}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
-                                snapshot.isDragging ? "shadow-lg" : ""
-                              }`}
-                            >
-                              <div className="space-y-3">
-                                <div>
-                                  <h4 className="font-medium text-gray-900 text-sm">
-                                    {oportunidad.cliente}
-                                  </h4>
-                                  <div className="flex items-center space-x-1 mt-1">
-                                    <User className="h-3 w-3 text-gray-400" />
+                      {oportunidades
+                        .filter((o) => o.etapa === etapa.id)
+                        .map((oportunidad, index) => (
+                          
+                          <Draggable
+                            key={oportunidad.id}
+                            draggableId={String(oportunidad.id)}
+                            index={index} 
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+                                  snapshot.isDragging ? "shadow-lg" : ""
+                                }`}
+                              >
+                                <div className="space-y-3">
+                                  <div>
+                                    <h4 className="font-medium text-gray-900 text-sm text-center">
+                                      {cliente(oportunidad.cliente_id)?.nombre}{" "}
+                                      {
+                                        cliente(oportunidad.cliente_id)
+                                          ?.apellido
+                                      }
+                                    </h4>
+                                    <div className="flex items-center justify-center space-x-1 mt-1">
+                                      <User className="h-3 w-3 text-gray-400" />
+                                      <span className="text-xs text-gray-500">
+                                        {
+                                          cliente(oportunidad.cliente_id)
+                                            ?.telefono
+                                        }
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center justify-center gap-2">
+                                    <div className="flex items-center space-x-1">
+                                      <DollarSign className="h-4 w-4 text-green-600" />
+                                      <span className="font-semibold text-gray-900 text-sm">
+                                        $
+                                        {Number(
+                                          oportunidad.valor
+                                        ).toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <span
+                                      className={`text-xs font-medium ${getProbabilityColor(
+                                        oportunidad.probabilidad
+                                      )}`}
+                                    >
+                                      {oportunidad.probabilidad}%
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center justify-center space-x-1">
+                                    <Calendar className="h-3 w-3 text-gray-400" />
                                     <span className="text-xs text-gray-500">
-                                      {oportunidad.contacto}
+                                      {dayjs(oportunidad.fecha_creacion).format(
+                                        "DD/MM/YYYY"
+                                      )}
                                     </span>
                                   </div>
-                                </div>
 
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-1">
-                                    <DollarSign className="h-4 w-4 text-green-600" />
-                                    <span className="font-semibold text-gray-900 text-sm">
-                                      ${oportunidad.valor.toLocaleString()}
-                                    </span>
+                                  {/* Barra de probabilidad */}
+                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div
+                                      className={`h-1.5 rounded-full ${
+                                        oportunidad.probabilidad >= 80
+                                          ? "bg-green-500"
+                                          : oportunidad.probabilidad >= 60
+                                          ? "bg-yellow-500"
+                                          : oportunidad.probabilidad >= 40
+                                          ? "bg-orange-500"
+                                          : "bg-red-500"
+                                      }`}
+                                      style={{
+                                        width: `${oportunidad.probabilidad}%`,
+                                      }}
+                                    ></div>
                                   </div>
-                                  <span
-                                    className={`text-xs font-medium ${getProbabilityColor(
-                                      oportunidad.probabilidad
-                                    )}`}
-                                  >
-                                    {oportunidad.probabilidad}%
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center space-x-1">
-                                  <Calendar className="h-3 w-3 text-gray-400" />
-                                  <span className="text-xs text-gray-500">
-                                    {oportunidad.fechaCreacion.toLocaleDateString()}
-                                  </span>
-                                </div>
-
-                                {/* Barra de probabilidad */}
-                                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                  <div
-                                    className={`h-1.5 rounded-full ${
-                                      oportunidad.probabilidad >= 80
-                                        ? "bg-green-500"
-                                        : oportunidad.probabilidad >= 60
-                                        ? "bg-yellow-500"
-                                        : oportunidad.probabilidad >= 40
-                                        ? "bg-orange-500"
-                                        : "bg-red-500"
-                                    }`}
-                                    style={{
-                                      width: `${oportunidad.probabilidad}%`,
-                                    }}
-                                  ></div>
                                 </div>
                               </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
+                            )}
+                          </Draggable>
+                        ))}
                       {provided.placeholder}
                     </div>
                   )}
@@ -275,16 +319,16 @@ export const Pipeline: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">
-                {Object.values(oportunidades).flat().length}
+                {oportunidades.length}
               </p>
               <p className="text-sm text-gray-600">Oportunidades Totales</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">
                 $
-                {Object.values(oportunidades)
+                {Object.values(oportunidades || [])
                   .flat()
-                  .reduce((sum, op) => sum + op.valor, 0)
+                  .reduce((sum, op) => sum + Number(op?.valor || 0), 0)
                   .toLocaleString()}
               </p>
               <p className="text-sm text-gray-600">Valor Total Pipeline</p>
@@ -292,10 +336,12 @@ export const Pipeline: React.FC = () => {
             <div className="text-center">
               <p className="text-2xl font-bold text-orange-600">
                 $
-                {Object.values(oportunidades)
+                {Object.values(oportunidades || [])
                   .flat()
                   .reduce(
-                    (sum, op) => sum + (op.valor * op.probabilidad) / 100,
+                    (sum, op) =>
+                      sum +
+                      (Number(op?.valor || 0) * (op?.probabilidad || 0)) / 100,
                     0
                   )
                   .toLocaleString()}
@@ -305,10 +351,10 @@ export const Pipeline: React.FC = () => {
             <div className="text-center">
               <p className="text-2xl font-bold text-purple-600">
                 {Math.round(
-                  Object.values(oportunidades)
+                  Object.values(oportunidades || [])
                     .flat()
-                    .reduce((sum, op) => sum + op.probabilidad, 0) /
-                    Object.values(oportunidades).flat().length
+                    .reduce((sum, op) => sum + (op?.probabilidad || 0), 0) /
+                    Object.values(oportunidades).flat().length || 0
                 )}
                 %
               </p>
@@ -317,6 +363,24 @@ export const Pipeline: React.FC = () => {
           </div>
         </div>
       </div>
+      <Modal
+        title="Crear Oportunidad"
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+      >
+        <CrearOportunidad
+          onSubmit={handleOportunidadSubmit}
+          accion={!pendingOportunidad ? "Crear" : "Actualizar"}
+          etapa={
+            etapaSeleccionada as
+              | "inicial"
+              | "calificado"
+              | "propuesta"
+              | "negociacion"
+              | "cerrado"
+          }
+        />
+      </Modal>
     </Layout>
   );
 };

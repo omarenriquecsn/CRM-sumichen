@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formProducto, Pedido, PedidoData } from "../../types";
+import { formProducto, Pedido, PedidoData, Producto } from "../../types";
 import { LoadingSpinner } from "../ui/LoadingSpinner";
 import { toast } from "react-toastify";
 import { useSupabase } from "../../hooks/useSupabase";
@@ -106,7 +106,7 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
             <label
               htmlFor="tipo_pago"
               className="block text-sm font-medium text-gray-700"
-              >
+            >
               Tipo de Pago
             </label>
             <select
@@ -158,6 +158,24 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
           </div>
           <div>
             <label
+              htmlFor="impuestos"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Impuestos
+            </label>
+            <select
+              name="impuetos"
+              id="impuetos"
+              value={formData.impuestos}
+              onChange={handleOnChage}
+              className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
+            >
+              <option value="0">IVA</option>
+              <option value="0.16">Execento</option>
+            </select>
+          </div>
+          <div>
+            <label
               htmlFor="moneda"
               className="block text-sm font-medium text-gray-700"
             >
@@ -204,8 +222,11 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
             {productosSeleccionados.map((p) => (
               <p key={p.producto_id}>
                 {p.cantidad} x{" "}
-                {productos.find((prod) => prod.id === p.producto_id)?.nombre} =
-                ${(p.cantidad * p.precio_unitario).toFixed(2)}
+                {
+                  productos.find((prod: Producto) => prod.id === p.producto_id)
+                    ?.nombre
+                }{" "}
+                = ${(p.cantidad * p.precio_unitario).toFixed(2)}
               </p>
             ))}
           </div>
