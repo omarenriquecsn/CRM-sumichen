@@ -421,7 +421,7 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        await fetch(`${URL}/reuniones/${OportunidadData.id}`, {
+        await fetch(`${URL}/oportunidades/${OportunidadData.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
