@@ -251,3 +251,12 @@ export interface PedidoDb {
   transporte: "interno" | "externo";
   impuestos: 'iva' | 'exento';
 }
+
+
+export type ActividadFormateada = {
+  id: string;
+  type: string;
+  title: string;
+  time: string;
+  status: 'vencida' | 'completada' | 'pendiente';
+};

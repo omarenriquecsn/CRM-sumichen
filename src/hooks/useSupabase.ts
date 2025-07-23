@@ -7,7 +7,7 @@ import {
   formProducto,
   ICrearActividad,
   ICrearReunion,
-  ICreateOportunidad,
+  Oportunidad,
   Pedido,
   PedidoDb,
   // PedidoDb,
@@ -88,7 +88,6 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        console.log(clienteData, "Cliente Data");
         await fetch(`${URL}/clientes/${clienteData.id}`, {
           method: "PUT",
           headers: {
@@ -97,7 +96,6 @@ export const useSupabase = () => {
           },
           body: JSON.stringify(clienteData),
         }).then((response) => {
-          console.log(response);
           if (!response.ok) {
             throw new Error("Error al actualizar el cliente");
           }
@@ -191,13 +189,13 @@ export const useSupabase = () => {
   };
 
   // Hook para obtener actividades
-  const useActividades = (clienteId?: string) => {
+  const useActividades = () => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["actividades", currentUser?.id, clienteId],
+      queryKey: ["actividades", currentUser?.id],
       queryFn: async () => {
         if (!currentUser) return [];
-        const ActividadesData = await fetch(`${URL}/actividades`, {
+        const ActividadesData = await fetch(`${URL}/actividades/${currentUser.id}`, {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
@@ -246,7 +244,7 @@ export const useSupabase = () => {
       queryKey: ["reuniones", currentUser?.id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const reunionesData = await fetch(`${URL}/reuniones`, {
+        const reunionesData = await fetch(`${URL}/reuniones/${currentUser.id}`, {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
@@ -284,14 +282,14 @@ export const useSupabase = () => {
       queryKey: ["oportunidades", currentUser?.id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const reunionesDataB = await fetch(`${URL}/reuniones`, {
-          method: "GET",
+        const oportunidadData = await fetch(`${URL}/oportunidades/${currentUser.id}`, {
           headers: {
             "Content-Type": "application/json",
             Autorization: `Bearer ${session?.access_token}`,
           },
-        }).then((res) => res.json);
-        return reunionesDataB;
+        }).then((res) => res.json());
+        const data: Promise<Oportunidad[]> = oportunidadData;
+        return data || [];
       },
       enabled: !!currentUser,
     });
@@ -315,6 +313,7 @@ export const useSupabase = () => {
       retry: 1,
     });
   };
+
 
   // hook para crear Reuniones
   const useCrearReunion = () => {
@@ -346,6 +345,7 @@ export const useSupabase = () => {
     });
   };
 
+  // hook para crear tickets
   const useCrearTicket = () => {
     return useMutation({
       mutationFn: async ({
@@ -378,13 +378,14 @@ export const useSupabase = () => {
     });
   };
 
+  // hook para crear Oportunidades
   const useCrearOportunidades = () => {
     return useMutation({
       mutationFn: async ({
         oportunidadData,
         currentUser,
       }: {
-        oportunidadData: ICreateOportunidad;
+        oportunidadData: Partial<Oportunidad>;
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
@@ -409,6 +410,36 @@ export const useSupabase = () => {
       },
     });
   };
+
+  const useActualizarOportunidad = () => {
+    return useMutation({
+      mutationFn: async ({
+        OportunidadData,
+        currentUser,
+      }: {
+        OportunidadData: Partial<Oportunidad>;
+        currentUser: User;
+      }) => {
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        await fetch(`${URL}/reuniones/${OportunidadData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify(OportunidadData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al actualizar la reunion");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
+      },
+    });
+  };
+
 
   // Actualizar Reuniones
   const useActualizarReunion = () => {
@@ -440,6 +471,7 @@ export const useSupabase = () => {
     });
   };
 
+  // Actualizar Tickets
   const useActualizarTicket = () => {
     return useMutation({
       mutationFn: async ({
@@ -469,6 +501,7 @@ export const useSupabase = () => {
     });
   };
 
+  // Actualizar Pedidos
   const useActualizarPedido = () => {
     return useMutation({
       mutationFn: async ({
@@ -518,6 +551,7 @@ export const useSupabase = () => {
     useActualizarReunion,
     useActualizarTicket,
     useActualizarPedido,
+    useActualizarOportunidad,
     useProductos,
   };
 };

@@ -52,7 +52,6 @@ export const Reuniones: React.FC = () => {
   const { data: reuniones, isLoading: isLoadingReuniones } =
     supabase.useReuniones();
 
-    console.log(reuniones)
   //Clientes
   const { data: clientes, isLoading: isLoadingClientes } =
     supabase.useClientes();
@@ -176,7 +175,6 @@ export const Reuniones: React.FC = () => {
       ...formattedPayload,
       cliente_id: clienteSeleccionado,
     };
-    console.log(newReunion);
     crearReunion(
       {
         reunionData: newReunion,
@@ -212,7 +210,6 @@ export const Reuniones: React.FC = () => {
       ...formattedPayload,
       id: reunionSeleccionada.id, // Aseguramos que el id esté presente
     };
-    console.log(newReunion);
 
     actualizarReunion(
       {
