@@ -269,7 +269,7 @@ export const useSupabase = () => {
           },
         }).then((response) => response.json());
         const data: Promise<Ticket[]> = ticketsData;
-        return data || [];
+        return (await data).length > 0 ? data : [];
       },
       enabled: !!currentUser,
     });
