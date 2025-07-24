@@ -11,7 +11,10 @@ import {
   Activity
 } from 'lucide-react';
 
+
 export const Analitica: React.FC = () => {
+
+
   const metricas = [
     {
       titulo: 'Ventas del Mes',

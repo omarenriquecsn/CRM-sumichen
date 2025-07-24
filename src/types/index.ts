@@ -32,7 +32,7 @@ export interface Cliente {
 
 export type Estado = "prospecto" | "activo" | "inactivo";
 
-type EtapaVenta =
+export type EtapaVenta =
   | "inicial"
   | "calificado"
   | "propuesta"

@@ -19,7 +19,6 @@ export const useUserData = (userId?: string) => {
         return null;
       }
 
-      console.log(usuarioDB);
       const user: User | null = usuarioDB.user;
 
       return {

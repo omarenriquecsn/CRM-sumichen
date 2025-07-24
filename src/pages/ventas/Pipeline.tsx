@@ -13,39 +13,34 @@ import CrearOportunidad from "../../components/forms/CrearOportunida";
 // import { toast } from "react-toastify";
 import { Oportunidad } from "../../types";
 import { useAuth } from "../../context/useAuth";
-import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
-import { toast } from "react-toastify";
+import { etapas } from "../../constants/etapas";
+import {
+  getColorClasses,
+  calcularTotalEtapa,
+  getProbabilityColor,
+} from "../../utils/oportunidades";
+import { useOportunidadAccion } from "../../hooks/useOportunidadAccion";
 
 export const Pipeline: React.FC = () => {
   const { currentUser } = useAuth();
   const supabase = useSupabase();
-  const navigate = useNavigate();
+
+  const { submitOportunidad, actualizarEtapaDrag } = useOportunidadAccion();
 
   const { data: Oportunidades } = supabase.useOportunidades();
   const { data: clientes } = supabase.useClientes();
 
-  const { mutate: crearOportunidad, isPending: pendingOportunidad } =
-    supabase.useCrearOportunidades();
-
-  const { mutate: editarOportunidad } = supabase.useActualizarOportunidad();
+  const { isPending: pendingOportunidad } = supabase.useCrearOportunidades();
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [etapaSeleccionada, setEtapaSeleccionada] = useState<string | null>(
     null
   );
   const handleOportunidadSubmit = async (data: Partial<Oportunidad>) => {
-    if (!currentUser) {
-      navigate("/login");
-      throw new Error("Usuario no autenticado");
-    }
-
-    data.vendedor_id = currentUser.id;
-
-    crearOportunidad({ oportunidadData: data, currentUser });
-
-    toast.success("Oportunidad creada exitosamente");
-    setModalOpen(false);
+    await submitOportunidad(data, () => {
+      setModalOpen(false);
+    });
   };
 
   const handleModalClose = () => {
@@ -57,93 +52,12 @@ export const Pipeline: React.FC = () => {
     return cliente;
   };
 
-  const etapas = [
-    { id: "inicial", titulo: "Inicial", color: "gray" },
-    { id: "calificado", titulo: "Contactado", color: "blue" },
-    { id: "propuesta", titulo: "Propuesta", color: "yellow" },
-    { id: "negociacion", titulo: "Negociación", color: "orange" },
-    { id: "cerrado", titulo: "Cerrado", color: "green" },
-  ];
-
   const oportunidades = [...(Oportunidades || [])];
-
-  const getColorClasses = (color: string) => {
-    switch (color) {
-      case "gray":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      case "blue":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "yellow":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "orange":
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case "green":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getProbabilityColor = (probabilidad: number) => {
-    if (probabilidad >= 80) return "text-green-600";
-    if (probabilidad >= 60) return "text-yellow-600";
-    if (probabilidad >= 40) return "text-orange-600";
-    return "text-red-600";
-  };
-
-  const calcularTotalEtapa = (etapaId: string) => {
-    const oportunidadesFiltradas = Oportunidades?.filter(
-      (oportunidad) => oportunidad.etapa === etapaId
-    );
-    return (
-      oportunidadesFiltradas?.reduce(
-        (sum, oportunidad) => sum + Number(oportunidad.valor),
-        0
-      ) || 0
-    );
-  };
 
   const onDragEnd = (result: DropResult) => {
     if (!currentUser) return;
-    const { source, destination, draggableId } = result;
-
-    if (!destination || destination.droppableId === source.droppableId) return;
-
-    const oportunidad = oportunidades.find((o) => o.id === draggableId);
-
-    console.log(draggableId);
-    if (!oportunidad) return;
-
-    const actualizada = {
-      ...oportunidad,
-      etapa: destination.droppableId as
-        | "inicial"
-        | "calificado"
-        | "propuesta"
-        | "negociacion"
-        | "cerrado",
-    };
-
-    editarOportunidad({ OportunidadData: actualizada, currentUser });
-
-    // Aquí podrías agregar lógica para sincronizar con Supabase
-    // supabase.updateOportunidadEtapa(oportunidad.id, destination.droppableId);
+    actualizarEtapaDrag(result, oportunidades);
   };
-
-  if (!oportunidades) {
-    return (
-      <Layout
-        title="Pipeline de Ventas"
-        subtitle="Gestiona tus oportunidades de venta por etapas"
-      >
-        <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900">
-            <p>No hay oportunidades Cargadas</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout
@@ -173,7 +87,7 @@ export const Pipeline: React.FC = () => {
                 </span>
               </div>
               <p className="text-lg font-bold text-gray-900">
-                ${calcularTotalEtapa(etapa.id).toLocaleString()}
+                ${calcularTotalEtapa(oportunidades, etapa.id).toLocaleString()}
               </p>
             </div>
           ))}
@@ -204,7 +118,11 @@ export const Pipeline: React.FC = () => {
                     </button>
                   </div>
                   <p className="text-sm mt-1">
-                    ${calcularTotalEtapa(etapa.id).toLocaleString()}
+                    $
+                    {calcularTotalEtapa(
+                      oportunidades,
+                      etapa.id
+                    ).toLocaleString()}
                   </p>
                 </div>
 

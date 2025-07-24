@@ -32,7 +32,6 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
       ...prev,
       [name]: value,
     }));
-    console.log(formData);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

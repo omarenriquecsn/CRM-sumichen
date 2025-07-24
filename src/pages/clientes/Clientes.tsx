@@ -33,7 +33,7 @@ export const Clientes: React.FC = () => {
 
   // Clientes
   const { data: clientes } = supabase.useClientes();
-  const { mutate, isPending } = supabase.useCrearCliente();
+  const { mutate: crearCliente, isPending } = supabase.useCrearCliente();
 
   // Pedidos
   const { data: pedidos } = supabase.usePedidos();
@@ -46,25 +46,12 @@ export const Clientes: React.FC = () => {
         return;
       }
 
-      mutate(
-        {
-          clienteData: user,
-          currentUser,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Cliente creado desde este componente");
-            setModalOpen(false);
-          },
-          onError: (error: unknown) => {
-            if (error instanceof Error) {
-              toast.error(`Error al crear cliente: ${error.message}`);
-            } else {
-              toast.error("Error al crear cliente");
-            }
-          },
-        }
-      );
+      crearCliente({
+        clienteData: user,
+        currentUser,
+      });
+      toast.success("Cliente creado exitosamente");
+      setModalOpen(false);
     } catch (error: unknown) {
       toast.error("Error al crear el cliente");
       if (error instanceof Error) {
