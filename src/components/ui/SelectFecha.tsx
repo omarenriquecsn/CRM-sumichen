@@ -43,7 +43,6 @@ export const FechaEntregaSelector = ({
       <div className="flex gap-2">
         <button
           onClick={() => {
-            console.log(fechaEntrega)
             onSubmit(fechaEntrega)}}
           disabled={!fechaEntrega}
           

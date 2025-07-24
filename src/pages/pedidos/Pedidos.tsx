@@ -105,7 +105,6 @@ export const Pedidos: React.FC = () => {
   };
 
   const handleCrearPedido = (data: PedidoData) => {
-    console.log("data", data);
     if (!currentUser || !data.productos) {
       toast.error("Debes iniciar sesión para crear un pedido");
       return;
