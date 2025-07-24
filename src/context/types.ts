@@ -1,4 +1,5 @@
 import { User, Session } from "@supabase/supabase-js";
+import { QueryObserverResult } from "@tanstack/react-query";
 
 export interface UserData {
   id: string;
@@ -12,9 +13,9 @@ export interface UserData {
 }
 
 export interface AuthContextType {
-  currentUser: User | null;
-  session: Session | null;
-  userData: UserData | null;
+  currentUser: User | null | undefined;
+  session: Session | null | undefined;
+  userData: UserData | null | undefined;
   loading: boolean;
   signUp: (
     email: string,
@@ -23,5 +24,5 @@ export interface AuthContextType {
   ) => Promise<{ user: User | null; session: Session | null }>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  refreshUserData: () => Promise<void>;
+  refreshUserData: () => Promise<QueryObserverResult<UserData | null, Error>>;
 }

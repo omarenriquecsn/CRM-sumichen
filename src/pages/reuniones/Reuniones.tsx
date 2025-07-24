@@ -120,18 +120,6 @@ export const Reuniones: React.FC = () => {
     );
   }
 
-  if (!reuniones || !clientes) {
-    return (
-      <Layout
-        title="Gestión de Reuniones"
-        subtitle="Programa y gestiona tus reuniones con clientes"
-      >
-        <div className="flex justify-center items-center h-64">
-          <p>No se encontraron reuniones</p>
-        </div>
-      </Layout>
-    );
-  }
 
   const formatReunionPayload = (data: IFormReunion) => {
     const { fecha, inicio, fin, ...rest } = data;
@@ -634,7 +622,7 @@ export const Reuniones: React.FC = () => {
             Selecciona un cliente
           </h3>
           <Select
-            options={clientes.map((c) => ({
+            options={clientes?.map((c) => ({
               value: c.id,
               label: c.nombre + " " + c.apellido,
             }))}

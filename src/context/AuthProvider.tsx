@@ -1,70 +1,31 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { User, Session } from "@supabase/supabase-js";
-import { UserData } from "./types";
+// import { UserData } from "./types";
 import { AuthContext } from "./AuthContext";
+import { useUserData, useCurrentUser } from "../hooks/useUserData";
+import { useQueryClient } from "@tanstack/react-query";
+const URL = import.meta.env.VITE_BACKEND_URL;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserData = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("vendedores")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
+  const user_id = session?.user.id || "";
 
-      if (error) {
-        console.error("Error fetching user data:", error);
-        return null;
-      }
+  // UserData
+  const { data: userData, refetch: refreshUserData } = useUserData(user_id);
+  const queryClient = useQueryClient();
 
-      if (!data) {
-        console.warn("No user data found for userId:", userId);
-        return null;
-      }
-
-      const userSesion = await supabase.auth.getUser();
-      const user: User | null = userSesion.data.user;
-
-      return {
-        id: data.id,
-        email: user?.email || "",
-        nombre: data.nombre,
-        apellido: data.apellido,
-        rol: data.rol,
-        activo: data.activo,
-        telefono: data.telefono,
-        avatar: user?.user_metadata?.avatar_url || "",
-      };
-    } catch (error) {
-      console.error("Error in fetchUserData:", error);
-      return null;
-    }
-  }, []);
-
-  const refreshUserData = async () => {
-    if (currentUser) {
-      const data = await fetchUserData(currentUser.id);
-      setUserData(data);
-    } else {
-      setUserData(null);
-    }
-  };
-
+  // CurrentUser
+  const { data: currentUser } = useCurrentUser(user_id);
   useEffect(() => {
     // Obtener sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session?.user) {
-        fetchUserData(session.user.id).then(setUserData);
-      }
+
       setLoading(false);
     });
 
@@ -74,30 +35,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (!session?.user) return;
-      const solicitarnuevoCurrentUser = await fetch(
-        `http://localhost:3000/usuarios/${session?.user.id}`
-      );
-
-      const nuevoCurrentUser = await solicitarnuevoCurrentUser.json();
-
-      if (!nuevoCurrentUser) {
-        return;
-      }
-
-      setCurrentUser(nuevoCurrentUser);
-
-      if (session?.user) {
-        const data = await fetchUserData(session.user.id);
-        setUserData(data);
-      } else {
-        setUserData(null);
-      }
 
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchUserData]);
+  }, []);
 
   const signUp = async (
     email: string,
@@ -122,17 +65,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Si el usuario se crea exitosamente, crear el perfil en la tabla vendedores
     if (data.user) {
-      const { error: profileError } = await supabase.from("vendedores").insert({
-        id: data.user.id,
-        nombre: userData.nombre,
-        apellido: userData.apellido,
-        rol: (userData.rol as "vendedor" | "admin") || "vendedor",
+      await fetch(`${URL}/vendedores`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: data.user.id,
+          nombre: userData.nombre,
+          apellido: userData.apellido,
+          email: data.user.email,
+        }),
       });
-
-      if (profileError) {
-        console.error("Error creating user profile:", profileError);
-        throw profileError;
-      }
     }
 
     // Return the user and session
@@ -140,9 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signIn = async (email: string, password: string) => {
-    setCurrentUser(null);
-    setSession(null);
-    setUserData(null);
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -156,11 +97,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signOut = async () => {
     localStorage.removeItem("sb-syaiyhcnqhhzdhmifynh-auth-token");
-    setCurrentUser(null);
+
     setSession(null);
-    setUserData(null);
+    queryClient.removeQueries({ queryKey: ["userData", user_id] });
+    queryClient.removeQueries({ queryKey: ["currentUser", user_id] });
     setLoading(true);
-    window.location.href = "/";
   };
 
   const value = {

@@ -5,7 +5,7 @@ import {
   Droppable,
   Draggable,
   DropResult,
-} from "react-beautiful-dnd";
+} from "@hello-pangea/dnd";
 import { DollarSign, User, Calendar, Plus } from "lucide-react";
 import { useSupabase } from "../../hooks/useSupabase";
 import Modal from "../../components/ui/Modal";
@@ -15,6 +15,7 @@ import { Oportunidad } from "../../types";
 import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
 export const Pipeline: React.FC = () => {
   const { currentUser } = useAuth();
@@ -40,8 +41,10 @@ export const Pipeline: React.FC = () => {
     }
 
     data.vendedor_id = currentUser.id;
+
     crearOportunidad({ oportunidadData: data, currentUser });
 
+    toast.success("Oportunidad creada exitosamente");
     setModalOpen(false);
   };
 
@@ -217,11 +220,10 @@ export const Pipeline: React.FC = () => {
                       {oportunidades
                         .filter((o) => o.etapa === etapa.id)
                         .map((oportunidad, index) => (
-                          
                           <Draggable
                             key={oportunidad.id}
                             draggableId={String(oportunidad.id)}
-                            index={index} 
+                            index={index}
                           >
                             {(provided, snapshot) => (
                               <div

@@ -38,18 +38,10 @@ export const Tickets: React.FC = () => {
   const [modalClienteVisible, setModalClienteVisible] = useState(false);
 
   // tickets
-  const {
-    data: tickets,
-    isLoading: loadingTickets,
-    error: errorTickets,
-  } = supabase.useTickets();
+  const { data: tickets } = supabase.useTickets();
 
   // clientes
-  const {
-    data: clientes,
-    isLoading: loadingClientes,
-    error: errorClientes,
-  } = supabase.useClientes();
+  const { data: clientes } = supabase.useClientes();
 
   // Actualizar Ticket
 
@@ -120,20 +112,10 @@ export const Tickets: React.FC = () => {
     }
   };
 
-  if (errorTickets || errorClientes) {
-    toast.error("Error al cargar los tickets");
-    return;
-  }
-
-  if (loadingTickets || loadingClientes) {
-    return <p>Cargando...</p>;
-  }
-
-  if (!tickets || !clientes) {
-    return <p>No hay tickets</p>;
-  }
-
-  const clientesMap = new Map(clientes.map((cliente) => [cliente.id, cliente]));
+  const clientesMap = (id: string) => {
+    const cliente = clientes?.find((c) => c.id === id);
+    return cliente;
+  };
 
   const actualizarTicket = (data: Partial<Ticket>) => {
     if (!currentUser) {
@@ -180,7 +162,7 @@ export const Tickets: React.FC = () => {
     );
   };
 
-  const ticketsFiltrados = tickets.filter((ticket) => {
+  const ticketsFiltrados = tickets?.filter((ticket) => {
     const matchesEstado =
       filtroEstado === "todos" || ticket.estado === filtroEstado;
     const matchesPrioridad =
@@ -189,11 +171,11 @@ export const Tickets: React.FC = () => {
   });
 
   const estadisticas = {
-    total: tickets.length,
-    abiertos: tickets.filter((t) => t.estado === "abierto").length,
-    enProceso: tickets.filter((t) => t.estado === "en_proceso").length,
-    resueltos: tickets.filter((t) => t.estado === "resuelto").length,
-    urgentes: tickets.filter((t) => t.prioridad === "urgente").length,
+    total: tickets?.length,
+    abiertos: tickets?.filter((t) => t.estado === "abierto").length,
+    enProceso: tickets?.filter((t) => t.estado === "en_proceso").length,
+    resueltos: tickets?.filter((t) => t.estado === "resuelto").length,
+    urgentes: tickets?.filter((t) => t.prioridad === "urgente").length,
   };
 
   const prepararCancelacion = (reunion_id: string) => {
@@ -295,6 +277,7 @@ export const Tickets: React.FC = () => {
             </div>
 
             {/* Filtros */}
+
             <div className="flex items-center space-x-2">
               <Filter className="h-5 w-5 text-gray-400" />
               <select
@@ -334,142 +317,151 @@ export const Tickets: React.FC = () => {
         </div>
 
         {/* Lista de tickets */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Ticket
-                  </th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Cliente
-                  </th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Estado
-                  </th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Prioridad
-                  </th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Categoría
-                  </th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Fecha
-                  </th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {ticketsFiltrados.map((ticket) => (
-                  <tr key={ticket.id} className="hover:bg-gray-50">
-                    <td className="py-4 px-6">
-                      <div className="flex items-start space-x-3">
-                        <div
-                          className={`p-2 rounded-lg ${getEstadoColor(
+        {ticketsFiltrados ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Ticket
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Cliente
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Estado
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Prioridad
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Categoría
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Fecha
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {ticketsFiltrados.map((ticket) => (
+                    <tr key={ticket.id} className="hover:bg-gray-50">
+                      <td className="py-4 px-6">
+                        <div className="flex items-start space-x-3">
+                          <div
+                            className={`p-2 rounded-lg ${getEstadoColor(
+                              ticket.estado
+                            )}`}
+                          >
+                            {getEstadoIcon(ticket.estado)}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">
+                              {ticket.titulo}
+                            </h4>
+                            <p className="text-sm text-gray-500 mt-1 max-w-md">
+                              {ticket.descripcion}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-gray-400" />
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {clientesMap(ticket.cliente_id)?.nombre ??
+                                "Cliente"}{" "}
+                              {clientesMap(ticket.cliente_id)?.apellido ??
+                                "Cliente"}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {clientesMap(ticket.cliente_id)?.email}{" "}
+                              {clientesMap(ticket.cliente_id)?.telefono}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEstadoColor(
                             ticket.estado
                           )}`}
                         >
-                          {getEstadoIcon(ticket.estado)}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {ticket.titulo}
-                          </h4>
-                          <p className="text-sm text-gray-500 mt-1 max-w-md">
-                            {ticket.descripcion}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-gray-400" />
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {clientesMap.get(ticket.cliente_id)?.nombre ??
-                              "Cliente"}{" "}
-                            {clientesMap.get(ticket.cliente_id)?.apellido ??
-                              "Cliente"}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {clientesMap.get(ticket.cliente_id)?.email} {clientesMap.get(ticket.cliente_id)?.telefono}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEstadoColor(
-                          ticket.estado
-                        )}`}
-                      >
-                        {ticket.estado.replace("_", " ")}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${getPrioridadColor(
-                          ticket.prioridad
-                        )}`}
-                      >
-                        {ticket.prioridad}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getCategoriaColor(
-                          ticket.categoria
-                        )}`}
-                      >
-                        {ticket.categoria}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-900">
+                          {ticket.estado.replace("_", " ")}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${getPrioridadColor(
+                            ticket.prioridad
+                          )}`}
+                        >
+                          {ticket.prioridad}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getCategoriaColor(
+                            ticket.categoria
+                          )}`}
+                        >
+                          {ticket.categoria}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-900">
+                              {dayjs(ticket.fecha_actualizacion).format(
+                                "DD/MM/YYYY"
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            Actualizado:{" "}
                             {dayjs(ticket.fecha_actualizacion).format(
                               "DD/MM/YYYY"
                             )}
-                          </span>
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          Actualizado:{" "}
-                          {dayjs(ticket.fecha_actualizacion).format(
-                            "DD/MM/YYYY"
-                          )}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => navigate(`/tickets/${ticket.id}`)}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                        >
-                          Ver
-                        </button>
-                        {ticket.estado !== "resuelto" &&
-                          ticket.estado !== "cerrado" && (
-                            <button
-                              onClick={() => prepararCancelacion(ticket.id)}
-                              className="text-green-600 hover:text-green-700 text-sm font-medium"
-                            >
-                              Resolver
-                            </button>
-                          )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => navigate(`/tickets/${ticket.id}`)}
+                            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          >
+                            Ver
+                          </button>
+                          {ticket.estado !== "resuelto" &&
+                            ticket.estado !== "cerrado" && (
+                              <button
+                                onClick={() => prepararCancelacion(ticket.id)}
+                                className="text-green-600 hover:text-green-700 text-sm font-medium"
+                              >
+                                Resolver
+                              </button>
+                            )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-center  h-screen mt-96">
+            <div>
+              <p>No hay tickets</p>
+            </div>
+          </div>
+        )}
       </div>
       <ConfirmarAccionToast
         visible={mostrarToast}
@@ -503,7 +495,7 @@ export const Tickets: React.FC = () => {
             Selecciona un cliente
           </h3>
           <Select
-            options={clientes.map((c) => ({
+            options={clientes?.map((c) => ({
               value: c.id,
               label: c.nombre + " " + c.apellido,
             }))}

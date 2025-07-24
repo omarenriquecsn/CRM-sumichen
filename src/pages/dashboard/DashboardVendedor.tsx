@@ -18,6 +18,7 @@ import {
   Actividad,
   ActividadFormateada,
   Cliente,
+  Oportunidad,
   Pedido,
   Reunion,
 } from "../../types";
@@ -26,7 +27,6 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/es";
 
 dayjs.extend(relativeTime);
-
 dayjs.locale("es");
 
 export const DashboardVendedor: React.FC = () => {
@@ -34,10 +34,12 @@ export const DashboardVendedor: React.FC = () => {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
 
+  // Solicitudes hook
   const { data: clientes } = supabase.useClientes();
   const { data: pedidos } = supabase.usePedidos();
   const { data: actividades } = supabase.useActividades();
   const { data: reuniones } = supabase.useReuniones();
+  const { data: oportunidades } = supabase.useOportunidades();
   // const {data: metas} = supabase.useMetas();
 
   if (!currentUser) {
@@ -46,17 +48,30 @@ export const DashboardVendedor: React.FC = () => {
     return;
   }
 
+  // Clientes Activos
   const clientesActivos =
     clientes?.filter((cliente) => cliente.estado === "activo") ?? [];
 
+  // Pedidos Procesados
   const PedidosProcesados =
     pedidos?.filter((pedido) => pedido.estado === "procesado") ?? [];
 
-  const VentasdelMes = PedidosProcesados.filter(
-    (pedido) =>
-      new Date(pedido.fecha_creacion).getMonth() === new Date().getMonth()
-  );
+  // Ventas del mes
+  const VentasdelMes =
+    PedidosProcesados.filter(
+      (pedido) =>
+        new Date(pedido.fecha_creacion).getMonth() === new Date().getMonth()
+    ) ?? [];
 
+  // Oportunidades del mes
+  const OportunidadesMes =
+    oportunidades?.filter(
+      (oportunidad) =>
+        new Date(oportunidad.fecha_creacion).getMonth() ===
+        new Date().getMonth()
+    ) ?? [];
+
+  // funcion para obtener la cifra de ventas del mes
   const cifraVentasMes = () => {
     return `$${VentasdelMes.reduce(
       (total, pedido) => total + Number(pedido.total),
@@ -64,6 +79,7 @@ export const DashboardVendedor: React.FC = () => {
     )}`;
   };
 
+  // funcion para obtener las reuniones proximas
   function obtenerReunionesProximas(reuniones: Reunion[]): Reunion[] {
     if (!reuniones) return [];
     const hoy = new Date();
@@ -80,14 +96,21 @@ export const DashboardVendedor: React.FC = () => {
       .slice(0, 4);
   }
 
-  const calculoIncremento = (valorFinal: Cliente[] | Pedido[]) => {
+  // valor pipeline
+  const valorPipeline = oportunidades?.reduce(
+    (total, oportunidad) => total + Number(oportunidad.valor),
+    0
+  );
+
+  // Fucniones para calcular el incremento
+  const calculoIncremento = (
+    valorFinal: Cliente[] | Pedido[] | Oportunidad[]
+  ) => {
     const valorInicial = valorFinal.filter(
       (valor) =>
         new Date(valor.fecha_creacion).getMonth() !== new Date().getMonth()
     );
-
     let incremento: number;
-
     if (valorInicial.length === 0) {
       incremento = valorFinal.length > 0 ? 100 : 0;
     } else {
@@ -97,6 +120,7 @@ export const DashboardVendedor: React.FC = () => {
     return incremento;
   };
 
+  // cliente por id
   const cliente = (cliente_id: string) => {
     const cliente = clientes?.find((c) => c.id === cliente_id);
     return cliente;
@@ -104,7 +128,9 @@ export const DashboardVendedor: React.FC = () => {
 
   const incremento = calculoIncremento(clientesActivos);
   const incrementoVentas = calculoIncremento(PedidosProcesados);
+  const incrementoPipeline = calculoIncremento(OportunidadesMes);
 
+  // Funcion para calcular el tipo de incremento
   const typeChange = (incremento: number) => {
     if (incremento > 0) {
       return "positive";
@@ -128,15 +154,15 @@ export const DashboardVendedor: React.FC = () => {
       title: "Ventas del Mes",
       value: `${cifraVentasMes()}`,
       change: `${incrementoVentas}%`,
-      changeType: "positive" as const,
+      changeType: `${typeChange(incrementoVentas)}` as const,
       icon: DollarSign,
       color: "green",
     },
     {
       title: "Pipeline",
-      value: "$128,500",
-      change: "+12%",
-      changeType: "positive" as const,
+      value: `$${valorPipeline}`,
+      change: `${incrementoPipeline}`,
+      changeType: `${typeChange(incrementoPipeline)}` as const,
       icon: TrendingUp,
       color: "purple",
     },
@@ -150,11 +176,7 @@ export const DashboardVendedor: React.FC = () => {
     },
   ];
 
- 
-
-  dayjs.extend(relativeTime);
-  dayjs.locale("es");
-
+  // Funcion para formatear las actividades
   function formatearActividades(
     actividades: Actividad[]
   ): ActividadFormateada[] {
@@ -170,16 +192,14 @@ export const DashboardVendedor: React.FC = () => {
 
       return {
         id: actividad.id,
-        type: actividad.tipo.toLowerCase(), // Ej. 'llamada', 'tarea', 'reunion'
+        type: actividad.tipo.toLowerCase(),
         title: actividad.titulo,
-        time: dayjs(fechaLimite).fromNow(), // Ej. "hace 2 días"
+        time: dayjs(fechaLimite).fromNow(),
         status,
       };
     });
   }
-  const recentActivities = [
-    ...formatearActividades(actividades ?? []),
-  ];
+  const recentActivities = [...formatearActividades(actividades ?? [])];
 
   const upcomingMeetings = [...obtenerReunionesProximas(reuniones ?? [])];
 
