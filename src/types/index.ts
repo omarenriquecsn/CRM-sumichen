@@ -65,6 +65,7 @@ export interface Actividad {
   fecha: Date;
   completado: boolean;
   fecha_vencimiento?: Date;
+  fecha_creacion: Date;
 }
 
 export interface ICrearActividad {
@@ -260,3 +261,10 @@ export type ActividadFormateada = {
   time: string;
   status: 'vencida' | 'completada' | 'pendiente';
 };
+
+export type Mes = {
+  mes: string;
+  ventas: number;
+  clientes: number;
+}
+

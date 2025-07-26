@@ -155,11 +155,7 @@ export const Pipeline: React.FC = () => {
                                 <div className="space-y-3">
                                   <div>
                                     <h4 className="font-medium text-gray-900 text-sm text-center">
-                                      {cliente(oportunidad.cliente_id)?.nombre}{" "}
-                                      {
-                                        cliente(oportunidad.cliente_id)
-                                          ?.apellido
-                                      }
+                                      {cliente(oportunidad.cliente_id)?.empresa}              
                                     </h4>
                                     <div className="flex items-center justify-center space-x-1 mt-1">
                                       <User className="h-3 w-3 text-gray-400" />
