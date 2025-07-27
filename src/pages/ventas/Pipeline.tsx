@@ -1,28 +1,74 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Layout } from "../../components/layout/Layout";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
-import { DollarSign, User, Calendar, Plus } from "lucide-react";
+import { DndContext, closestCenter, DragEndEvent, useDroppable, DragOverlay } from "@dnd-kit/core";
+
+import { SortableContext } from "@dnd-kit/sortable";
+
+import type { Cliente } from "../../types";
+type Etapa = typeof etapas[number];
+
+type PipelineColumnProps = {
+  etapa: Etapa;
+  oportunidadesEtapa: Oportunidad[];
+  cliente: (id: string) => Cliente | undefined;
+  onAdd: () => void;
+};
+
+function PipelineColumn({ etapa, oportunidadesEtapa, cliente, onAdd }: PipelineColumnProps) {
+  const { setNodeRef } = useDroppable({ id: etapa.id });
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className={`p-4 rounded-t-xl border-b ${getColorClasses(etapa.color)}`}>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold">{etapa.titulo}</h3>
+          <button
+            onClick={onAdd}
+            className="p-1 hover:bg-white hover:bg-opacity-20 rounded"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="text-sm mt-1">
+          ${calcularTotalEtapa(oportunidadesEtapa, etapa.id).toLocaleString()}
+        </p>
+      </div>
+      <SortableContext items={oportunidadesEtapa.map((o) => o.id)} id={etapa.id}>
+        <div ref={setNodeRef} className="p-4 min-h-[200px] md:min-h-[400px] max-h-screen overflow-auto">
+          {oportunidadesEtapa.map((oportunidad: Oportunidad) => {
+            const cli = cliente(oportunidad.cliente_id);
+            if (!cli) return null;
+            return (
+              <OportunidadCard
+                key={oportunidad.id}
+                oportunidad={oportunidad}
+                cliente={cli}
+              />
+            );
+          })}
+        </div>
+      </SortableContext>
+    </div>
+  );
+}
+
+import { Plus } from "lucide-react";
 import { useSupabase } from "../../hooks/useSupabase";
 import Modal from "../../components/ui/Modal";
 import CrearOportunidad from "../../components/forms/CrearOportunida";
 // import { toast } from "react-toastify";
 import { Oportunidad } from "../../types";
 import { useAuth } from "../../context/useAuth";
-import dayjs from "dayjs";
 import { etapas } from "../../constants/etapas";
 import {
   getColorClasses,
   calcularTotalEtapa,
-  getProbabilityColor,
 } from "../../utils/oportunidades";
 import { useOportunidadAccion } from "../../hooks/useOportunidadAccion";
+import OportunidadCard from "./OportunidadCard";
 
 export const Pipeline: React.FC = () => {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [oportunidadesOptimista, setOportunidadesOptimista] = useState<Oportunidad[] | null>(null);
   const { currentUser } = useAuth();
   const supabase = useSupabase();
 
@@ -55,32 +101,62 @@ export const Pipeline: React.FC = () => {
     return cliente;
   };
 
-  const oportunidades = [...(Oportunidades || [])];
+  const oportunidades = oportunidadesOptimista || [...(Oportunidades || [])];
 
-  const onDragEnd = (result: DropResult) => {
-    if (!currentUser) return;
-    actualizarEtapaDrag(result, oportunidades);
+  // onDragEnd handler
+  const handleDragStart = (event: { active: { id: string | number } }) => {
+    setActiveId(String(event.active.id));
   };
 
-  // Bloquear scroll del body durante drag en mobile
-  useEffect(() => {
-    const handleTouchMove = (e: TouchEvent) => {
-      if (document.body.classList.contains("dragging-pipeline")) {
-        e.preventDefault();
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over || active.id === over.id) {
+      setOportunidadesOptimista(null);
+      return;
+    }
+
+    // Buscar la oportunidad arrastrada
+    const oportunidad = (oportunidadesOptimista || Oportunidades || []).find((o) => o.id === String(active.id));
+    if (!oportunidad) {
+      setOportunidadesOptimista(null);
+      return;
+    }
+
+    // Determinar la etapa destino
+    let etapaDestino = oportunidad.etapa;
+    let found = false;
+    for (const etapa of etapas) {
+      const idsEtapa = (oportunidadesOptimista || Oportunidades || [])
+        .filter((o) => o.etapa === etapa.id)
+        .map((o) => String(o.id));
+      if (idsEtapa.includes(String(over.id))) {
+        etapaDestino = etapa.id as typeof oportunidad.etapa;
+        found = true;
+        break;
       }
-    };
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    return () => {
-      document.removeEventListener("touchmove", handleTouchMove);
-    };
-  }, []);
+    }
+    if (!found) {
+      const etapaColumna = etapas.find((etapa) => etapa.id === over.id);
+      if (etapaColumna) {
+        etapaDestino = etapaColumna.id as typeof oportunidad.etapa;
+      }
+    }
 
-  const onBeforeCapture = () => {
-    document.body.classList.add("dragging-pipeline");
-  };
-  const onDragEndWrapper = (result: DropResult) => {
-    document.body.classList.remove("dragging-pipeline");
-    onDragEnd(result);
+    // Si cambió de etapa, actualiza la etapa y el estado optimista
+    if (etapaDestino !== oportunidad.etapa) {
+      // Estado optimista: mover la oportunidad en la UI
+      setOportunidadesOptimista(
+        (oportunidadesOptimista || Oportunidades || []).map((o) =>
+          o.id === oportunidad.id ? { ...o, etapa: etapaDestino } : o
+        )
+      );
+      await actualizarEtapaDrag(oportunidad.id, etapaDestino);
+      // Limpiar el estado optimista después de un pequeño delay para permitir la animación
+      setTimeout(() => setOportunidadesOptimista(null), 500);
+    } else {
+      setOportunidadesOptimista(null);
+    }
   };
 
   return (
@@ -117,136 +193,39 @@ export const Pipeline: React.FC = () => {
           ))}
         </div>
 
-        {/* Pipeline visual */}
-        <DragDropContext onBeforeCapture={onBeforeCapture} onDragEnd={onDragEndWrapper}>
+        {/* Pipeline visual - dnd-kit */}
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 max-h-screen overflow-auto">
-            {etapas.map((etapa) => (
-              <div
-                key={etapa.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100"
-              >
-                <div
-                  className={`p-4 rounded-t-xl border-b ${getColorClasses(
-                    etapa.color
-                  )}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{etapa.titulo}</h3>
-                    <button
-                      onClick={() => (
-                        setModalOpen(true), setEtapaSeleccionada(etapa.id)
-                      )}
-                      className="p-1 hover:bg-white hover:bg-opacity-20 rounded"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <p className="text-sm mt-1">
-                    $
-                    {calcularTotalEtapa(
-                      oportunidades,
-                      etapa.id
-                    ).toLocaleString()}
-                  </p>
-                </div>
-
-                <Droppable droppableId={etapa.id}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                    className={`p-4 min-h-[200px] md:min-h-[400px] max-h-screen overflow-auto ${
-                        snapshot.isDraggingOver ? "bg-blue-50" : ""
-                      }`}
-                    >
-                      {oportunidades
-                        .filter((o) => o.etapa === etapa.id)
-                        .map((oportunidad, index) => (
-                          <Draggable
-                            key={oportunidad.id}
-                            draggableId={String(oportunidad.id)}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`bg-white border border-gray-200 rounded-lg p-4 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
-                                  snapshot.isDragging ? "shadow-lg" : ""
-                                }`}
-                              >
-                                <div className="space-y-3">
-                                  <div>
-                                    <h4 className="font-medium text-gray-900 text-sm text-center">
-                                      {cliente(oportunidad.cliente_id)?.empresa}              
-                                    </h4>
-                                    <div className="flex items-center justify-center space-x-1 mt-1">
-                                      <User className="h-3 w-3 text-gray-400" />
-                                      <span className="text-xs text-gray-500">
-                                        {
-                                          cliente(oportunidad.cliente_id)
-                                            ?.telefono
-                                        }
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center justify-center gap-2">
-                                    <div className="flex items-center space-x-1">
-                                      <DollarSign className="h-4 w-4 text-green-600" />
-                                      <span className="font-semibold text-gray-900 text-sm">
-                                        ${Number(oportunidad.valor).toLocaleString()}
-                                      </span>
-                                    </div>
-                                    <span
-                                      className={`text-xs font-medium ${getProbabilityColor(
-                                        oportunidad.probabilidad
-                                      )}`}
-                                    >
-                                      {oportunidad.probabilidad}%
-                                    </span>
-                                  </div>
-
-                                  <div className="flex items-center justify-center space-x-1">
-                                    <Calendar className="h-3 w-3 text-gray-400" />
-                                    <span className="text-xs text-gray-500">
-                                      {dayjs(oportunidad.fecha_creacion).format(
-                                        "DD/MM/YYYY"
-                                      )}
-                                    </span>
-                                  </div>
-
-                                  {/* Barra de probabilidad */}
-                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div
-                                      className={`h-1.5 rounded-full ${
-                                        oportunidad.probabilidad >= 80
-                                          ? "bg-green-500"
-                                          : oportunidad.probabilidad >= 60
-                                          ? "bg-yellow-500"
-                                          : oportunidad.probabilidad >= 40
-                                          ? "bg-orange-500"
-                                          : "bg-red-500"
-                                      }`}
-                                      style={{
-                                        width: `${oportunidad.probabilidad}%`,
-                                      }}
-                                    ></div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            ))}
+            {etapas.map((etapa) => {
+              const oportunidadesEtapa = oportunidades.filter((o) => o.etapa === etapa.id);
+              return (
+                <PipelineColumn
+                  key={etapa.id}
+                  etapa={etapa}
+                  oportunidadesEtapa={oportunidadesEtapa}
+                  cliente={cliente}
+                  onAdd={() => {
+                    setModalOpen(true);
+                    setEtapaSeleccionada(etapa.id);
+                  }}
+                />
+              );
+            })}
           </div>
-        </DragDropContext>
+          <DragOverlay>
+            {activeId ? (() => {
+              const oportunidad = oportunidades.find((o) => o.id === activeId);
+              if (!oportunidad) return null;
+              const cli = cliente(oportunidad.cliente_id);
+              if (!cli) return null;
+              return <OportunidadCard oportunidad={oportunidad} cliente={cli} />;
+            })() : null}
+          </DragOverlay>
+        </DndContext>
 
         {/* Estadísticas del pipeline */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">

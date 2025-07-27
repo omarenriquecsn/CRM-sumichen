@@ -3,7 +3,7 @@ import { useAuth } from "../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Oportunidad } from "../types";
 import { useSupabase } from "./useSupabase";
-import { DropResult } from "@hello-pangea/dnd";
+
 
 export const useOportunidadAccion = () => {
   const { currentUser } = useAuth();
@@ -33,31 +33,22 @@ export const useOportunidadAccion = () => {
     onClose();
   };
 
-  //   Handle Drag and Drop
+  //   Handle Drag and Drop para dnd-kit
   const actualizarEtapaDrag = (
-    result: DropResult,
-    oportunidades?: Oportunidad[]
+    oportunidadId: string,
+    nuevaEtapa: "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado"
   ) => {
     if (!currentUser) return;
 
-    const { source, destination, draggableId } = result;
-
-    if (!destination || destination.droppableId === source.droppableId) return;
-
-    const oportunidad = oportunidades?.find((o) => o.id === draggableId);
-
-    if (!oportunidad) return;
-    const actualizada = {
-      ...oportunidad,
-      etapa: destination.droppableId as
-        | "inicial"
-        | "calificado"
-        | "propuesta"
-        | "negociacion"
-        | "cerrado",
-    };
-
-    editarOportunidad({ OportunidadData: actualizada, currentUser });
+    // Buscar la oportunidad actual en cache (opcional, si necesitas más datos)
+    // Aquí asumimos que solo necesitas id y etapa
+    editarOportunidad({
+      OportunidadData: {
+        id: oportunidadId,
+        etapa: nuevaEtapa,
+      },
+      currentUser,
+    });
     toast.success("Oportunidad actualizada exitosamente");
   };
 
