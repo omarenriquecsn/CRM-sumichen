@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Layout } from "../../components/layout/Layout";
-import { DndContext, closestCenter, DragEndEvent, useDroppable, DragOverlay } from "@dnd-kit/core";
+import { DndContext, closestCenter, DragEndEvent, useDroppable, DragOverlay, TouchSensor, MouseSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
 
 import { SortableContext } from "@dnd-kit/sortable";
 
@@ -67,6 +67,17 @@ import { useOportunidadAccion } from "../../hooks/useOportunidadAccion";
 import OportunidadCard from "./OportunidadCard";
 
 export const Pipeline: React.FC = () => {
+  // Sensores para drag and drop, mejorando experiencia mobile
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [oportunidadesOptimista, setOportunidadesOptimista] = useState<Oportunidad[] | null>(null);
   const { currentUser } = useAuth();
@@ -195,6 +206,7 @@ export const Pipeline: React.FC = () => {
 
         {/* Pipeline visual - dnd-kit */}
         <DndContext
+          sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
