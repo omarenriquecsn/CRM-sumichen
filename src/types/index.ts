@@ -265,6 +265,6 @@ export type ActividadFormateada = {
 export type Mes = {
   mes: string;
   ventas: number;
-  clientes: number;
+  clientes: number | undefined;
 }
 

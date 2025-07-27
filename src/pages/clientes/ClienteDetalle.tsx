@@ -47,7 +47,8 @@ export const ClienteDetalle: React.FC = () => {
   const [isModalCOpen, setModalCopen] = useState(false);
 
   // Actividades
-  const { data: actividadesTodas, error: errorActividades  } = supabase.useActividades();
+  const { data: actividadesTodas, error: errorActividades } =
+    supabase.useActividades();
 
   // Clientes
   const { data: clientes } = supabase.useClientes();
@@ -74,7 +75,6 @@ export const ClienteDetalle: React.FC = () => {
     const cliente = clientes.find((c) => c.id === id);
     const actividades = actividadesTodas?.filter((a) => a.cliente_id === id);
 
-    
     if (!cliente) {
       toast.error("Cliente no encontrado");
       navigate("/clientes");
@@ -435,10 +435,14 @@ export const ClienteDetalle: React.FC = () => {
                   </h3>
                   <button
                     onClick={() => setModalBOpen(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                    className={`bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 ${
+                      isMobile ? "mobile-button" : ""
+                    }`}
                   >
-                    <Plus className="h-4 w-4" />
-                    <span>Nueva Actividad</span>
+                    <Plus
+                      className={`h-4 w-4 ${isMobile ? "mobile-plus" : ""}`}
+                    />
+                    {!isMobile && <span>Nueva Actividad</span>}
                   </button>
                 </div>
 

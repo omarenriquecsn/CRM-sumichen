@@ -15,16 +15,18 @@ import { useVentas } from "../../hooks/useVentas";
 import {
   calculoIncremento,
   tasaDeConversion,
-  ventasPorMes as ventasMes,
   atras5meses,
+  arrayMeses,
 } from "../../utils/ventas";
 import { typeChange } from "../../constants/typeCange";
 import {
   clientesNuevos,
   clientesActivos,
-  clientesNuevosMes,
 } from "../../utils/clientes";
 import { Mes } from "../../types";
+import { actividadesPoCategoria } from "../../utils/actividades";
+import { getColorClasses } from "../../utils/analitica";
+import { clientePorEtapaAnalitica } from "../../utils/oportunidades";
 
 export const Analitica: React.FC = () => {
   const supabase = useSupabase();
@@ -81,102 +83,28 @@ export const Analitica: React.FC = () => {
     },
   ];
 
-  const ventasPorMeses: Mes[] = [
-    {
-      mes: "Ene",
-      ventas: ventasMes(PedidosProcesados, 0) || 0,
-      clientes: clientesNuevosMes(clientes, 0) || 0,
-    },
-    {
-      mes: "Feb",
-      ventas: ventasMes(PedidosProcesados, 1) || 0,
-      clientes: clientesNuevosMes(clientes, 1) || 0,
-    },
-    {
-      mes: "Mar",
-      ventas: ventasMes(PedidosProcesados, 2) || 0,
-      clientes: clientesNuevosMes(clientes, 2) || 0,
-    },
-    {
-      mes: "Abr",
-      ventas: ventasMes(PedidosProcesados, 3) || 0,
-      clientes: clientesNuevosMes(clientes, 3) || 0,
-    },
-    {
-      mes: "May",
-      ventas: ventasMes(PedidosProcesados, 4) || 0,
-      clientes: clientesNuevosMes(clientes, 4) || 0,
-    },
-    {
-      mes: "Jun",
-      ventas: ventasMes(PedidosProcesados, 5) || 0,
-      clientes: clientesNuevosMes(clientes, 5) || 0,
-    },
-    {
-      mes: "Jul",
-      ventas: ventasMes(PedidosProcesados, 6) || 0,
-      clientes: clientesNuevosMes(clientes, 6) || 0,
-    },
-    {
-      mes: "Ago",
-      ventas: ventasMes(PedidosProcesados, 7) || 0,
-      clientes: clientesNuevosMes(clientes, 7) || 0,
-    },
-    {
-      mes: "Sep",
-      ventas: ventasMes(PedidosProcesados, 8) || 0,
-      clientes: clientesNuevosMes(clientes, 8) || 0,
-    },
-    {
-      mes: "Oct",
-      ventas: ventasMes(PedidosProcesados, 9) || 0,
-      clientes: clientesNuevosMes(clientes, 9) || 0,
-    },
-    {
-      mes: "Nov",
-      ventas: ventasMes(PedidosProcesados, 10) || 0,
-      clientes: clientesNuevosMes(clientes, 10) || 0,
-    },
-    {
-      mes: "Dic",
-      ventas: ventasMes(PedidosProcesados, 11) || 0,
-      clientes: clientesNuevosMes(clientes, 11) || 0,
-    },
-  ];
+  // Array de meses
+  const ventasPorMeses: Mes[] = arrayMeses(PedidosProcesados, clientes);
 
+  // Funcion para obtener los ultimos 5 meses
   const ventasPorMes = atras5meses(ventasPorMeses);
 
-  console.log(ventasPorMes);
+  
 
   const clientesPorEtapa = [
-    { etapa: "Inicial", cantidad: 12, porcentaje: 20 },
-    { etapa: "Calificado", cantidad: 8, porcentaje: 13 },
-    { etapa: "Propuesta", cantidad: 15, porcentaje: 25 },
-    { etapa: "Negociación", cantidad: 18, porcentaje: 30 },
-    { etapa: "Cerrado", cantidad: 7, porcentaje: 12 },
+    clientePorEtapaAnalitica(oportunidades, "inicial"),
+    clientePorEtapaAnalitica(oportunidades, "calificado"),
+    clientePorEtapaAnalitica(oportunidades, "propuesta"),
+    clientePorEtapaAnalitica(oportunidades, "negociacion"),
+    clientePorEtapaAnalitica(oportunidades, "cerrado"),
   ];
 
   const actividadesPorTipo = [
-    { tipo: "Llamadas", cantidad: 45, porcentaje: 35 },
-    { tipo: "Emails", cantidad: 38, porcentaje: 30 },
-    { tipo: "Reuniones", cantidad: 28, porcentaje: 22 },
-    { tipo: "Tareas", cantidad: 17, porcentaje: 13 },
+    actividadesPoCategoria(actividades, "llamada"),
+    actividadesPoCategoria(actividades, "email"),
+    actividadesPoCategoria(actividades, "reunion"),
+    actividadesPoCategoria(actividades, "tarea"),
   ];
-
-  const getColorClasses = (color: string) => {
-    switch (color) {
-      case "green":
-        return "bg-green-100 text-green-600";
-      case "blue":
-        return "bg-blue-100 text-blue-600";
-      case "purple":
-        return "bg-purple-100 text-purple-600";
-      case "orange":
-        return "bg-orange-100 text-orange-600";
-      default:
-        return "bg-gray-100 text-gray-600";
-    }
-  };
 
   return (
     <Layout

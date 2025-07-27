@@ -1,4 +1,5 @@
 import { Cliente, Pedido, Oportunidad, Actividad, Mes } from "../types";
+import { clientesNuevosMes } from "./clientes";
 export const calculoIncremento = (
   valorFinal: Cliente[] | Pedido[] | Oportunidad[] | Actividad[]
 ) => {
@@ -77,3 +78,14 @@ export const atras5meses = (ventasPorMes: Mes[]) => {
 
   return mesesAtras;
 };
+
+export const arrayMeses = (pedidos: Pedido[], clientes: Cliente[] | undefined) =>{
+  const losMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+  const meses = []
+  for (let i = 0; i < 12; i++) {
+    meses.push({ mes: losMeses[i], ventas: ventasPorMes(pedidos, i) , clientes: clientesNuevosMes(clientes, i)  })
+
+  }
+  
+  return meses
+}
