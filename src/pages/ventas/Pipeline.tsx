@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "../../components/layout/Layout";
 import {
   DragDropContext,
@@ -62,6 +62,27 @@ export const Pipeline: React.FC = () => {
     actualizarEtapaDrag(result, oportunidades);
   };
 
+  // Bloquear scroll del body durante drag en mobile
+  useEffect(() => {
+    const handleTouchMove = (e: TouchEvent) => {
+      if (document.body.classList.contains("dragging-pipeline")) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    return () => {
+      document.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, []);
+
+  const onBeforeCapture = () => {
+    document.body.classList.add("dragging-pipeline");
+  };
+  const onDragEndWrapper = (result: DropResult) => {
+    document.body.classList.remove("dragging-pipeline");
+    onDragEnd(result);
+  };
+
   return (
     <Layout
       title="Pipeline de Ventas"
@@ -97,8 +118,8 @@ export const Pipeline: React.FC = () => {
         </div>
 
         {/* Pipeline visual */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <DragDropContext onBeforeCapture={onBeforeCapture} onDragEnd={onDragEndWrapper}>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 max-h-screen overflow-auto">
             {etapas.map((etapa) => (
               <div
                 key={etapa.id}
@@ -134,7 +155,7 @@ export const Pipeline: React.FC = () => {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-4 min-h-[200px] md:min-h-[400px] overflow-auto ${
+                    className={`p-4 min-h-[200px] md:min-h-[400px] max-h-screen overflow-auto ${
                         snapshot.isDraggingOver ? "bg-blue-50" : ""
                       }`}
                     >
