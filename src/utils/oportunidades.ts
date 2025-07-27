@@ -1,5 +1,5 @@
-import { Oportunidad } from "../types";
-
+import { Oportunidad, Reunion } from "../types";
+import {probabilidadPipeline} from "./analitica"
 
 export const getColorClasses = (color: string): string => {
   const map = {
@@ -20,5 +20,74 @@ export const getProbabilityColor = (prob: number): string => {
   return "text-red-600";
 };
 
-export const calcularTotalEtapa = (oportunidades: Oportunidad[], etapaId: string): number =>
-  oportunidades.filter((o) => o.etapa === etapaId).reduce((acc, o) => acc + Number(o.valor), 0);
+export const calcularTotalEtapa = (
+  oportunidades: Oportunidad[],
+  etapaId: string
+): number =>
+  oportunidades
+    .filter((o) => o.etapa === etapaId)
+    .reduce((acc, o) => acc + Number(o.valor), 0);
+
+export const OportunidadesUtilmes = (
+  oportunidades: Oportunidad[] | undefined
+): Oportunidad[] | [] => {
+  const OportunidadesMes =
+    oportunidades?.filter(
+      (oportunidad) =>
+        new Date(oportunidad.fecha_creacion).getMonth() ===
+        new Date().getMonth()
+    ) ?? [];
+  return OportunidadesMes;
+};
+
+export const valorPipeline = (oportunidades: Oportunidad[] | undefined) =>
+  oportunidades?.reduce(
+    (total, oportunidad) => total + Number(oportunidad.valor),
+    0
+  );
+
+export function obtenerReunionesProximas(reuniones: Reunion[]): Reunion[] {
+  if (!reuniones) return [];
+  const hoy = new Date();
+  const limite = new Date();
+  limite.setDate(hoy.getDate() + 2);
+
+  return reuniones
+    .map((r) => ({
+      ...r,
+      fecha: new Date(r.fecha_inicio),
+    }))
+    .filter((r) => r.fecha >= hoy && r.fecha <= limite)
+    .sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
+    .slice(0, 4);
+}
+
+export const clientePorEtapaAnalitica = (
+  oportunidades: Oportunidad[] | undefined,
+  etapa: string
+) => {
+  const etapaFormateada = etapa.charAt(0).toUpperCase() + etapa.slice(1);
+
+  if (!oportunidades)
+    return {
+      etapa: etapaFormateada,
+      cantidad: 0,
+      porcentaje: 0,
+    };
+  const oportunidadesFiltradas = oportunidades.filter(
+    (oportunidad) => oportunidad.etapa === etapa
+  );
+
+  
+  return {
+    etapa: etapaFormateada,
+    cantidad: oportunidadesFiltradas.length,
+    porcentaje: probabilidadPipeline(oportunidadesFiltradas, etapa),
+  };
+};
+
+//  {
+//     etapa: "Inicial",
+//     cantidad: etapaPipeline(oportunidades, "inicial")?.length,
+//     porcentaje: probabilidadPipeline(oportunidades, "inicial"),
+//   },

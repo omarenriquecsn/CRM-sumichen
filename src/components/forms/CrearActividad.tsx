@@ -1,4 +1,7 @@
-import { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { useAuth } from "../../context/useAuth";
 import { ICrearActividad } from "../../types";
 
@@ -8,39 +11,57 @@ type props = {
   accion: string;
 };
 
-const CrearActividad = ({ id, onSubmit }: props) => {
-  const { currentUser } = useAuth();
+const schema = yup.object().shape({
+  titulo: yup.string().required("El título es obligatorio"),
+  tipo: yup.string().required("El tipo es obligatorio"),
+  descripcion: yup.string().required("La descripción es obligatoria"),
+  fecha: yup
+    .date()
+    .required("La fecha es obligatoria")
+    .min(new Date(new Date().setHours(0,0,0,0)), "La fecha no puede ser menor a hoy"),
+  fecha_vencimiento: yup
+    .date()
+    .required("La fecha de vencimiento es obligatoria")
+    .min(
+      yup.ref("fecha"),
+      "La fecha de vencimiento no puede ser menor a la fecha"
+    )
+    .min(new Date(new Date().setHours(0,0,0,0)), "La fecha de vencimiento no puede ser menor a hoy"),
+  cliente_id: yup.string().required("El cliente es obligatorio"),
+  vendedor_id: yup.string().required("El vendedor es obligatorio"),
+  completado: yup.boolean().default(true),
+});
 
-  const [formData, setFormData] = useState<ICrearActividad>({
-    cliente_id: id || "",
-    vendedor_id: currentUser?.id || "",
-    tipo: "email",
-    titulo: "",
-    descripcion: "",
-    fecha: new Date(),
-    fecha_vencimiento: new Date(),
-    completado: true,
+
+const CrearActividad = ({ id, onSubmit, accion }: props) => {
+  const { currentUser } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<ICrearActividad>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      cliente_id: id || "",
+      vendedor_id: currentUser?.id || "",
+      tipo: "email",
+      titulo: "",
+      descripcion: "",
+      fecha: new Date(),
+      fecha_vencimiento: new Date(),
+      completado: true,
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  // Asegura que el vendedor_id y cliente_id se mantengan actualizados si cambian
+  React.useEffect(() => {
+    setValue("cliente_id", id || "");
+    setValue("vendedor_id", currentUser?.id || "");
+  }, [id, currentUser, setValue]);
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
       <div className="flex gap-2">
         <div className="flex flex-col w-1/2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -48,23 +69,21 @@ const CrearActividad = ({ id, onSubmit }: props) => {
           </label>
           <input
             type="text"
-            name="titulo"
-            id="titulo"
-            value={formData.titulo}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+            {...register("titulo")}
+            placeholder="Título"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.titulo ? "border-red-500" : "border-gray-300"}`}
           />
+          {errors.titulo && (
+            <p className="text-red-500 text-xs mt-1">{errors.titulo.message}</p>
+          )}
         </div>
         <div className="w-1/2 flex flex-col">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Tipo de Actividad
           </label>
           <select
-            name="tipo"
-            id="tipo"
-            value={formData.tipo}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+            {...register("tipo")}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.tipo ? "border-red-500" : "border-gray-300"}`}
           >
             <option value="email">email</option>
             <option value="llamada">llamada</option>
@@ -72,6 +91,9 @@ const CrearActividad = ({ id, onSubmit }: props) => {
             <option value="nota">nota</option>
             <option value="tarea">tarea</option>
           </select>
+          {errors.tipo && (
+            <p className="text-red-500 text-xs mt-1">{errors.tipo.message}</p>
+          )}
         </div>
       </div>
 
@@ -80,30 +102,28 @@ const CrearActividad = ({ id, onSubmit }: props) => {
           Descripción
         </label>
         <textarea
-          name="descripcion"
-          placeholder="Descripcion"
-          value={formData.descripcion ?? ""}
-          onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px]"
+          {...register("descripcion")}
+          placeholder="Descripción"
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px] ${errors.descripcion ? "border-red-500" : "border-gray-300"}`}
         />
+        {errors.descripcion && (
+          <p className="text-red-500 text-xs mt-1">{errors.descripcion.message}</p>
+        )}
       </div>
 
       <div className="flex gap-3">
         <div className="w-1/2">
-          <label
-            htmlFor="fecha"
-            className="block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="fecha" className="block text-sm font-medium text-gray-700">
             Fecha
           </label>
           <input
             type="date"
-            name="fecha"
-            id="fecha"
-            value={formData.fecha?.toLocaleString()}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+            {...register("fecha")}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.fecha ? "border-red-500" : "border-gray-300"}`}
           />
+          {errors.fecha && (
+            <p className="text-red-500 text-xs mt-1">{errors.fecha.message}</p>
+          )}
         </div>
 
         <div className="w-1/2">
@@ -112,12 +132,12 @@ const CrearActividad = ({ id, onSubmit }: props) => {
           </label>
           <input
             type="date"
-            name="fecha_vencimiento"
-            id="fecha_vencimiento"
-            value={formData.fecha_vencimiento?.toLocaleString()}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+            {...register("fecha_vencimiento")}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.fecha_vencimiento ? "border-red-500" : "border-gray-300"}`}
           />
+          {errors.fecha_vencimiento && (
+            <p className="text-red-500 text-xs mt-1">{errors.fecha_vencimiento.message}</p>
+          )}
         </div>
       </div>
 
@@ -126,7 +146,7 @@ const CrearActividad = ({ id, onSubmit }: props) => {
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-6 py-2 rounded-lg font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          Crear Actividad
+          {accion || "Crear Actividad"}
         </button>
       </div>
     </form>

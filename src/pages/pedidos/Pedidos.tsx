@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../../components/ui/Modal";
 import CrearPedido from "../../components/forms/CrearPedido";
 import SelectCliente from "../../components/ui/SelectCliente";
+import {getEstadoColor} from '../../utils/pedidos'
 export const Pedidos: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, session } = useAuth();
@@ -53,24 +54,7 @@ export const Pedidos: React.FC = () => {
     return;
   }
 
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case "borrador":
-        return "bg-gray-100 text-gray-800";
-      case "enviado":
-        return "bg-blue-100 text-blue-800";
-      case "aprobado":
-        return "bg-green-100 text-green-800";
-      case "rechazado":
-        return "bg-red-100 text-red-800";
-      case "procesando":
-        return "bg-yellow-100 text-yellow-800";
-      case "completado":
-        return "bg-emerald-100 text-emerald-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
@@ -91,17 +75,17 @@ export const Pedidos: React.FC = () => {
     }
   };
 
-  const pedidosFiltrados = pedidos?.filter((pedido) => {
+  const pedidosFiltrados = (Array.isArray(pedidos) ? pedidos : []).filter((pedido) => {
     if (filtroEstado === "todos") return true;
     return pedido.estado === filtroEstado;
   });
 
   const estadisticas = {
     total: pedidos?.length,
-    pendientes: pedidos?.filter((p) => p.estado === "pendiente").length,
-    aprobados: pedidos?.filter((p) => p.estado === "procesado").length,
+    pendientes: (Array.isArray(pedidos) ? pedidos : []).filter((p) => p.estado === "pendiente").length,
+    aprobados: (Array.isArray(pedidos) ? pedidos : []).filter((p) => p.estado === "procesado").length,
 
-    valorTotal: pedidos?.reduce((sum, p) => sum + Number(p.total), 0),
+    valorTotal: (Array.isArray(pedidos) ? pedidos : []).reduce((sum, p) => sum + Number(p.total), 0),
   };
 
   const handleCrearPedido = (data: PedidoData) => {
@@ -302,7 +286,7 @@ export const Pedidos: React.FC = () => {
                           {cliente(pedido.cliente_id)?.apellido}
                         </span>
                       </div>
-                      <div>
+                      <div className="lg:block md:block hidden">
                         <p className="text-sm font-medium text-gray-600">
                           Fecha de Creación
                         </p>
@@ -313,13 +297,16 @@ export const Pedidos: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="space-x-1">
+                      <div className="lg:block md:block hidden">
                         <p className="text-sm font-medium text-gray-600">
                           Fecha de Entrega
                         </p>
-                        <p className="text-gray-900">
-                          {dayjs(pedido.fecha_entrega).format("DD/MM/YYYY")}
-                        </p>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            {dayjs(pedido.fecha_entrega).format("DD/MM/YYYY")}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -382,9 +369,9 @@ export const Pedidos: React.FC = () => {
                         Editar
                       </button>
                     )}
-                    <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">
+                    {/* <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">
                       Duplicar
-                    </button>
+                    </button> */}
                   </div>
                   {session?.user.user_metadata.rol === "admin" &&
                     pedido.estado === "pendiente" && (

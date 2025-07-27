@@ -45,14 +45,14 @@ export interface ClienteFormData {
   apellido: string;
   email: string;
   telefono: string;
-  empresa?: string;
-  estado: Estado;
-  etapa_venta: EtapaVenta;
+  empresa: string;
+  estado: string;
+  etapa_venta: string;
   rif: string;
   fecha_creacion: Date;
-  notas?: string;
-  direccion?: string;
-  ciudad?: string;
+  notas: string;
+  direccion: string;
+  ciudad: string;
 }
 
 export interface Actividad {
@@ -65,17 +65,18 @@ export interface Actividad {
   fecha: Date;
   completado: boolean;
   fecha_vencimiento?: Date;
+  fecha_creacion: Date;
 }
 
 export interface ICrearActividad {
-  cliente_id: string;
-  vendedor_id: string;
-  tipo: "llamada" | "email" | "reunion" | "nota" | "tarea";
   titulo: string;
+  tipo: string;
   descripcion: string;
   fecha: Date;
+  fecha_vencimiento: Date;
+  cliente_id: string;
+  vendedor_id: string;
   completado: boolean;
-  fecha_vencimiento?: Date;
 }
 
 export interface Reunion {
@@ -260,3 +261,10 @@ export type ActividadFormateada = {
   time: string;
   status: 'vencida' | 'completada' | 'pendiente';
 };
+
+export type Mes = {
+  mes: string;
+  ventas: number;
+  clientes: number | undefined;
+}
+

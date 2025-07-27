@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { ClienteFormData } from "../../types";
 
 interface Props {
@@ -7,46 +10,72 @@ interface Props {
   accion: string;
 }
 
+
+const schema = yup.object().shape({
+  nombre: yup
+    .string()
+    .required("El nombre es obligatorio")
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El nombre solo puede contener letras y espacios"),
+  apellido: yup
+    .string()
+    .required("El apellido es obligatorio")
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/, "El apellido solo puede contener letras y espacios"),
+  email: yup.string().email("Email inválido").required("El email es obligatorio"),
+  telefono: yup
+    .string()
+    .required("El teléfono es obligatorio")
+    .matches(/^[0-9+\-()\s]+$/, "Teléfono inválido"),
+  empresa: yup.string().required("La Empresa es obligatoria"),
+  estado: yup.string().required().default("prospecto"),
+  etapa_venta: yup.string().required().default("inicial"),
+  rif: yup
+    .string()
+    .required("El RIF es obligatorio")
+    .matches(/^[JGVE][0-9]+$/, "El RIF debe comenzar con J, G, V o E seguido de números"),
+  fecha_creacion: yup.date().required(),
+  notas: yup.string().default(""),
+  direccion: yup.string().default(""),
+  ciudad: yup.string().default(""),
+});
+
 const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
-  const [form, setForm] = useState<ClienteFormData>({
-    nombre: initialData?.nombre || "",
-    apellido: initialData?.apellido || "",
-    email: initialData?.email || "",
-    telefono: initialData?.telefono || "",
-    empresa: initialData?.empresa || "",
-    // cargo: initialData?.cargo || "",
-    estado: initialData?.estado || "prospecto",
-    etapa_venta: initialData?.etapa_venta || "inicial",
-    rif: initialData?.rif || "",
-    fecha_creacion: initialData?.fecha_creacion
-      ? new Date(initialData.fecha_creacion)
-      : new Date(),
-    // ultima_actividad: new Date(),
-    notas: initialData?.notas || "",
-    direccion: initialData?.direccion || "",
-    ciudad: initialData?.ciudad || "",
-    // codigo_postal: initialData?.codigo_postal || "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<ClienteFormData>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      nombre: initialData?.nombre || "",
+      apellido: initialData?.apellido || "",
+      email: initialData?.email || "",
+      telefono: initialData?.telefono || "",
+      empresa: initialData?.empresa || "",
+      estado: initialData?.estado || "prospecto",
+      etapa_venta: initialData?.etapa_venta || "inicial",
+      rif: initialData?.rif || "",
+      fecha_creacion: initialData?.fecha_creacion
+        ? new Date(initialData.fecha_creacion)
+        : new Date(),
+      notas: initialData?.notas || "",
+      direccion: initialData?.direccion || "",
+      ciudad: initialData?.ciudad || "",
+    },
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(form);
-  };
+  // Si el usuario edita, mantener la fecha de creación intacta
+  React.useEffect(() => {
+    if (initialData?.fecha_creacion) {
+      setValue(
+        "fecha_creacion",
+        new Date(initialData.fecha_creacion)
+      );
+    }
+  }, [initialData?.fecha_creacion, setValue]);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
@@ -55,13 +84,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             </label>
             <input
               type="text"
-              name="nombre"
+              {...register("nombre")}
               placeholder="Nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.nombre ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.nombre && (
+              <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -69,13 +98,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             </label>
             <input
               type="text"
-              name="apellido"
+              {...register("apellido")}
               placeholder="Apellido"
-              value={form.apellido}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.apellido ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.apellido && (
+              <p className="text-red-500 text-xs mt-1">{errors.apellido.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -83,13 +112,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             </label>
             <input
               type="email"
-              name="email"
+              {...register("email")}
               placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.email ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -97,13 +126,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             </label>
             <input
               type="tel"
-              name="telefono"
+              {...register("telefono")}
               placeholder="Teléfono"
-              value={form.telefono}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.telefono ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.telefono && (
+              <p className="text-red-500 text-xs mt-1">{errors.telefono.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -111,12 +140,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             </label>
             <input
               type="text"
-              name="empresa"
+              {...register("empresa")}
               placeholder="Empresa"
-              value={form.empresa ?? ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.empresa ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.empresa && (
+              <p className="text-red-500 text-xs mt-1">{errors.empresa.message}</p>
+            )}
           </div>
         </div>
         <div className="space-y-4">
@@ -125,33 +155,35 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               Estado
             </label>
             <select
-              name="estado"
-              value={form.estado}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              {...register("estado")}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.estado ? "border-red-500" : "border-gray-300"}`}
             >
               <option value="prospecto">Prospecto</option>
-              <option value="cliente">Cliente</option>
+              <option value="activo">Cliente</option>
               <option value="inactivo">Inactivo</option>
             </select>
+            {errors.estado && (
+              <p className="text-red-500 text-xs mt-1">{errors.estado.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Etapa de Venta
             </label>
             <select
-              name="etapaVenta"
-              value={form.etapa_venta}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              {...register("etapa_venta")}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.etapa_venta ? "border-red-500" : "border-gray-300"}`}
             >
               <option value="inicial">Inicial</option>
               <option value="calificado">Calificado</option>
               <option value="propuesta">Propuesta</option>
               <option value="negociacion">Negociación</option>
               <option value="cerrado">Cerrado</option>
-              <option value="perdido">Perdido</option>
+             
             </select>
+            {errors.etapa_venta && (
+              <p className="text-red-500 text-xs mt-1">{errors.etapa_venta.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -159,12 +191,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             </label>
             <input
               type="text"
-              name="rif"
+              {...register("rif")}
               placeholder="Rif"
-              value={form.rif}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.rif ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.rif && (
+              <p className="text-red-500 text-xs mt-1">{errors.rif.message}</p>
+            )}
           </div>
           <div className="flex space-x-2">
             <div className="flex-1">
@@ -173,11 +206,18 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               </label>
               <input
                 type="date"
-                name="fechaCreacion"
-                value={form.fecha_creacion.toISOString().split("T")[0]}
+                {...register("fecha_creacion")}
+                value={
+                  initialData?.fecha_creacion
+                    ? new Date(initialData.fecha_creacion).toISOString().split("T")[0]
+                    : new Date().toISOString().split("T")[0]
+                }
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.fecha_creacion ? "border-red-500" : "border-gray-300"}`}
               />
+              {errors.fecha_creacion && (
+                <p className="text-red-500 text-xs mt-1">{errors.fecha_creacion.message}</p>
+              )}
             </div>
           </div>
           <div>
@@ -185,12 +225,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               Notas
             </label>
             <textarea
-              name="notas"
+              {...register("notas")}
               placeholder="Notas"
-              value={form.notas ?? ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px]"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px] ${errors.notas ? "border-red-500" : "border-gray-300"}`}
             />
+            {errors.notas && (
+              <p className="text-red-500 text-xs mt-1">{errors.notas.message}</p>
+            )}
           </div>
         </div>
       </div>
@@ -201,12 +242,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
           </label>
           <input
             type="text"
-            name="direccion"
+            {...register("direccion")}
             placeholder="Dirección"
-            value={form.direccion ?? ""}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.direccion ? "border-red-500" : "border-gray-300"}`}
           />
+          {errors.direccion && (
+            <p className="text-red-500 text-xs mt-1">{errors.direccion.message}</p>
+          )}
         </div>
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -214,12 +256,13 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
           </label>
           <input
             type="text"
-            name="ciudad"
+            {...register("ciudad")}
             placeholder="Ciudad"
-            value={form.ciudad ?? ""}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.ciudad ? "border-red-500" : "border-gray-300"}`}
           />
+          {errors.ciudad && (
+            <p className="text-red-500 text-xs mt-1">{errors.ciudad.message}</p>
+          )}
         </div>
       </div>
       <div className="flex justify-end pt-4">

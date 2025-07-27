@@ -15,16 +15,17 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useSupabase } from "../../hooks/useSupabase";
 import {
-  Actividad,
-  ActividadFormateada,
   Cliente,
-  Oportunidad,
-  Pedido,
-  Reunion,
 } from "../../types";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/es";
+import { useVentas } from "../../hooks/useVentas";
+import {calculoIncremento} from "../../utils/ventas";
+import { OportunidadesUtilmes, valorPipeline, obtenerReunionesProximas } from "../../utils/oportunidades";
+import {cliente, clientesActivos} from "../../utils/clientes";
+import { typeChange } from "../../constants/typeCange";
+import {formatearActividades} from "../../utils/actividades";
 
 dayjs.extend(relativeTime);
 dayjs.locale("es");
@@ -37,114 +38,33 @@ export const DashboardVendedor: React.FC = () => {
   // Solicitudes hook
   const { data: clientes } = supabase.useClientes();
   const { data: pedidos } = supabase.usePedidos();
+  const pedidosArray = Array.isArray(pedidos) ? pedidos : [];
   const { data: actividades } = supabase.useActividades();
   const { data: reuniones } = supabase.useReuniones();
   const { data: oportunidades } = supabase.useOportunidades();
   // const {data: metas} = supabase.useMetas();
+  const { PedidosProcesados, cifraVentasMes } = useVentas(pedidosArray);
+  const OportunidadesMes =  OportunidadesUtilmes(oportunidades);
+ 
 
+  
   if (!currentUser) {
     toast.error("Usuario no logueado");
     navigate("/login");
     return;
   }
 
-  // Clientes Activos
-  const clientesActivos =
-    clientes?.filter((cliente) => cliente.estado === "activo") ?? [];
-
-  // Pedidos Procesados
-  const PedidosProcesados =
-    pedidos?.filter((pedido) => pedido.estado === "procesado") ?? [];
-
-  // Ventas del mes
-  const VentasdelMes =
-    PedidosProcesados.filter(
-      (pedido) =>
-        new Date(pedido.fecha_creacion).getMonth() === new Date().getMonth()
-    ) ?? [];
-
-  // Oportunidades del mes
-  const OportunidadesMes =
-    oportunidades?.filter(
-      (oportunidad) =>
-        new Date(oportunidad.fecha_creacion).getMonth() ===
-        new Date().getMonth()
-    ) ?? [];
-
-  // funcion para obtener la cifra de ventas del mes
-  const cifraVentasMes = () => {
-    return `$${VentasdelMes.reduce(
-      (total, pedido) => total + Number(pedido.total),
-      0
-    )}`;
-  };
-
-  // funcion para obtener las reuniones proximas
-  function obtenerReunionesProximas(reuniones: Reunion[]): Reunion[] {
-    if (!reuniones) return [];
-    const hoy = new Date();
-    const limite = new Date();
-    limite.setDate(hoy.getDate() + 2);
-
-    return reuniones
-      .map((r) => ({
-        ...r,
-        fecha: new Date(r.fecha_inicio),
-      }))
-      .filter((r) => r.fecha >= hoy && r.fecha <= limite)
-      .sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
-      .slice(0, 4);
-  }
-
-  // valor pipeline
-  const valorPipeline = oportunidades?.reduce(
-    (total, oportunidad) => total + Number(oportunidad.valor),
-    0
-  );
-
-  // Fucniones para calcular el incremento
-  const calculoIncremento = (
-    valorFinal: Cliente[] | Pedido[] | Oportunidad[]
-  ) => {
-    const valorInicial = valorFinal.filter(
-      (valor) =>
-        new Date(valor.fecha_creacion).getMonth() !== new Date().getMonth()
-    );
-    let incremento: number;
-    if (valorInicial.length === 0) {
-      incremento = valorFinal.length > 0 ? 100 : 0;
-    } else {
-      incremento =
-        ((valorFinal.length - valorInicial.length) / valorInicial.length) * 100;
-    }
-    return incremento;
-  };
-
-  // cliente por id
-  const cliente = (cliente_id: string) => {
-    const cliente = clientes?.find((c) => c.id === cliente_id);
-    return cliente;
-  };
-
-  const incremento = calculoIncremento(clientesActivos);
+ 
+// Incrementos
+  const incremento = calculoIncremento(clientesActivos(clientes));
   const incrementoVentas = calculoIncremento(PedidosProcesados);
   const incrementoPipeline = calculoIncremento(OportunidadesMes);
 
-  // Funcion para calcular el tipo de incremento
-  const typeChange = (incremento: number) => {
-    if (incremento > 0) {
-      return "positive";
-    } else if (incremento < 0) {
-      return "negative";
-    } else {
-      return "neutral";
-    }
-  };
 
   const stats = [
     {
       title: "Clientes Activos",
-      value: clientesActivos?.length.toString() ?? "0",
+      value: clientesActivos(clientes).length ?? "0",
       change: `${incremento}%`,
       changeType: `${typeChange(incremento)}` as const,
       icon: Users,
@@ -160,7 +80,7 @@ export const DashboardVendedor: React.FC = () => {
     },
     {
       title: "Pipeline",
-      value: `$${valorPipeline}`,
+      value: `$${valorPipeline(oportunidades)}`,
       change: `${incrementoPipeline}`,
       changeType: `${typeChange(incrementoPipeline)}` as const,
       icon: TrendingUp,
@@ -177,31 +97,33 @@ export const DashboardVendedor: React.FC = () => {
   ];
 
   // Funcion para formatear las actividades
-  function formatearActividades(
-    actividades: Actividad[]
-  ): ActividadFormateada[] {
-    const ahora = new Date();
+  // function formatearActividades(
+  //   actividades: Actividad[]
+  // ): ActividadFormateada[] {
+  //   const ahora = new Date();
 
-    return actividades.map((actividad) => {
-      const fechaLimite = actividad.fecha_vencimiento ?? actividad.fecha;
-      const vencida = !actividad.completado && fechaLimite < ahora;
+  //   return actividades.map((actividad) => {
+  //     const fechaLimite = actividad.fecha_vencimiento ?? actividad.fecha;
+  //     const vencida = !actividad.completado && fechaLimite < ahora;
 
-      let status: ActividadFormateada["status"] = "pendiente";
-      if (actividad.completado) status = "completada";
-      else if (vencida) status = "vencida";
+  //     let status: ActividadFormateada["status"] = "pendiente";
+  //     if (actividad.completado) status = "completada";
+  //     else if (vencida) status = "vencida";
 
-      return {
-        id: actividad.id,
-        type: actividad.tipo.toLowerCase(),
-        title: actividad.titulo,
-        time: dayjs(fechaLimite).fromNow(),
-        status,
-      };
-    });
-  }
-  const recentActivities = [...formatearActividades(actividades ?? [])];
+  //     return {
+  //       id: actividad.id,
+  //       type: actividad.tipo.toLowerCase(),
+  //       title: actividad.titulo,
+  //       time: dayjs(fechaLimite).fromNow(),
+  //       status,
+  //     };
+  //   });
+  // }
+  const actividadesArray = Array.isArray(actividades) ? actividades : [];
+  const recentActivities = [...formatearActividades(actividadesArray)];
 
-  const upcomingMeetings = [...obtenerReunionesProximas(reuniones ?? [])];
+  const reunionesArray = Array.isArray(reuniones) ? reuniones : [];
+  const upcomingMeetings = [...obtenerReunionesProximas(reunionesArray)];
 
   return (
     <Layout
@@ -226,7 +148,7 @@ export const DashboardVendedor: React.FC = () => {
                   </p>
                   <p
                     className={`text-sm mt-2 ${
-                      stat.changeType === "positive"
+                      stat.changeType === "positive" || stat.changeType === "neutral"
                         ? "text-green-600"
                         : "text-red-600"
                     }`}
@@ -321,9 +243,9 @@ export const DashboardVendedor: React.FC = () => {
                       {meeting.titulo}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {cliente(meeting.cliente_id)?.nombre}{" "}
-                      {cliente(meeting.cliente_id)?.apellido} -{" "}
-                      {cliente(meeting.cliente_id)?.empresa}
+                      {cliente(meeting.cliente_id, clientes as Cliente[])?.nombre}{" "}
+                      {cliente(meeting.cliente_id, clientes as Cliente[])?.apellido} -{" "}
+                      {cliente(meeting.cliente_id, clientes as Cliente[])?.empresa}
                     </p>
                     <p className="text-sm text-blue-600">
                       {dayjs(meeting.fecha_inicio).format("dddd")} a las{" "}

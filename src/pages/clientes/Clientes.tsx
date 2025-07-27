@@ -17,7 +17,7 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../context/useAuth";
 import Modal from "../../components/ui/Modal";
 import ClienteForm from "../../components/forms/ClienteFom";
-import { ClienteFormData } from "../../types";
+import { ClienteFormData, Estado, EtapaVenta } from "../../types";
 import { toast } from "react-toastify";
 
 export const Clientes: React.FC = () => {
@@ -44,10 +44,14 @@ export const Clientes: React.FC = () => {
         toast.error("Usuario no logueado");
         navigate("/login");
         return;
-      }
+      } // Default state for new clients
 
       crearCliente({
-        clienteData: user,
+        clienteData: {
+          ...user,
+          estado: user.estado as Estado, 
+          etapa_venta: user.etapa_venta as EtapaVenta, 
+        },
         currentUser,
       });
       toast.success("Cliente creado exitosamente");
@@ -96,13 +100,15 @@ export const Clientes: React.FC = () => {
   };
 
   const pedidosPorCliente = (clienteId: string) => {
-    const pedidosFiltrados = pedidos?.filter(
+    const pedidosArray = Array.isArray(pedidos) ? pedidos : [];
+    const pedidosFiltrados = pedidosArray.filter(
       (pedido) => pedido.cliente_id === clienteId
     );
     return pedidosFiltrados;
   };
 
-  const filteredClientes = clientes?.filter((cliente) => {
+  const clientesArray = Array.isArray(clientes) ? clientes : [];
+  const filteredClientes = clientesArray.filter((cliente) => {
     const matchesSearch =
       cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cliente.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,13 +121,16 @@ export const Clientes: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
-  if (!clientes) {
-    <Layout
-      title="Gestión de Clientes"
-      subtitle="Administra tu cartera de clientes y prospectos"
-    >
-      <p>No hay clientes</p>
-    </Layout>;
+  // Mostrar mensaje si no hay clientes
+  if (!clientesArray.length) {
+    return (
+      <Layout
+        title="Gestión de Clientes"
+        subtitle="Administra tu cartera de clientes y prospectos"
+      >
+        <p>No hay clientes</p>
+      </Layout>
+    );
   }
   return (
     <Layout
@@ -292,7 +301,7 @@ export const Clientes: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 mt-2">
-              {clientes?.length}
+              {clientesArray.length}
             </p>
           </div>
 
@@ -304,7 +313,7 @@ export const Clientes: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 mt-2">
-              {clientes?.filter((c) => c.estado === "activo").length}
+              {clientesArray.filter((c) => c.estado === "activo").length}
             </p>
           </div>
 
@@ -316,7 +325,7 @@ export const Clientes: React.FC = () => {
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900 mt-2">
-              {clientes?.filter((c) => c.estado === "prospecto").length}
+              {clientesArray.filter((c) => c.estado === "prospecto").length}
             </p>
           </div>
 
@@ -330,7 +339,7 @@ export const Clientes: React.FC = () => {
             <p className="text-2xl font-bold text-gray-900 mt-2">
               $
               {Number(
-                pedidos?.reduce(
+                (Array.isArray(pedidos) ? pedidos : []).reduce(
                   (total, pedido) => total + Number(pedido.total),
                   0
                 )

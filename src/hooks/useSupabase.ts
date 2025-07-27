@@ -411,6 +411,7 @@ export const useSupabase = () => {
     });
   };
 
+  // Hook para actualizar Oportunidades
   const useActualizarOportunidad = () => {
     return useMutation({
       mutationFn: async ({
@@ -534,6 +535,28 @@ export const useSupabase = () => {
     });
   };
 
+
+  // Hook para obtener metas
+  const useMetas = () => {
+    const { currentUser, session } = useAuth();
+    return useQuery({
+      queryKey: ["metas"],
+      queryFn: async () => {
+        if (!currentUser) throw new Error("Usuario no autenticado");
+        const metas = await fetch(`${URL}/metas/${currentUser?.id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Autorization: `Bearer ${session?.access_token}`,
+          },
+        }).then((response) => response.json());
+        return metas || [];
+      },
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    });
+  }
+
   return {
     useClientes,
     useActividades,
@@ -553,5 +576,6 @@ export const useSupabase = () => {
     useActualizarPedido,
     useActualizarOportunidad,
     useProductos,
+    useMetas
   };
 };
