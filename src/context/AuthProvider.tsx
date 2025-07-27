@@ -67,14 +67,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (data.user) {
       await fetch(`${URL}/vendedores`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: data.user.id,
           nombre: userData.nombre,
           apellido: userData.apellido,
-          email: data.user.email,
+          rol: userData.rol || "vendedor",
+          supabase_id: data.user.id,
         }),
       });
     }
