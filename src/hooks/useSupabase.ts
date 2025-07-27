@@ -34,6 +34,7 @@ export const useSupabase = () => {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         });
         const data: Promise<Cliente[]> = await clientesData.json();
         return data || [];
@@ -64,6 +65,7 @@ export const useSupabase = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(clienteData),
         }).then((response) => {
           if (!response.ok) {
@@ -90,6 +92,7 @@ export const useSupabase = () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         await fetch(`${URL}/clientes/${clienteData.id}`, {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
@@ -120,6 +123,7 @@ export const useSupabase = () => {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         });
         const data: Promise<Pedido[]> = await pedidosData.json();
         return data || [];
@@ -164,6 +168,7 @@ export const useSupabase = () => {
         // 1. Crear el pedido
         await fetch(`${URL}/pedidos`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
@@ -199,6 +204,7 @@ export const useSupabase = () => {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         }).then((response) => response.json());
         const data: Promise<Actividad[]> = ActividadesData;
         return data || [];
@@ -224,6 +230,7 @@ export const useSupabase = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(actividadData),
         }).then((response) => {
           if (!response.ok) {
@@ -248,6 +255,7 @@ export const useSupabase = () => {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         }).then((response) => response.json());
         const data: Promise<Reunion[]> = reunionesData;
         return data || [];
@@ -267,6 +275,7 @@ export const useSupabase = () => {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         }).then((response) => response.json());
         const data: Promise<Ticket[]> = ticketsData;
         return (await data).length > 0 ? data : [];
@@ -287,6 +296,7 @@ export const useSupabase = () => {
             "Content-Type": "application/json",
             Autorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         }).then((res) => res.json());
         const data: Promise<Oportunidad[]> = oportunidadData;
         return data || [];
@@ -306,6 +316,7 @@ export const useSupabase = () => {
             "Content-Type": "application/json",
             Autorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         }).then((response) => response.json());
         return productos || [];
       },
@@ -332,6 +343,7 @@ export const useSupabase = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(reunionData),
         }).then((response) => {
           if (!response.ok) {
@@ -362,6 +374,7 @@ export const useSupabase = () => {
             "Content-Type": "application/json",
             Autorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify({...ticketData, vendedor_id: currentUser.id}),
         }).then((response) => {
           if (!response.ok) {
@@ -395,6 +408,7 @@ export const useSupabase = () => {
             "Content-Type": "application/json",
             Autorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(oportunidadData),
         }).then((response) => {
           if (!response.ok) {
@@ -426,8 +440,9 @@ export const useSupabase = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(OportunidadData),
         }).then((response) => {
           if (!response.ok) {
@@ -457,8 +472,9 @@ export const useSupabase = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(ReunionData),
         }).then((response) => {
           if (!response.ok) {
@@ -487,8 +503,9 @@ export const useSupabase = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(TicketData),
         }).then((response) => {
           if (!response.ok) {
@@ -517,8 +534,9 @@ export const useSupabase = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
           body: JSON.stringify(PedidoData),
         }).then((response) => {
           if (!response.ok) {
@@ -547,8 +565,9 @@ export const useSupabase = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
+          credentials: "include",
         }).then((response) => response.json());
         return metas || [];
       },
