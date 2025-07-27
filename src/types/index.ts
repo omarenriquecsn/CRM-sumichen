@@ -45,14 +45,14 @@ export interface ClienteFormData {
   apellido: string;
   email: string;
   telefono: string;
-  empresa?: string;
-  estado: Estado;
-  etapa_venta: EtapaVenta;
+  empresa: string;
+  estado: string;
+  etapa_venta: string;
   rif: string;
   fecha_creacion: Date;
-  notas?: string;
-  direccion?: string;
-  ciudad?: string;
+  notas: string;
+  direccion: string;
+  ciudad: string;
 }
 
 export interface Actividad {
