@@ -26,8 +26,8 @@ const schema = yup.object().shape({
     .required("El teléfono es obligatorio")
     .matches(/^[0-9+\-()\s]+$/, "Teléfono inválido"),
   empresa: yup.string().required("La Empresa es obligatoria"),
-  estado: yup.string().required(),
-  etapa_venta: yup.string().required().default(""),
+  estado: yup.string().required().default("prospecto"),
+  etapa_venta: yup.string().required().default("inicial"),
   rif: yup
     .string()
     .required("El RIF es obligatorio")
@@ -159,7 +159,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.estado ? "border-red-500" : "border-gray-300"}`}
             >
               <option value="prospecto">Prospecto</option>
-              <option value="cliente">Cliente</option>
+              <option value="activo">Cliente</option>
               <option value="inactivo">Inactivo</option>
             </select>
             {errors.estado && (
@@ -179,7 +179,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               <option value="propuesta">Propuesta</option>
               <option value="negociacion">Negociación</option>
               <option value="cerrado">Cerrado</option>
-              <option value="perdido">Perdido</option>
+             
             </select>
             {errors.etapa_venta && (
               <p className="text-red-500 text-xs mt-1">{errors.etapa_venta.message}</p>

@@ -3,24 +3,24 @@ import { clientesNuevosMes } from "./clientes";
 export const calculoIncremento = (
   valorFinal: Cliente[] | Pedido[] | Oportunidad[] | Actividad[]
 ) => {
-  const valorInicial = valorFinal.filter(
+  const valorInicial = (Array.isArray(valorFinal) ? valorFinal : []).filter(
     (valor) =>
       new Date(valor.fecha_creacion).getMonth() !== new Date().getMonth()
   );
   let incremento: number;
   if (valorInicial.length === 0) {
-    incremento = valorFinal.length > 0 ? 100 : 0;
+    incremento = (Array.isArray(valorFinal) ? valorFinal : []).length > 0 ? 100 : 0;
   } else {
     incremento =
-      ((valorFinal.length - valorInicial.length) / valorInicial.length) * 100;
+      ((Array.isArray(valorFinal) ? valorFinal : []).length - valorInicial.length) / valorInicial.length * 100;
   }
   return incremento;
 };
 
 export const tasaDeConversion = (oportunidades: Oportunidad[] | undefined) => {
   if (!oportunidades) return 0;
-  const totalOportunidades = oportunidades?.length;
-  const oportunidadesCerradas = oportunidades?.filter(
+  const totalOportunidades = (Array.isArray(oportunidades) ? oportunidades : []).length;
+  const oportunidadesCerradas = (Array.isArray(oportunidades) ? oportunidades : []).filter(
     (oportunidad) => oportunidad.etapa === "cerrado"
   );
 

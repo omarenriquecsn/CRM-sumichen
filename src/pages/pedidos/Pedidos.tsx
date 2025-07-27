@@ -75,17 +75,17 @@ export const Pedidos: React.FC = () => {
     }
   };
 
-  const pedidosFiltrados = pedidos?.filter((pedido) => {
+  const pedidosFiltrados = (Array.isArray(pedidos) ? pedidos : []).filter((pedido) => {
     if (filtroEstado === "todos") return true;
     return pedido.estado === filtroEstado;
   });
 
   const estadisticas = {
     total: pedidos?.length,
-    pendientes: pedidos?.filter((p) => p.estado === "pendiente").length,
-    aprobados: pedidos?.filter((p) => p.estado === "procesado").length,
+    pendientes: (Array.isArray(pedidos) ? pedidos : []).filter((p) => p.estado === "pendiente").length,
+    aprobados: (Array.isArray(pedidos) ? pedidos : []).filter((p) => p.estado === "procesado").length,
 
-    valorTotal: pedidos?.reduce((sum, p) => sum + Number(p.total), 0),
+    valorTotal: (Array.isArray(pedidos) ? pedidos : []).reduce((sum, p) => sum + Number(p.total), 0),
   };
 
   const handleCrearPedido = (data: PedidoData) => {

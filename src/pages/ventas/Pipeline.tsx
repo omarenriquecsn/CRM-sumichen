@@ -38,6 +38,9 @@ export const Pipeline: React.FC = () => {
     null
   );
   const handleOportunidadSubmit = async (data: Partial<Oportunidad>) => {
+    if (!currentUser) return;
+
+    data.vendedor_id = currentUser.id;
     await submitOportunidad(data, () => {
       setModalOpen(false);
     });

@@ -67,7 +67,7 @@ export const Analitica: React.FC = () => {
     },
     {
       titulo: "Tasa de Conversión",
-      valor: `${tasaDeConversion(oportunidades)}`,
+      valor: `${tasaDeConversion(oportunidades) || 0}`,
       cambio: `${incrementoPipeline}%`,
       tipo: `${typeChange(incrementoPipeline)}`,
       icon: Target,
@@ -75,7 +75,7 @@ export const Analitica: React.FC = () => {
     },
     {
       titulo: "Actividades Completadas",
-      valor: `${actividades?.filter((a) => a.completado).length}`,
+      valor: `${(Array.isArray(actividades) ? actividades : []).filter((a) => a.completado).length || 0}`,
       cambio: `${incrementoActividad}%`,
       tipo: `${typeChange(incrementoActividad)}`,
       icon: Activity,

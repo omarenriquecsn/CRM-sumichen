@@ -38,11 +38,12 @@ export const DashboardVendedor: React.FC = () => {
   // Solicitudes hook
   const { data: clientes } = supabase.useClientes();
   const { data: pedidos } = supabase.usePedidos();
+  const pedidosArray = Array.isArray(pedidos) ? pedidos : [];
   const { data: actividades } = supabase.useActividades();
   const { data: reuniones } = supabase.useReuniones();
   const { data: oportunidades } = supabase.useOportunidades();
   // const {data: metas} = supabase.useMetas();
-  const { PedidosProcesados, cifraVentasMes } = useVentas(pedidos);
+  const { PedidosProcesados, cifraVentasMes } = useVentas(pedidosArray);
   const OportunidadesMes =  OportunidadesUtilmes(oportunidades);
  
 
@@ -60,11 +61,10 @@ export const DashboardVendedor: React.FC = () => {
   const incrementoPipeline = calculoIncremento(OportunidadesMes);
 
 
-
   const stats = [
     {
       title: "Clientes Activos",
-      value: clientesActivos?.length.toString() ?? "0",
+      value: clientesActivos(clientes).length ?? "0",
       change: `${incremento}%`,
       changeType: `${typeChange(incremento)}` as const,
       icon: Users,
@@ -119,9 +119,11 @@ export const DashboardVendedor: React.FC = () => {
   //     };
   //   });
   // }
-  const recentActivities = [...formatearActividades(actividades ?? [])];
+  const actividadesArray = Array.isArray(actividades) ? actividades : [];
+  const recentActivities = [...formatearActividades(actividadesArray)];
 
-  const upcomingMeetings = [...obtenerReunionesProximas(reuniones ?? [])];
+  const reunionesArray = Array.isArray(reuniones) ? reuniones : [];
+  const upcomingMeetings = [...obtenerReunionesProximas(reunionesArray)];
 
   return (
     <Layout

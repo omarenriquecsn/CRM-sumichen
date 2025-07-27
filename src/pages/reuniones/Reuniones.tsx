@@ -49,11 +49,11 @@ export const Reuniones: React.FC = () => {
   );
 
   //Reuniones
-  const { data: reuniones, isLoading: isLoadingReuniones } =
+  const { data: reuniones } =
     supabase.useReuniones();
 
   //Clientes
-  const { data: clientes, isLoading: isLoadingClientes } =
+  const { data: clientes } =
     supabase.useClientes();
   //Actualizar Reuniones
 
@@ -75,7 +75,7 @@ export const Reuniones: React.FC = () => {
     if (!reuniones) return [];
     const busquedaLower = terminoBusqueda.toLowerCase();
 
-    return reuniones.filter((reunion) => {
+    return (Array.isArray(reuniones) ? reuniones : []).filter((reunion) => {
       // Filtro por estado
       const pasaFiltroEstado =
         filtroEstado === "todas" || reunion.estado === filtroEstado;
@@ -94,7 +94,7 @@ export const Reuniones: React.FC = () => {
 
   const proximasReuniones = useMemo(() => {
     if (!reuniones) return [];
-    return reuniones
+    return (Array.isArray(reuniones) ? reuniones : [])
       .filter(
         (r) =>
           r.estado === "programada" && new Date(r.fecha_inicio) > new Date()
@@ -107,18 +107,6 @@ export const Reuniones: React.FC = () => {
       .slice(0, 3);
   }, [reuniones]);
 
-  if (isLoadingReuniones || isLoadingClientes) {
-    return (
-      <Layout
-        title="Gestión de Reuniones"
-        subtitle="Programa y gestiona tus reuniones con clientes"
-      >
-        <div className="flex justify-center items-center h-64">
-          <p>Cargando datos...</p>
-        </div>
-      </Layout>
-    );
-  }
 
 
   const formatReunionPayload = (data: IFormReunion) => {

@@ -86,7 +86,7 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
   return (
     <div className="space-y-4">
       <Select<ProductoSelectOption>
-        options={productos.map((p) => ({ ...p, value: p.id, label: p.nombre }))}
+        options={(Array.isArray(productos) ? productos : []).map((p) => ({ ...p, value: p.id, label: p.nombre }))}
         value={selectedOption}
         onChange={(option) => setSelectedOption(option)}
         placeholder="Seleccione un producto..."

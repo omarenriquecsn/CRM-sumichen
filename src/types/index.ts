@@ -69,14 +69,14 @@ export interface Actividad {
 }
 
 export interface ICrearActividad {
-  cliente_id: string;
-  vendedor_id: string;
-  tipo: "llamada" | "email" | "reunion" | "nota" | "tarea";
   titulo: string;
+  tipo: string;
   descripcion: string;
   fecha: Date;
+  fecha_vencimiento: Date;
+  cliente_id: string;
+  vendedor_id: string;
   completado: boolean;
-  fecha_vencimiento?: Date;
 }
 
 export interface Reunion {

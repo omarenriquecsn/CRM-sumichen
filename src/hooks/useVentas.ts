@@ -6,7 +6,7 @@ import { Pedido } from "../types";
     
      // Pedidos Procesados
      const PedidosProcesados =
-     pedidos?.filter((pedido) => pedido.estado === "procesado") ?? [];
+     (Array.isArray(pedidos) ? pedidos : []).filter((pedido) => pedido.estado === "procesado") ?? [];
      
      // Ventas del mes
      const VentasdelMes =

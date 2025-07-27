@@ -35,7 +35,7 @@ export const actividadesPoCategoria = (
       cantidad: 0,
       porcentaje: 0,
     };
-  const actividadesFiltradas = actividades?.filter(
+  const actividadesFiltradas = (Array.isArray(actividades) ? actividades : []).filter(
     (actividad) => actividad.tipo === tipo
   );
 
