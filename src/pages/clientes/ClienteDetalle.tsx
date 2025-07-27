@@ -72,8 +72,8 @@ export const ClienteDetalle: React.FC = () => {
   if (clientes) {
     // Cliente filtrado
 
-    const cliente = clientes.find((c) => c.id === id);
-    const actividades = actividadesTodas?.filter((a) => a.cliente_id === id);
+    const cliente = (Array.isArray(clientes) ? clientes : []).find((c) => c.id === id);
+    const actividades = (Array.isArray(actividadesTodas) ? actividadesTodas : []).filter((a) => a.cliente_id === id);
 
     if (!cliente) {
       toast.error("Cliente no encontrado");
@@ -84,7 +84,7 @@ export const ClienteDetalle: React.FC = () => {
     // Pedidos filtrados
 
     const pedidosFiltrados = () => {
-      const pedidosFiltradosVendedor = pedidos?.filter(
+      const pedidosFiltradosVendedor = (Array.isArray(pedidos) ? pedidos : []).filter(
         (pedido) => pedido.cliente_id === cliente.id
       );
       return pedidosFiltradosVendedor;
@@ -111,7 +111,12 @@ export const ClienteDetalle: React.FC = () => {
         if (!cliente) {
           throw new Error("Cliente no encontrado");
         }
-        const clienteData: Cliente = { ...cliente, ...data };
+        const clienteData: Cliente = { 
+          ...cliente, 
+          ...data, 
+          estado: data.estado as Cliente["estado"], 
+          etapa_venta: data.etapa_venta as Cliente["etapa_venta"] 
+        };
 
         editarCliente(
           {
