@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Layout } from "../../components/layout/Layout";
 import { DndContext, closestCenter, DragEndEvent, useDroppable, DragOverlay, TouchSensor, MouseSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
 
 import { SortableContext } from "@dnd-kit/sortable";
 
@@ -210,6 +211,7 @@ export const Pipeline: React.FC = () => {
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          modifiers={[restrictToFirstScrollableAncestor]}
         >
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 max-h-screen overflow-auto">
             {etapas.map((etapa) => {
