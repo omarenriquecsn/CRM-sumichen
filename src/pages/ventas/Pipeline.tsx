@@ -134,7 +134,7 @@ export const Pipeline: React.FC = () => {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-4 min-h-[400px] ${
+                      className={`p-4 min-h-[200px] md:min-h-[400px] overflow-auto ${
                         snapshot.isDraggingOver ? "bg-blue-50" : ""
                       }`}
                     >
@@ -175,10 +175,7 @@ export const Pipeline: React.FC = () => {
                                     <div className="flex items-center space-x-1">
                                       <DollarSign className="h-4 w-4 text-green-600" />
                                       <span className="font-semibold text-gray-900 text-sm">
-                                        $
-                                        {Number(
-                                          oportunidad.valor
-                                        ).toLocaleString()}
+                                        ${Number(oportunidad.valor).toLocaleString()}
                                       </span>
                                     </div>
                                     <span
