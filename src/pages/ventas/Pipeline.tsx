@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Layout } from "../../components/layout/Layout";
 import { DndContext, closestCenter, DragEndEvent, useDroppable, DragOverlay, TouchSensor, MouseSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifiers";
+import {  restrictToWindowEdges } from "@dnd-kit/modifiers";
 
 import { SortableContext } from "@dnd-kit/sortable";
 
@@ -34,7 +34,7 @@ function PipelineColumn({ etapa, oportunidadesEtapa, cliente, onAdd }: PipelineC
         </p>
       </div>
       <SortableContext items={oportunidadesEtapa.map((o) => o.id)} id={etapa.id}>
-        <div ref={setNodeRef} className="p-4 min-h-[200px] md:min-h-[400px] max-h-screen overflow-auto">
+        <div ref={setNodeRef} className="p-4 min-h-[200px] md:min-h-[400px] md:max-h-screen md:overflow-auto">
           {oportunidadesEtapa.map((oportunidad: Oportunidad) => {
             const cli = cliente(oportunidad.cliente_id);
             if (!cli) return null;
@@ -211,9 +211,9 @@ export const Pipeline: React.FC = () => {
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
+          modifiers={[restrictToWindowEdges]}
         >
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 max-h-screen overflow-auto">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {etapas.map((etapa) => {
               const oportunidadesEtapa = oportunidades.filter((o) => o.etapa === etapa.id);
               return (

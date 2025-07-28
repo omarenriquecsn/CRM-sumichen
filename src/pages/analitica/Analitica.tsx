@@ -51,33 +51,33 @@ export const Analitica: React.FC = () => {
   const metricas = [
     {
       titulo: "Ventas del Mes",
-      valor: `${cifraVentasMes()}`,
-      cambio: `${incrementoVentas}%`,
-      tipo: `${typeChange(incrementoVentas)}`,
+      valor: Number(cifraVentasMes()) || 0,
+      cambio: Number(incrementoVentas),
+      tipo: typeChange(incrementoVentas),
       icon: DollarSign,
       color: "green",
     },
     {
       titulo: "Nuevos Clientes",
-      valor: `${nuevosClientes.length}`,
-      cambio: `${incrementoClientes}%`,
-      tipo: `${typeChange(incrementoClientes)}`,
+      valor: nuevosClientes.length || 0,
+      cambio: Number(incrementoClientes),
+      tipo: typeChange(incrementoClientes),
       icon: Users,
       color: "blue",
     },
     {
       titulo: "Tasa de Conversión",
-      valor: `${tasaDeConversion(oportunidades) || 0}`,
-      cambio: `${incrementoPipeline}%`,
-      tipo: `${typeChange(incrementoPipeline)}`,
+      valor: Number(tasaDeConversion(oportunidades) || 0),
+      cambio: Number(incrementoPipeline),
+      tipo: typeChange(incrementoPipeline),
       icon: Target,
       color: "purple",
     },
     {
       titulo: "Actividades Completadas",
-      valor: `${(Array.isArray(actividades) ? actividades : []).filter((a) => a.completado).length || 0}`,
-      cambio: `${incrementoActividad}%`,
-      tipo: `${typeChange(incrementoActividad)}`,
+      valor: (Array.isArray(actividades) ? actividades : []).filter((a) => a.completado).length || 0,
+      cambio: Number(incrementoActividad),
+      tipo: typeChange(incrementoActividad),
       icon: Activity,
       color: "orange",
     },
@@ -125,7 +125,9 @@ export const Analitica: React.FC = () => {
                     {metrica.titulo}
                   </p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {metrica.valor}
+                    {typeof metrica.valor === "number"
+                      ? metrica.valor.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                      : metrica.valor}
                   </p>
                   <p
                     className={`text-sm mt-2 ${
@@ -134,7 +136,9 @@ export const Analitica: React.FC = () => {
                         : "text-red-600"
                     }`}
                   >
-                    {metrica.cambio} vs mes anterior
+                    {typeof metrica.cambio === "number"
+                      ? metrica.cambio.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                      : metrica.cambio} vs mes anterior
                   </p>
                 </div>
                 <div
@@ -178,7 +182,7 @@ export const Analitica: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-gray-900">
-                      ${mes.ventas.toLocaleString()}
+                      ${mes.ventas.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </p>
                     <p className="text-xs text-gray-500">
                       {mes.clientes} clientes
@@ -240,7 +244,9 @@ export const Analitica: React.FC = () => {
                       ></div>
                     </div>
                     <span className="text-sm font-semibold text-gray-900 w-8">
-                      {etapa.cantidad}
+                      {typeof etapa.cantidad === "number"
+                        ? etapa.cantidad.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                        : etapa.cantidad}
                     </span>
                   </div>
                 </div>
@@ -297,7 +303,9 @@ export const Analitica: React.FC = () => {
                       ></div>
                     </div>
                     <span className="text-sm font-semibold text-gray-900 w-8">
-                      {actividad.cantidad}
+                      {typeof actividad.cantidad === "number"
+                        ? actividad.cantidad.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                        : actividad.cantidad}
                     </span>
                   </div>
                 </div>
