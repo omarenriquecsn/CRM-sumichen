@@ -45,7 +45,7 @@ const SelectCliente = ({
     <Select
       options={clientes.map((c) => ({
           value: c.id,
-          label: c.nombre + " " + c.apellido,
+          label: c.empresa,
         }))}
         onChange={(opcion) => setClienteSeleccionado(opcion?.value?? null)}
         placeholder="Selecciona un cliente"
