@@ -268,3 +268,8 @@ export type Mes = {
   clientes: number | undefined;
 }
 
+ export type CrearPedidoParams = {
+    pedidoData: Partial<Pedido>;
+    productosPedido: formProducto[];
+    currentUser: User;
+  };

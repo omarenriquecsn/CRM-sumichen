@@ -21,6 +21,7 @@ import {
   ICrearActividad,
   IFormReunion,
   Pedido,
+  PedidoData,
 } from "../../types";
 import Modal from "../../components/ui/Modal";
 import ClienteForm from "../../components/forms/ClienteFom";
@@ -32,6 +33,8 @@ import { isMobile } from "react-device-detect";
 import CrearReunion from "../../components/forms/CrearReunion";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
+import { handleCrearPedidoUtil } from "../../utils/pedidos";
+import CrearPedido from "../../components/forms/CrearPedido";
 
 export const ClienteDetalle: React.FC = () => {
   dayjs.locale("es");
@@ -45,6 +48,7 @@ export const ClienteDetalle: React.FC = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isModalBOpen, setModalBOpen] = useState(false);
   const [isModalCOpen, setModalCopen] = useState(false);
+  const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
 
   // Actividades
   const { data: actividadesTodas, error: errorActividades } =
@@ -60,11 +64,18 @@ export const ClienteDetalle: React.FC = () => {
 
   // Pedidos
   const { data: pedidos } = supabase.usePedidos();
+  const { mutate: nuevoPedido, isPending: isPendingPedido } =
+    supabase.useCrearPedido();
 
   // Reuniones
   const { mutate: crearReunion, isPending: pendingReunion } =
     supabase.useCrearReunion();
 
+  if (!currentUser) {
+    toast.error("Debes iniciar sesión para ver los pedidos");
+    navigate("/login");
+    return;
+  }
   const handleEditCliente = () => {
     setModalOpen(true);
   };
@@ -72,8 +83,12 @@ export const ClienteDetalle: React.FC = () => {
   if (clientes) {
     // Cliente filtrado
 
-    const cliente = (Array.isArray(clientes) ? clientes : []).find((c) => c.id === id);
-    const actividades = (Array.isArray(actividadesTodas) ? actividadesTodas : []).filter((a) => a.cliente_id === id);
+    const cliente = (Array.isArray(clientes) ? clientes : []).find(
+      (c) => c.id === id
+    );
+    const actividades = (
+      Array.isArray(actividadesTodas) ? actividadesTodas : []
+    ).filter((a) => a.cliente_id === id);
 
     if (!cliente) {
       toast.error("Cliente no encontrado");
@@ -84,9 +99,9 @@ export const ClienteDetalle: React.FC = () => {
     // Pedidos filtrados
 
     const pedidosFiltrados = () => {
-      const pedidosFiltradosVendedor = (Array.isArray(pedidos) ? pedidos : []).filter(
-        (pedido) => pedido.cliente_id === cliente.id
-      );
+      const pedidosFiltradosVendedor = (
+        Array.isArray(pedidos) ? pedidos : []
+      ).filter((pedido) => pedido.cliente_id === cliente.id);
       return pedidosFiltradosVendedor;
     };
     const hoy = new Date();
@@ -111,11 +126,11 @@ export const ClienteDetalle: React.FC = () => {
         if (!cliente) {
           throw new Error("Cliente no encontrado");
         }
-        const clienteData: Cliente = { 
-          ...cliente, 
-          ...data, 
-          estado: data.estado as Cliente["estado"], 
-          etapa_venta: data.etapa_venta as Cliente["etapa_venta"] 
+        const clienteData: Cliente = {
+          ...cliente,
+          ...data,
+          estado: data.estado as Cliente["estado"],
+          etapa_venta: data.etapa_venta as Cliente["etapa_venta"],
         };
 
         editarCliente(
@@ -241,6 +256,15 @@ export const ClienteDetalle: React.FC = () => {
       const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${destinatario}&su=${asunto}&body=${cuerpo}`;
 
       window.open(url, "_blank"); // Abre Gmail en nueva pestaña
+    };
+    const handleCrearPedido = (data: PedidoData) => {
+      handleCrearPedidoUtil({
+        data,
+        currentUser,
+        clienteSeleccionado: cliente.id,
+        nuevoPedido,
+        setModalPedidoVisible,
+      });
     };
 
     const getEstadoColor = (estado: string) => {
@@ -563,7 +587,10 @@ export const ClienteDetalle: React.FC = () => {
                     <Calendar className="h-4 w-4" />
                     <span>Agendar Reunión</span>
                   </button>
-                  <button className="w-full bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2">
+                  <button
+                    onClick={() => setModalPedidoVisible(true)}
+                    className="w-full bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2"
+                  >
                     <FileText className="h-4 w-4" />
                     <span>Crear Pedido</span>
                   </button>
@@ -648,6 +675,18 @@ export const ClienteDetalle: React.FC = () => {
             accion={!pendingReunion ? "Crear Reunion" : "Creando..."}
             cliente_id={id}
             onSubmit={handleCrearReunion}
+          />
+        </Modal>
+        <Modal
+          isOpen={modalPedidoVisible}
+          onClose={() => {
+            setModalPedidoVisible(false);
+          }}
+          title={"Crear Pedido"}
+        >
+          <CrearPedido
+            accion={!isPendingPedido ? "Crear Pedido" : "Creando..."}
+            onSubmit={handleCrearPedido}
           />
         </Modal>
       </Layout>

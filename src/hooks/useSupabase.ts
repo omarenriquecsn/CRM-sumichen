@@ -67,9 +67,9 @@ export const useSupabase = () => {
           },
           credentials: "include",
           body: JSON.stringify(clienteData),
-        }).then((response) => {
+        }).then(async (response) => {
           if (!response.ok) {
-            throw new Error("Error al crear el cliente");
+            throw new Error("El cliente ya existe o hubo un error al crearlo");
           }
         });
       },
@@ -200,12 +200,15 @@ export const useSupabase = () => {
       queryKey: ["actividades", currentUser?.id],
       queryFn: async () => {
         if (!currentUser) return [];
-        const ActividadesData = await fetch(`${URL}/actividades/${currentUser.id}`, {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          credentials: "include",
-        }).then((response) => response.json());
+        const ActividadesData = await fetch(
+          `${URL}/actividades/${currentUser.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            credentials: "include",
+          }
+        ).then((response) => response.json());
         const data: Promise<Actividad[]> = ActividadesData;
         return data || [];
       },
@@ -251,12 +254,15 @@ export const useSupabase = () => {
       queryKey: ["reuniones", currentUser?.id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const reunionesData = await fetch(`${URL}/reuniones/${currentUser.id}`, {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          credentials: "include",
-        }).then((response) => response.json());
+        const reunionesData = await fetch(
+          `${URL}/reuniones/${currentUser.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            credentials: "include",
+          }
+        ).then((response) => response.json());
         const data: Promise<Reunion[]> = reunionesData;
         return data || [];
       },
@@ -291,13 +297,16 @@ export const useSupabase = () => {
       queryKey: ["oportunidades", currentUser?.id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const oportunidadData = await fetch(`${URL}/oportunidades/${currentUser.id}`, {
-          headers: {
-            "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
-          },
-          credentials: "include",
-        }).then((res) => res.json());
+        const oportunidadData = await fetch(
+          `${URL}/oportunidades/${currentUser.id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Autorization: `Bearer ${session?.access_token}`,
+            },
+            credentials: "include",
+          }
+        ).then((res) => res.json());
         const data: Promise<Oportunidad[]> = oportunidadData;
         return data || [];
       },
@@ -324,7 +333,6 @@ export const useSupabase = () => {
       retry: 1,
     });
   };
-
 
   // hook para crear Reuniones
   const useCrearReunion = () => {
@@ -375,7 +383,7 @@ export const useSupabase = () => {
             Autorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
-          body: JSON.stringify({...ticketData, vendedor_id: currentUser.id}),
+          body: JSON.stringify({ ...ticketData, vendedor_id: currentUser.id }),
         }).then((response) => {
           if (!response.ok) {
             throw new Error("Error al crear el ticket");
@@ -455,7 +463,6 @@ export const useSupabase = () => {
       },
     });
   };
-
 
   // Actualizar Reuniones
   const useActualizarReunion = () => {
@@ -553,7 +560,6 @@ export const useSupabase = () => {
     });
   };
 
-
   // Hook para obtener metas
   const useMetas = () => {
     const { currentUser, session } = useAuth();
@@ -574,7 +580,7 @@ export const useSupabase = () => {
       staleTime: 1000 * 60 * 5,
       retry: 1,
     });
-  }
+  };
 
   return {
     useClientes,
@@ -595,6 +601,6 @@ export const useSupabase = () => {
     useActualizarPedido,
     useActualizarOportunidad,
     useProductos,
-    useMetas
+    useMetas,
   };
 };
