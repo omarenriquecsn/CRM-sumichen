@@ -38,33 +38,36 @@ export const Clientes: React.FC = () => {
   // Pedidos
   const { data: pedidos } = supabase.usePedidos();
 
-  const handleCreateCliente = async (user: ClienteFormData) => {
-    try {
-      if (!currentUser) {
-        toast.error("Usuario no logueado");
-        navigate("/login");
-        return;
-      } // Default state for new clients
+  const handleCreateCliente = (user: ClienteFormData) => {
+    if (!currentUser) {
+      toast.error("Usuario no logueado");
+      navigate("/login");
+      return;
+    }
 
-      crearCliente({
+    crearCliente(
+      {
         clienteData: {
           ...user,
-          estado: user.estado as Estado, 
-          etapa_venta: user.etapa_venta as EtapaVenta, 
+          estado: user.estado as Estado,
+          etapa_venta: user.etapa_venta as EtapaVenta,
         },
         currentUser,
-      });
-      toast.success("Cliente creado exitosamente");
-      setModalOpen(false);
-    } catch (error: unknown) {
-      toast.error("Error al crear el cliente");
-      if (error instanceof Error) {
-        console.error(error.message);
-        throw new Error(`Error:${error.message}`);
-      } else {
-        throw new Error("Error desconocido");
+      },
+      {
+        onSuccess: () => {
+          toast.success("Cliente creado exitosamente");
+          setModalOpen(false);
+        },
+        onError: (error: unknown) => {
+          const msg =
+            error instanceof Error && error.message
+              ? error.message
+              : "El cliente ya existe o hubo un error al crearlo";
+          toast.error(msg);
+        },
       }
-    }
+    );
   };
 
   const getEstadoColor = (estado: string) => {
