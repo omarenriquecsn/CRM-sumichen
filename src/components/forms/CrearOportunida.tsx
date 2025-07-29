@@ -64,7 +64,7 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px]"
       />
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        Valor
+        Venta Estimada
       </label>
       <input
         type="number"
@@ -107,7 +107,7 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
           <option value="">Seleccione un cliente</option>
           {clientes?.map((cliente) => (
             <option key={cliente.rif} value={cliente.id}>
-              {cliente.nombre} {cliente.apellido} - {cliente.empresa}
+             {cliente.empresa}
             </option>
           ))}
         </select>
