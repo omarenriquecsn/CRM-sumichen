@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../../components/ui/Modal";
 import CrearPedido from "../../components/forms/CrearPedido";
 import SelectCliente from "../../components/ui/SelectCliente";
-import {getEstadoColor} from '../../utils/pedidos'
+import { getEstadoColor, handleCrearPedidoUtil } from '../../utils/pedidos';
 export const Pedidos: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, session } = useAuth();
@@ -89,41 +89,13 @@ export const Pedidos: React.FC = () => {
   };
 
   const handleCrearPedido = (data: PedidoData) => {
-    if (!currentUser || !data.productos) {
-      toast.error("Debes iniciar sesión para crear un pedido");
-      return;
-    }
-
-    if (!data.cliente_id && clienteSeleccionado) {
-      data.cliente_id = clienteSeleccionado;
-    }
-
-    const { productos, ...rest } = data;
-
-    rest.subtotal = productos.reduce(
-      (sum, p) => sum + p.precio_unitario * p.cantidad,
-      0
-    );
-
-    rest.total = rest.subtotal + rest.subtotal * rest.impuestos;
-
-    nuevoPedido(
-      {
-        pedidoData: { ...rest },
-        currentUser,
-        productosPedido: productos,
-      },
-      {
-        onError: (error: unknown) => {
-          if (error instanceof Error)
-            toast.error(`Error al crear el pedido: ${error.message}`);
-        },
-        onSuccess: () => {
-          toast.success("¡Pedido creado exitosamente!");
-          setModalPedidoVisible(false);
-        },
-      }
-    );
+    handleCrearPedidoUtil({
+      data,
+      currentUser,
+      clienteSeleccionado,
+      nuevoPedido,
+      setModalPedidoVisible,
+    });
   };
 
   const cliente = (cliente_id: string) => {
