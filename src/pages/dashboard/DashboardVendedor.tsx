@@ -96,29 +96,7 @@ export const DashboardVendedor: React.FC = () => {
     },
   ];
 
-  // Funcion para formatear las actividades
-  // function formatearActividades(
-  //   actividades: Actividad[]
-  // ): ActividadFormateada[] {
-  //   const ahora = new Date();
-
-  //   return actividades.map((actividad) => {
-  //     const fechaLimite = actividad.fecha_vencimiento ?? actividad.fecha;
-  //     const vencida = !actividad.completado && fechaLimite < ahora;
-
-  //     let status: ActividadFormateada["status"] = "pendiente";
-  //     if (actividad.completado) status = "completada";
-  //     else if (vencida) status = "vencida";
-
-  //     return {
-  //       id: actividad.id,
-  //       type: actividad.tipo.toLowerCase(),
-  //       title: actividad.titulo,
-  //       time: dayjs(fechaLimite).fromNow(),
-  //       status,
-  //     };
-  //   });
-  // }
+  
   const actividadesArray = Array.isArray(actividades) ? actividades : [];
   const recentActivities = [...formatearActividades(actividadesArray)];
 

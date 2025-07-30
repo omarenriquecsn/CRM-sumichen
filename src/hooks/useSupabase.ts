@@ -5,7 +5,6 @@ import {
   Actividad,
   Cliente,
   formProducto,
-  ICrearActividad,
   ICrearReunion,
   Oportunidad,
   Pedido,
@@ -241,16 +240,18 @@ export const useSupabase = () => {
     });
   };
 
+
+  type CrearActividadParams = {
+    actividadData: Partial<Actividad>;
+    currentUser: Partial<User>;
+  };
   // Hook para crear actividad
   const useCrearActividad = () => {
     return useMutation({
       mutationFn: async ({
         actividadData,
         currentUser,
-      }: {
-        actividadData: ICrearActividad;
-        currentUser: User;
-      }) => {
+      }: CrearActividadParams) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         await fetch(`${URL}/actividades`, {
           method: "POST",

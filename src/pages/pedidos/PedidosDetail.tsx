@@ -23,6 +23,7 @@ import { Layout } from "../../components/layout/Layout";
 import dayjs from "dayjs";
 import { ProductoPedido } from "../../types";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { getEstadoColor } from "../../utils/pedidos";
 
 const PedidosDetail = () => {
   const { id } = useParams();
@@ -46,8 +47,6 @@ const PedidosDetail = () => {
 
   // Actualizar Pedido
 
-
- 
   useMemo(() => {
     const pedidosMap = pedidos?.find((p) => p.id === id);
     if (!pedidosMap) {
@@ -56,7 +55,12 @@ const PedidosDetail = () => {
     }
   }, [pedidos, id, navigate]);
 
-  if (errorPedidos || errorClientes || !currentUser || !session?.user.user_metadata) {
+  if (
+    errorPedidos ||
+    errorClientes ||
+    !currentUser ||
+    !session?.user.user_metadata
+  ) {
     toast.error("Error al cargar los datos del pedido.");
     navigate("/pedidos");
     return;
@@ -80,25 +84,6 @@ const PedidosDetail = () => {
     navigate("/pedidos");
     return;
   }
-
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case "borrador":
-        return "bg-gray-100 text-gray-800";
-      case "enviado":
-        return "bg-blue-100 text-blue-800";
-      case "aprobado":
-        return "bg-green-100 text-green-800";
-      case "rechazado":
-        return "bg-red-100 text-red-800";
-      case "procesando":
-        return "bg-yellow-100 text-yellow-800";
-      case "completado":
-        return "bg-emerald-100 text-emerald-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const getEstadoIcon = (estado: string) => {
     const iconProps = { className: "h-8 w-8" };
@@ -130,7 +115,7 @@ const PedidosDetail = () => {
           <Link to="/pedidos" className="flex items-center space-x-2" />
         </div>
       </div>
-     
+
       <div className="flex items-center space-x-4">
         <Link
           to="/pedidos"
@@ -186,7 +171,8 @@ const PedidosDetail = () => {
                         {producto.producto.nombre}
                       </p>{" "}
                       <p className="text-sm text-gray-600">
-                        Cantidad: {producto.cantidad} x ${producto.precio_unitario}
+                        Cantidad: {producto.cantidad} x $
+                        {producto.precio_unitario}
                       </p>
                     </div>
                     <p className="font-semibold text-gray-900">
@@ -214,20 +200,16 @@ const PedidosDetail = () => {
               </div>
               {/* Botón para abrir evidencia si existe */}
             </div>
-
-
-           
-    
           </div>
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <h4 className="font-medium text-blue-800 mb-2 flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>Notas del Pedido</span>
-                </h4>
-                <p className="text-blue-700 whitespace-pre-wrap">
-                  {pedido.notas ? pedido.notas : "No hay notas para mostrar."}
-                </p>
-              </div>
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <h4 className="font-medium text-blue-800 mb-2 flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Notas del Pedido</span>
+            </h4>
+            <p className="text-blue-700 whitespace-pre-wrap">
+              {pedido.notas ? pedido.notas : "No hay notas para mostrar."}
+            </p>
+          </div>
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Detalles Adicionales
@@ -306,9 +288,7 @@ const PedidosDetail = () => {
                 <Building className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-gray-500">Empresa</p>
-                  <p className="font-medium text-gray-900">
-                    {cliente.empresa}
-                  </p>
+                  <p className="font-medium text-gray-900">{cliente.empresa}</p>
                 </div>
               </div>
             </div>
@@ -319,7 +299,7 @@ const PedidosDetail = () => {
               Acciones del Pedido
             </h3>
             <div className="space-y-3">
-            {session?.user.user_metadata.rol === "admin" && (
+              {session?.user.user_metadata.rol === "admin" && (
                 <button
                   onClick={() => navigate(`/pedidos/editar/${pedido.id}`)}
                   className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"

@@ -3,35 +3,45 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useAuth } from "../../context/useAuth";
-import { ICrearActividad } from "../../types";
+import { Actividad } from "../../types";
 
 type props = {
-  onSubmit: (data: ICrearActividad) => void;
+  onSubmit: (data: Partial<Actividad> | Actividad) => void;
   id?: string;
   accion: string;
 };
 
-const schema = yup.object().shape({
-  titulo: yup.string().required("El título es obligatorio"),
-  tipo: yup.string().required("El tipo es obligatorio"),
-  descripcion: yup.string().required("La descripción es obligatoria"),
+const schema = yup.object({
+  titulo: yup.string().required("El título es obligatorio").default("Actividad"),
+  tipo: yup
+    .mixed<"email" | "llamada" | "reunion" | "nota" | "tarea">()
+    .oneOf(["email", "llamada", "reunion", "nota", "tarea"], "El tipo es obligatorio")
+    .required("El tipo es obligatorio")
+    .default("email"),
+  descripcion: yup.string().required("La descripción es obligatoria").default("Actividad"),
   fecha: yup
     .date()
     .required("La fecha es obligatoria")
-    .min(new Date(new Date().setHours(0,0,0,0)), "La fecha no puede ser menor a hoy"),
+    .min(
+      new Date(new Date().setHours(0, 0, 0, 0)),
+      "La fecha no puede ser menor a hoy"
+    ),
   fecha_vencimiento: yup
     .date()
     .required("La fecha de vencimiento es obligatoria")
+    .typeError("La fecha de vencimiento debe ser una fecha válida")
     .min(
       yup.ref("fecha"),
       "La fecha de vencimiento no puede ser menor a la fecha"
     )
-    .min(new Date(new Date().setHours(0,0,0,0)), "La fecha de vencimiento no puede ser menor a hoy"),
+    .min(
+      new Date(new Date().setHours(0, 0, 0, 0)),
+      "La fecha de vencimiento no puede ser menor a hoy"
+    ),
   cliente_id: yup.string().required("El cliente es obligatorio"),
   vendedor_id: yup.string().required("El vendedor es obligatorio"),
   completado: yup.boolean().default(true),
 });
-
 
 const CrearActividad = ({ id, onSubmit, accion }: props) => {
   const { currentUser } = useAuth();
@@ -40,19 +50,28 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
     handleSubmit,
     formState: { errors },
     setValue,
-  } = useForm<ICrearActividad>({
+  } = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
       cliente_id: id || "",
       vendedor_id: currentUser?.id || "",
       tipo: "email",
-      titulo: "",
+      titulo: "Actividad",
       descripcion: "",
       fecha: new Date(),
       fecha_vencimiento: new Date(),
       completado: true,
     },
   });
+
+  // Adapt form data to Actividad type
+  const handleFormSubmit = (data: yup.InferType<typeof schema>) => {
+    const actividad: Partial<Actividad> = {
+      ...data, 
+      fecha_creacion: new Date(),
+    };
+    onSubmit(actividad);
+  };
 
   // Asegura que el vendedor_id y cliente_id se mantengan actualizados si cambian
   React.useEffect(() => {
@@ -61,7 +80,7 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
   }, [id, currentUser, setValue]);
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-6" onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="flex gap-2">
         <div className="flex flex-col w-1/2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -71,7 +90,9 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
             type="text"
             {...register("titulo")}
             placeholder="Título"
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.titulo ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${
+              errors.titulo ? "border-red-500" : "border-gray-300"
+            }`}
           />
           {errors.titulo && (
             <p className="text-red-500 text-xs mt-1">{errors.titulo.message}</p>
@@ -83,7 +104,9 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
           </label>
           <select
             {...register("tipo")}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.tipo ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${
+              errors.tipo ? "border-red-500" : "border-gray-300"
+            }`}
           >
             <option value="email">email</option>
             <option value="llamada">llamada</option>
@@ -104,22 +127,31 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
         <textarea
           {...register("descripcion")}
           placeholder="Descripción"
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px] ${errors.descripcion ? "border-red-500" : "border-gray-300"}`}
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 min-h-[48px] ${
+            errors.descripcion ? "border-red-500" : "border-gray-300"
+          }`}
         />
         {errors.descripcion && (
-          <p className="text-red-500 text-xs mt-1">{errors.descripcion.message}</p>
+          <p className="text-red-500 text-xs mt-1">
+            {errors.descripcion.message}
+          </p>
         )}
       </div>
 
       <div className="flex gap-3">
         <div className="w-1/2">
-          <label htmlFor="fecha" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="fecha"
+            className="block text-sm font-medium text-gray-700"
+          >
             Fecha
           </label>
           <input
             type="date"
             {...register("fecha")}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.fecha ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${
+              errors.fecha ? "border-red-500" : "border-gray-300"
+            }`}
           />
           {errors.fecha && (
             <p className="text-red-500 text-xs mt-1">{errors.fecha.message}</p>
@@ -133,10 +165,14 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
           <input
             type="date"
             {...register("fecha_vencimiento")}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.fecha_vencimiento ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${
+              errors.fecha_vencimiento ? "border-red-500" : "border-gray-300"
+            }`}
           />
           {errors.fecha_vencimiento && (
-            <p className="text-red-500 text-xs mt-1">{errors.fecha_vencimiento.message}</p>
+            <p className="text-red-500 text-xs mt-1">
+              {errors.fecha_vencimiento.message}
+            </p>
           )}
         </div>
       </div>
