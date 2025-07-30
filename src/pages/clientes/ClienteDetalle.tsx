@@ -154,32 +154,13 @@ export const ClienteDetalle: React.FC = () => {
     };
 
     const handleCrearActividad = async (data: Partial<Actividad>) => {
-      handleCrearActividadUtil({ data, currentUser, navigate, crearActividad, setModalBOpen });
-      // if (!currentUser) {
-      //   toast.error("Error el usuario no logueado");
-      //   navigate("/login");
-      //   return;
-      // }
-      // crearActividad(
-      //   {
-      //     actividadData: data,
-      //     currentUser,
-      //   },
-      //   {
-      //     onSuccess: () => {
-      //       toast.success("Actividad creada");
-      //       setModalBOpen(false);
-      //     },
-      //     onError: (error: unknown) => {
-      //       toast.error("Error al Crear Actividad");
-      //       if (error instanceof Error) {
-      //         throw new Error(`Error: ${error.message}`);
-      //       } else {
-      //         throw new Error("Error desconocido");
-      //       }
-      //     },
-      //   }
-      // );
+      handleCrearActividadUtil({
+        data,
+        currentUser,
+        navigate,
+        crearActividad,
+        setModalBOpen,
+      });
     };
 
     const handleCrearReunion = (data: IFormReunion) => {
