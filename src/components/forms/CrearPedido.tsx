@@ -35,6 +35,9 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
     moneda: "usd",
   });
 
+  // Estado para el archivo adjunto
+  const [archivoAdjunto, setArchivoAdjunto] = useState<File | null>(null);
+
   const {
     data: productos,
     isLoading: loadingProductos,
@@ -65,13 +68,22 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
     });
   };
 
+  const handleArchivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setArchivoAdjunto(e.target.files[0]);
+    } else {
+      setArchivoAdjunto(null);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const pedidoConProductos = {
       ...formData,
       productos: productosSeleccionados,
-    } as PedidoData;
+      archivoAdjunto, // Se puede enviar como parte del objeto si el backend lo soporta
+    } as PedidoData & { archivoAdjunto?: File };
     onSubmit(pedidoConProductos);
   };
   return (
@@ -231,6 +243,22 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
             ))}
           </div>
         )}
+        {/* Sección para cargar archivo */}
+        <div>
+          <label htmlFor="archivoAdjunto" className="block text-sm font-medium text-gray-700">
+            Adjuntar archivo (opcional)
+          </label>
+          <input
+            type="file"
+            id="archivoAdjunto"
+            name="archivoAdjunto"
+            onChange={handleArchivoChange}
+            className="mt-1 block w-full"
+          />
+          {archivoAdjunto && (
+            <p className="text-sm text-gray-600 mt-1">Archivo seleccionado: {archivoAdjunto.name}</p>
+          )}
+        </div>
         <div className="flex justify-end pt-4">
           <button
             type="submit"
