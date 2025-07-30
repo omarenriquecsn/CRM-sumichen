@@ -176,8 +176,8 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
               Impuestos
             </label>
             <select
-              name="impuetos"
-              id="impuetos"
+              name="impuestos"
+              id="impuestos"
               value={formData.impuestos}
               onChange={handleOnChage}
               className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
