@@ -64,7 +64,7 @@ export interface Actividad {
   descripcion: string;
   fecha: Date;
   completado: boolean;
-  fecha_vencimiento?: Date;
+  fecha_vencimiento: Date;
   fecha_creacion: Date;
 }
 

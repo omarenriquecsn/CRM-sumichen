@@ -86,8 +86,3 @@ export const clientePorEtapaAnalitica = (
   };
 };
 
-//  {
-//     etapa: "Inicial",
-//     cantidad: etapaPipeline(oportunidades, "inicial")?.length,
-//     porcentaje: probabilidadPipeline(oportunidades, "inicial"),
-//   },

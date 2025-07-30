@@ -16,9 +16,9 @@ import {
   IdCard,
 } from "lucide-react";
 import {
+  Actividad,
   Cliente,
   ClienteFormData,
-  ICrearActividad,
   IFormReunion,
   Pedido,
   PedidoData,
@@ -35,6 +35,8 @@ import dayjs from "dayjs";
 import "dayjs/locale/es";
 import { handleCrearPedidoUtil } from "../../utils/pedidos";
 import CrearPedido from "../../components/forms/CrearPedido";
+import { getEstadoColor, getEtapaColor } from "../../utils/clientes";
+import { handleCrearActividadUtil } from "../../utils/actividades";
 
 export const ClienteDetalle: React.FC = () => {
   dayjs.locale("es");
@@ -120,73 +122,64 @@ export const ClienteDetalle: React.FC = () => {
         : null;
 
     const handleUpdateCliente = async (data: ClienteFormData) => {
-      try {
-        if (!currentUser) return;
+      if (!currentUser) return;
 
-        if (!cliente) {
-          throw new Error("Cliente no encontrado");
-        }
-        const clienteData: Cliente = {
-          ...cliente,
-          ...data,
-          estado: data.estado as Cliente["estado"],
-          etapa_venta: data.etapa_venta as Cliente["etapa_venta"],
-        };
-
-        editarCliente(
-          {
-            clienteData,
-            currentUser,
-          },
-          {
-            onSuccess: () => {
-              toast.success("Usuario Editado");
-              setModalOpen(false);
-            },
-            onError: (error: unknown) => {
-              if (error instanceof Error) {
-                toast.error("Error al editar cliente");
-              }
-            },
-          }
-        );
-      } catch (error: unknown) {
-        toast.error("Error al actualizar el cliente");
-        if (error instanceof Error) {
-          console.error(error.message);
-          throw new Error(`Error:${error.message}`);
-        } else {
-          throw new Error("Error desconocido");
-        }
+      if (!cliente) {
+        throw new Error("Cliente no encontrado");
       }
-    };
+      const clienteData: Cliente = {
+        ...cliente,
+        ...data,
+        estado: data.estado as Cliente["estado"],
+        etapa_venta: data.etapa_venta as Cliente["etapa_venta"],
+      };
 
-    const handleCrearActividad = async (data: ICrearActividad) => {
-      if (!currentUser) {
-        toast.error("Error el usuario no logueado");
-        navigate("/login");
-        return;
-      }
-      crearActividad(
+      editarCliente(
         {
-          actividadData: data,
+          clienteData,
           currentUser,
         },
         {
           onSuccess: () => {
-            toast.success("Actividad creada");
-            setModalBOpen(false);
+            toast.success("Usuario Editado");
+            setModalOpen(false);
           },
           onError: (error: unknown) => {
-            toast.error("Error al Crear Actividad");
             if (error instanceof Error) {
-              throw new Error(`Error: ${error.message}`);
-            } else {
-              throw new Error("Error desconocido");
+              toast.error("Error al editar cliente");
             }
           },
         }
       );
+    };
+
+    const handleCrearActividad = async (data: Partial<Actividad>) => {
+      handleCrearActividadUtil({ data, currentUser, navigate, crearActividad, setModalBOpen });
+      // if (!currentUser) {
+      //   toast.error("Error el usuario no logueado");
+      //   navigate("/login");
+      //   return;
+      // }
+      // crearActividad(
+      //   {
+      //     actividadData: data,
+      //     currentUser,
+      //   },
+      //   {
+      //     onSuccess: () => {
+      //       toast.success("Actividad creada");
+      //       setModalBOpen(false);
+      //     },
+      //     onError: (error: unknown) => {
+      //       toast.error("Error al Crear Actividad");
+      //       if (error instanceof Error) {
+      //         throw new Error(`Error: ${error.message}`);
+      //       } else {
+      //         throw new Error("Error desconocido");
+      //       }
+      //     },
+      //   }
+      // );
     };
 
     const handleCrearReunion = (data: IFormReunion) => {
@@ -233,7 +226,7 @@ export const ClienteDetalle: React.FC = () => {
           },
         }
       );
-      const actividadReunion: ICrearActividad = {
+      const actividadReunion: Partial<Actividad> = {
         cliente_id: data.cliente_id,
         vendedor_id: data.vendedor_id,
         tipo: "reunion",
@@ -267,38 +260,7 @@ export const ClienteDetalle: React.FC = () => {
       });
     };
 
-    const getEstadoColor = (estado: string) => {
-      switch (estado) {
-        case "cliente":
-          return "bg-green-100 text-green-800";
-        case "prospecto":
-          return "bg-blue-100 text-blue-800";
-        case "inactivo":
-          return "bg-gray-100 text-gray-800";
-        default:
-          return "bg-gray-100 text-gray-800";
-      }
-    };
-
-    const getEtapaColor = (etapa: string) => {
-      switch (etapa) {
-        case "inicial":
-          return "bg-gray-100 text-gray-800";
-        case "calificado":
-          return "bg-blue-100 text-blue-800";
-        case "propuesta":
-          return "bg-yellow-100 text-yellow-800";
-        case "negociacion":
-          return "bg-orange-100 text-orange-800";
-        case "cerrado":
-          return "bg-green-100 text-green-800";
-        case "perdido":
-          return "bg-red-100 text-red-800";
-        default:
-          return "bg-gray-100 text-gray-800";
-      }
-    };
-
+    // Función para obtener el icono según el tipo de actividad
     const getTipoIcon = (tipo: string) => {
       switch (tipo) {
         case "reunion":
@@ -610,7 +572,7 @@ export const ClienteDetalle: React.FC = () => {
                       {pedidosFiltrados()
                         ? Number(
                             pedidosFiltrados()?.reduce(
-                              (total, pedido) => total + pedido.total,
+                              (total, pedido) => total + Number(pedido.total),
                               0
                             )
                           ).toLocaleString()
