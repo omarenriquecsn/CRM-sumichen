@@ -182,8 +182,12 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
               onChange={handleOnChage}
               className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
             >
-              <option value=0>IVA</option>
-              <option value=0.16>Exento</option>
+
+              <option value="0">IVA</option>
+              <option value="0.16">Exento</option>
+
+         
+
             </select>
           </div>
           <div>
