@@ -138,6 +138,7 @@ export const useSupabase = () => {
     pedidoData: Partial<Pedido>;
     productosPedido: formProducto[];
     currentUser: User;
+    archivoAdjunto: File | null;
   };
 
   // Hook para crear pedido
@@ -147,6 +148,7 @@ export const useSupabase = () => {
         pedidoData,
         productosPedido,
         currentUser,
+        archivoAdjunto,
       }: CrearPedidoParams) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         const pedidoDB: PedidoDb = {
@@ -166,6 +168,7 @@ export const useSupabase = () => {
           precio_unitario: p.precio_unitario,
         }));
         // 1. Crear el pedido
+        let pedidoId = null;
         await fetch(`${URL}/pedidos`, {
           method: "POST",
           credentials: "include",
@@ -177,11 +180,33 @@ export const useSupabase = () => {
             ...pedidoDB,
             productos: productosFormateados,
           }),
-        }).then((response) => {
+        }).then(async (response) => {
           if (!response.ok) {
             throw new Error("Error al crear el pedido");
           }
+          // Obtener el id del pedido creado
+          const data = await response.json();
+          pedidoId = data.id || data.pedido_id || null;
         });
+
+        // 2. Si hay archivo adjunto y se obtuvo el id, subirlo a /pedidos/:id/evidencia
+        if (archivoAdjunto && pedidoId) {
+          const formData = new FormData();
+          formData.append("file", archivoAdjunto);
+          await fetch(`${URL}/pedidos/${pedidoId}/evidencia`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`,
+              // No poner Content-Type, el navegador lo setea automáticamente para FormData
+            },
+            body: formData,
+          }).then((response) => {
+            if (!response.ok) {
+              throw new Error("Error al subir la evidencia del pedido");
+            }
+          });
+        }
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["pedidos"] });

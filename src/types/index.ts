@@ -150,6 +150,7 @@ export interface Pedido {
   dias_credito?: number;
   moneda: "usd" | "bs";
   transporte: "interno" | "externo";
+  evidencia_url?: string;
   productos_pedido: ProductoPedido[];
 }
 
@@ -222,6 +223,7 @@ export type formProducto = {
 
 export interface PedidoData extends Pedido {
   productos: formProducto[];
+  archivoAdjunto?: File | null;
 }
 
 export interface ProductoPedido {
