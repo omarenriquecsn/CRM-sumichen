@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../../components/ui/Modal";
 import CrearPedido from "../../components/forms/CrearPedido";
 import SelectCliente from "../../components/ui/SelectCliente";
-import { getEstadoColor, handleCrearPedidoUtil } from '../../utils/pedidos';
+import { getEstadoColor, handleCrearPedidoUtil } from "../../utils/pedidos";
 export const Pedidos: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, session } = useAuth();
@@ -54,8 +54,6 @@ export const Pedidos: React.FC = () => {
     return;
   }
 
-
-
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case "borrador":
@@ -75,17 +73,26 @@ export const Pedidos: React.FC = () => {
     }
   };
 
-  const pedidosFiltrados = (Array.isArray(pedidos) ? pedidos : []).filter((pedido) => {
-    if (filtroEstado === "todos") return true;
-    return pedido.estado === filtroEstado;
-  });
+  const pedidosFiltrados = (Array.isArray(pedidos) ? pedidos : []).filter(
+    (pedido) => {
+      if (filtroEstado === "todos") return true;
+      return pedido.estado === filtroEstado;
+    }
+  );
 
   const estadisticas = {
     total: pedidos?.length,
-    pendientes: (Array.isArray(pedidos) ? pedidos : []).filter((p) => p.estado === "pendiente").length,
-    aprobados: (Array.isArray(pedidos) ? pedidos : []).filter((p) => p.estado === "procesado").length,
+    pendientes: (Array.isArray(pedidos) ? pedidos : []).filter(
+      (p) => p.estado === "pendiente"
+    ).length,
+    aprobados: (Array.isArray(pedidos) ? pedidos : []).filter(
+      (p) => p.estado === "procesado"
+    ).length,
 
-    valorTotal: (Array.isArray(pedidos) ? pedidos : []).reduce((sum, p) => sum + Number(p.total), 0),
+    valorTotal: (Array.isArray(pedidos) ? pedidos : []).reduce(
+      (sum, p) => sum + Number(p.total),
+      0
+    ),
   };
 
   const handleCrearPedido = (data: PedidoData) => {
@@ -204,12 +211,8 @@ export const Pedidos: React.FC = () => {
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="todos">Todos los estados</option>
-                <option value="borrador">Borradores</option>
-                <option value="enviado">Enviados</option>
-                <option value="aprobado">Aprobados</option>
-                <option value="rechazado">Rechazados</option>
-                <option value="procesando">Procesando</option>
-                <option value="completado">Completados</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="procesado">procesado</option>
               </select>
             </div>
           </div>
@@ -254,8 +257,7 @@ export const Pedidos: React.FC = () => {
                       <div className="flex items-center space-x-1">
                         <User className="h-4 w-4 text-gray-400" />
                         <span className="text-sm text-gray-600">
-                          {cliente(pedido.cliente_id)?.nombre}{" "}
-                          {cliente(pedido.cliente_id)?.apellido}
+                          {cliente(pedido.cliente_id)?.empresa}
                         </span>
                       </div>
                       <div className="lg:block md:block hidden">

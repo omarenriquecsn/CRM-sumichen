@@ -195,11 +195,24 @@ const PedidosDetail = () => {
                   </div>
                 ))}
               </div>
+              {pedido.evidencia_url && (
+                <div className="flex justify-start items-center mt-4">
+                  <a
+                    href={pedido.evidencia_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm"
+                  >
+                    <FileText className="h-5 w-5 mr-2" /> Ver Orden de Compra
+                  </a>
+                </div>
+              )}
               <div className="flex justify-end items-center border-t border-gray-200 pt-4 mt-4">
                 <p className="text-lg font-semibold text-gray-900">
                   Total: ${pedido.total.toLocaleString()}
                 </p>
               </div>
+              {/* Botón para abrir evidencia si existe */}
             </div>
 
 
