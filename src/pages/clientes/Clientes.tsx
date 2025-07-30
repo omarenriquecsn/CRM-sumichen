@@ -243,7 +243,7 @@ export const Clientes: React.FC = () => {
                           $
                           {Number(
                             pedidosPorCliente(cliente.id)?.reduce(
-                              (total, pedido) => total + pedido.total,
+                              (total, pedido) => total + Number(pedido.total),
                               0
                             )
                           ) || 0}

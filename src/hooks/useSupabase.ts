@@ -5,7 +5,6 @@ import {
   Actividad,
   Cliente,
   formProducto,
-  ICrearReunion,
   Oportunidad,
   Pedido,
   PedidoDb,
@@ -52,11 +51,12 @@ export const useSupabase = () => {
         currentUser,
       }: {
         clienteData: Partial<Cliente>;
-        currentUser: User;
+        currentUser: Partial<User>;
       }) => {
         if (!currentUser || !session?.access_token)
           throw new Error("Usuario no autenticado o no hay token");
 
+        if (!currentUser.id) throw new Error("Usuario no autenticado");
         clienteData.vendedor_id = currentUser.id;
         await fetch(`${URL}/clientes`, {
           method: "POST",
@@ -367,8 +367,8 @@ export const useSupabase = () => {
         reunionData,
         currentUser,
       }: {
-        reunionData: ICrearReunion;
-        currentUser: User;
+        reunionData: Partial<Reunion>;
+        currentUser: Partial<User>;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         await fetch(`${URL}/reuniones`, {

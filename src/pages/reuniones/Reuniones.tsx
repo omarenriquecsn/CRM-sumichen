@@ -19,6 +19,13 @@ import { useAuth } from "../../context/useAuth";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 import { IFormReunion, Reunion } from "../../types";
+import {
+  buildClientesMap,
+  handleActualizarReunionUtil,
+  getEstadoColor,
+  handleCrearReunionUtil,
+} from "../../utils/reuniones";
+import { handleCrearActividadUtil } from "../../utils/actividades";
 import Modal from "../../components/ui/Modal";
 import CrearReunion from "../../components/forms/CrearReunion";
 import Select from "react-select";
@@ -43,18 +50,16 @@ export const Reuniones: React.FC = () => {
   >(null);
 
   const [modalClienteVisible, setModalClienteVisible] = useState(false);
-  const [modalReunionVisible, setModalReunionVisible] = useState(false);
+  const [modalReunionVisible, setModalCopen] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<string | null>(
     null
   );
 
   //Reuniones
-  const { data: reuniones } =
-    supabase.useReuniones();
+  const { data: reuniones } = supabase.useReuniones();
 
   //Clientes
-  const { data: clientes } =
-    supabase.useClientes();
+  const { data: clientes } = supabase.useClientes();
   //Actualizar Reuniones
 
   const { mutate: actualizarReunion, isPending: pendingReunion } =
@@ -65,10 +70,9 @@ export const Reuniones: React.FC = () => {
   const { mutate: crearReunion, isPending: pendingCrearReunion } =
     supabase.useCrearReunion();
 
-  const clientesMap = useMemo(() => {
-    if (!clientes) return new Map();
-    return new Map(clientes.map((cliente) => [cliente.id, cliente]));
-  }, [clientes]);
+  const { mutate: crearActividad } = supabase.useCrearActividad();
+
+  const clientesMap = useMemo(() => buildClientesMap(clientes), [clientes]);
 
   // filtros
   const reunionesFiltradas = useMemo(() => {
@@ -107,8 +111,11 @@ export const Reuniones: React.FC = () => {
       .slice(0, 3);
   }, [reuniones]);
 
-
-
+  if (!currentUser) {
+    toast.error("Usuario no logueado");
+    navigate("/login");
+    return;
+  }
   const formatReunionPayload = (data: IFormReunion) => {
     const { fecha, inicio, fin, ...rest } = data;
 
@@ -133,40 +140,30 @@ export const Reuniones: React.FC = () => {
     return { ...rest, fecha_inicio, fecha_fin };
   };
 
+
+
   const handleCrearReunion = (data: IFormReunion) => {
-    if (!currentUser) {
-      toast.error("Usuario no logueado");
-      navigate("/login");
-      return;
+    if(!clienteSeleccionado) {
+      toast.error("No hay cliente seleccionado");
+      return
     }
+    data.cliente_id = clienteSeleccionado;
+    handleCrearReunionUtil({
+      data,
+      currentUser,
+      navigate,
+      crearReunion,
+      setModalCopen,
+      handleCrearActividad: (actividadData) =>
+        handleCrearActividadUtil({
+          data: actividadData,
+          currentUser,
+          navigate,
+          crearActividad,
+        }),
+    });
 
-    if (!clienteSeleccionado) {
-      toast.error("No hay cliente seleccionada para editar");
-      return;
-    }
-
-    const formattedPayload = formatReunionPayload(data);
-
-    const newReunion = {
-      ...formattedPayload,
-      cliente_id: clienteSeleccionado,
-    };
-    crearReunion(
-      {
-        reunionData: newReunion,
-        currentUser,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Reunión creada con éxito");
-          setModalReunionVisible(false);
-        },
-        onError: () => {
-          toast.error("Error al crear la reunión");
-          return;
-        },
-      }
-    );
+   
   };
 
   const handleCambiarReunion = (data: IFormReunion) => {
@@ -187,60 +184,29 @@ export const Reuniones: React.FC = () => {
       id: reunionSeleccionada.id, // Aseguramos que el id esté presente
     };
 
-    actualizarReunion(
-      {
-        // Es más seguro enviar solo los campos que cambian
-        ReunionData: newReunion as Partial<Reunion>,
-        currentUser,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Reunion editada con exito");
-          setModalReunion(false);
-        },
-        onError: () => {
-          toast.error("Error al editar la reunion");
-          return;
-        },
-      }
-    );
+ 
+    handleActualizarReunionUtil({
+      data: newReunion,
+      currentUser,
+      navigate,
+      actualizarReunion,
+      setModalReunion,
+    });
   };
 
   const handleActualizarReunion = (data: Partial<Reunion>) => {
-    if (!currentUser) {
+    if (!currentUser || !currentUser.id) {
       toast.error("Usuario no logueado");
       navigate("/login");
       return;
     }
-
-    actualizarReunion(
-      {
-        ReunionData: data,
-        currentUser,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Reunion Actualizada");
-          setModalReunion(false);
-        },
-        onError: () => {
-          toast.error("Error editando la reunion");
-        },
-      }
-    );
-  };
-
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case "programada":
-        return "bg-blue-100 text-blue-800";
-      case "completada":
-        return "bg-green-100 text-green-800";
-      case "cancelada":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+    handleActualizarReunionUtil({
+      data,
+      currentUser,
+      navigate,
+      actualizarReunion,
+      setModalReunion,
+    });
   };
 
   const getTipoIcon = (tipo: string) => {
@@ -580,7 +546,7 @@ export const Reuniones: React.FC = () => {
       <Modal
         isOpen={modalReunionVisible}
         onClose={() => {
-          setModalReunionVisible(false);
+          setModalCopen(false);
         }}
       >
         <CrearReunion
@@ -622,7 +588,7 @@ export const Reuniones: React.FC = () => {
             disabled={!clienteSeleccionado}
             onClick={() => {
               setModalClienteVisible(false);
-              setModalReunionVisible(true);
+              setModalCopen(true);
             }}
             className="bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
           >

@@ -33,10 +33,11 @@ import { isMobile } from "react-device-detect";
 import CrearReunion from "../../components/forms/CrearReunion";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
-import { handleCrearPedidoUtil } from "../../utils/pedidos";
+import { handleCrearPedidoUtil, utilsPedidos } from "../../utils/pedidos";
 import CrearPedido from "../../components/forms/CrearPedido";
 import { getEstadoColor, getEtapaColor } from "../../utils/clientes";
 import { handleCrearActividadUtil } from "../../utils/actividades";
+import { handleCrearReunionUtil } from "../../utils/reuniones";
 
 export const ClienteDetalle: React.FC = () => {
   dayjs.locale("es");
@@ -98,29 +99,16 @@ export const ClienteDetalle: React.FC = () => {
       return;
     }
 
-    // Pedidos filtrados
+    // Pedidos filtrados Ultima Compra Abrir Gmail
 
-    const pedidosFiltrados = () => {
-      const pedidosFiltradosVendedor = (
-        Array.isArray(pedidos) ? pedidos : []
-      ).filter((pedido) => pedido.cliente_id === cliente.id);
-      return pedidosFiltradosVendedor;
-    };
-    const hoy = new Date();
+    const { pedidosFiltrados, ultimaCompra, abrirGmail } = utilsPedidos(
+      pedidos as Pedido[],
+      cliente
+    );
 
-    const ultimaCompra =
-      pedidosFiltrados()?.length ?? 0 > 0
-        ? pedidosFiltrados()?.reduce((prev: Pedido, curr: Pedido) => {
-            const fechaPrev = new Date(prev.fecha_creacion);
-            const fechaCurr = new Date(prev.fecha_creacion);
 
-            const diffPrev = Math.abs(hoy.getDate() - fechaPrev.getDate());
-            const diffCurr = Math.abs(hoy.getDate() - fechaCurr.getDate());
-
-            return diffCurr < diffPrev ? curr : prev;
-          })
-        : null;
-
+    // Handlers
+    // Handle Update Cliente
     const handleUpdateCliente = async (data: ClienteFormData) => {
       if (!currentUser) return;
 
@@ -153,6 +141,7 @@ export const ClienteDetalle: React.FC = () => {
       );
     };
 
+    // Handle Crear Actividad
     const handleCrearActividad = async (data: Partial<Actividad>) => {
       handleCrearActividadUtil({
         data,
@@ -163,74 +152,20 @@ export const ClienteDetalle: React.FC = () => {
       });
     };
 
+    // Handle Crear Reunion
     const handleCrearReunion = (data: IFormReunion) => {
-      if (!currentUser) {
-        toast.error("Error usuario no logueado");
-        navigate("/login");
-        return;
-      }
-      const { fecha, inicio, fin, ...rest } = data;
-
-      const fecha_inicio = dayjs(fecha)
-        .hour(Number(inicio.split(":")[0]))
-        .minute(Number(inicio.split(":")[1]))
-        .second(0)
-        .millisecond(0)
-        .toISOString();
-
-      const fecha_fin = dayjs(fecha)
-        .hour(Number(fin.split(":")[0]))
-        .minute(Number(fin.split(":")[1]))
-        .second(0)
-        .millisecond(0)
-        .toISOString();
-
-      const newReunion = {
-        ...rest,
-        fecha_inicio: new Date(fecha_inicio),
-        fecha_fin: new Date(fecha_fin),
-      };
-
-      crearReunion(
-        {
-          reunionData: newReunion,
-          currentUser,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Reunion creada con exito");
-            setModalCopen(false);
-          },
-          onError: () => {
-            toast.error("Error al crear la reunion");
-            return;
-          },
-        }
-      );
-      const actividadReunion: Partial<Actividad> = {
-        cliente_id: data.cliente_id,
-        vendedor_id: data.vendedor_id,
-        tipo: "reunion",
-        titulo: data.titulo,
-        descripcion: data.descripcion,
-        fecha: new Date(fecha_inicio),
-        fecha_vencimiento: new Date(fecha_fin),
-        completado: false,
-      };
-      handleCrearActividad(actividadReunion);
+      handleCrearReunionUtil({
+        data,
+        currentUser,
+        navigate,
+        crearReunion,
+        setModalCopen,
+        handleCrearActividad,
+      });
     };
 
-    const abrirGmail = () => {
-      const destinatario = encodeURIComponent(cliente.email);
-      const asunto = encodeURIComponent("¡Hola desde Sumichem!");
-      const cuerpo = encodeURIComponent(
-        `Estimado ${cliente.nombre}, nos alegra contactarte.`
-      );
+    // Handle Crear Pedido
 
-      const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${destinatario}&su=${asunto}&body=${cuerpo}`;
-
-      window.open(url, "_blank"); // Abre Gmail en nueva pestaña
-    };
     const handleCrearPedido = (data: PedidoData) => {
       handleCrearPedidoUtil({
         data,
@@ -563,7 +498,7 @@ export const ClienteDetalle: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Pedidos Realizados</p>
                     <p className="text-xl font-semibold text-gray-900">
-                      {pedidosFiltrados()?.length}
+                      {pedidosFiltrados()?.length ?? 0}
                     </p>
                   </div>
                   <div>

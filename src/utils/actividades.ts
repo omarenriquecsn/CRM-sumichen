@@ -69,7 +69,7 @@ export interface CrearActividadParams {
       onError: (error: unknown) => void;
     }
   ) => void;
-  setModalBOpen: (v: boolean) => void;
+  setModalBOpen?: (v: boolean) => void;
 }
 
 export function handleCrearActividadUtil({
@@ -89,7 +89,8 @@ export function handleCrearActividadUtil({
     {
       onSuccess: () => {
         toast.success("Actividad creada");
-        setModalBOpen(false);
+        if (setModalBOpen) setModalBOpen(false);
+        
       },
       onError: (error: unknown) => {
         toast.error("Error al Crear Actividad");

@@ -1,9 +1,6 @@
-
 import { User } from "@supabase/supabase-js";
-import { formProducto, Pedido, PedidoData,  } from "../types";
+import { Cliente, formProducto, Pedido, PedidoData } from "../types";
 import { toast } from "react-toastify";
-
-
 
 export interface HandleCrearPedidoParams {
   data: PedidoData;
@@ -35,7 +32,11 @@ export function handleCrearPedidoUtil({
     toast.error("Debes iniciar sesión para crear un pedido");
     return;
   }
-  if (!data.productos || !Array.isArray(data.productos) || data.productos.length === 0) {
+  if (
+    !data.productos ||
+    !Array.isArray(data.productos) ||
+    data.productos.length === 0
+  ) {
     toast.error("Debes agregar al menos un producto al pedido");
     return;
   }
@@ -49,7 +50,8 @@ export function handleCrearPedidoUtil({
 
   // Calcular subtotal y total de forma robusta
   const subtotal = productos.reduce(
-    (sum, p) => sum + (Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0),
+    (sum, p) =>
+      sum + (Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0),
     0
   );
   const impuestos = Number(rest.impuestos) || 0;
@@ -79,7 +81,6 @@ export function handleCrearPedidoUtil({
   );
 }
 
-
 export const getEstadoColor = (estado: string) => {
   switch (estado) {
     case "borrador":
@@ -99,4 +100,42 @@ export const getEstadoColor = (estado: string) => {
   }
 };
 
+export const utilsPedidos = (pedidos: Pedido[], cliente: Cliente) => {
+  const pedidosFiltrados = () => {
+    const pedidosFiltradosVendedor = (
+      Array.isArray(pedidos) ? pedidos : []
+    ).filter((pedido) => pedido.cliente_id === cliente.id);
+    return pedidosFiltradosVendedor;
+  };
+  const hoy = new Date();
 
+  const ultimaCompra =
+    pedidosFiltrados()?.length ?? 0 > 0
+      ? pedidosFiltrados()?.reduce((prev: Pedido, curr: Pedido) => {
+          const fechaPrev = new Date(prev.fecha_creacion);
+          const fechaCurr = new Date(prev.fecha_creacion);
+
+          const diffPrev = Math.abs(hoy.getDate() - fechaPrev.getDate());
+          const diffCurr = Math.abs(hoy.getDate() - fechaCurr.getDate());
+
+          return diffCurr < diffPrev ? curr : prev;
+        })
+      : null;
+
+  const abrirGmail = () => {
+    const destinatario = encodeURIComponent(cliente.email);
+    const asunto = encodeURIComponent("¡Hola desde Sumichem!");
+    const cuerpo = encodeURIComponent(
+      `Estimado ${cliente.nombre}, nos alegra contactarte.`
+    );
+
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${destinatario}&su=${asunto}&body=${cuerpo}`;
+
+    window.open(url, "_blank"); // Abre Gmail en nueva pestaña
+  };
+  return {
+    pedidosFiltrados,
+    ultimaCompra,
+    abrirGmail,
+  };
+};
