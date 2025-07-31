@@ -137,6 +137,7 @@ export const Pipeline: React.FC = () => {
 
     // Determinar la etapa destino
     let etapaDestino = oportunidad.etapa;
+    
     let found = false;
     for (const etapa of etapas) {
       const idsEtapa = (oportunidadesOptimista || Oportunidades || [])

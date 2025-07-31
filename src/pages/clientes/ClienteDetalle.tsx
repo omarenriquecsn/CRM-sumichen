@@ -74,6 +74,10 @@ export const ClienteDetalle: React.FC = () => {
   const { mutate: crearReunion, isPending: pendingReunion } =
     supabase.useCrearReunion();
 
+  // Oportunidades
+  const { mutate: editarOportunidad } = supabase.useActualizarOportunidad();
+  const {data: oportunidades} = supabase.useOportunidades();
+
   if (!currentUser) {
     toast.error("Debes iniciar sesión para ver los pedidos");
     navigate("/login");
@@ -121,6 +125,22 @@ export const ClienteDetalle: React.FC = () => {
         estado: data.estado as Cliente["estado"],
         etapa_venta: data.etapa_venta as Cliente["etapa_venta"],
       };
+
+     const oportunidad = Array.isArray(oportunidades) && oportunidades?.find(
+        (o) => o.cliente_id === cliente.id
+      );
+
+      if (oportunidad) {
+        await editarOportunidad({
+          OportunidadData: {
+            ...oportunidad,
+            etapa: clienteData.etapa_venta as "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado",
+          },
+          currentUser,
+        });
+      }
+
+
 
       editarCliente(
         {

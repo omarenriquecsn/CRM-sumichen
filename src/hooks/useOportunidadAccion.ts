@@ -4,14 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { Oportunidad } from "../types";
 import { useSupabase } from "./useSupabase";
 
-
 export const useOportunidadAccion = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const supabase = useSupabase();
 
+  const { data: clientes } = supabase.useClientes();
+  const { data: oportunidades } = supabase.useOportunidades();
   const { mutate: CrearOportunidad } = supabase.useCrearOportunidades();
   const { mutate: editarOportunidad } = supabase.useActualizarOportunidad();
+  const { mutate: actualizarCliente } = supabase.useActualizarCliente();
 
   //   Functions
   const submitOportunidad = (
@@ -22,6 +24,19 @@ export const useOportunidadAccion = () => {
       toast.error("Error usuario no logueado");
       navigate("/login");
       return;
+    }
+
+    if (clientes) {
+      const cliente = clientes.find((c) => c.id === data.cliente_id);
+      if (cliente) {
+        actualizarCliente({
+          clienteData: {
+            ...cliente,
+            etapa_venta: data.etapa || cliente.etapa_venta,
+          },
+          currentUser,
+        });
+      }
     }
 
     CrearOportunidad({
@@ -36,9 +51,37 @@ export const useOportunidadAccion = () => {
   //   Handle Drag and Drop para dnd-kit
   const actualizarEtapaDrag = (
     oportunidadId: string,
-    nuevaEtapa: "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado"
+    nuevaEtapa:
+      | "inicial"
+      | "calificado"
+      | "propuesta"
+      | "negociacion"
+      | "cerrado"
   ) => {
-    if (!currentUser) return;
+    if (!currentUser || !oportunidades || !clientes) return;
+
+    const oportunidad =
+      Array.isArray(oportunidades) &&
+      oportunidades.find((o) => o.id === oportunidadId);
+    if (!oportunidad) {
+      toast.error("Oportunidad no encontrada");
+      return;
+    }
+    const cliente =
+      Array.isArray(clientes) &&
+      clientes.find((c) => c.id === oportunidad.cliente_id);
+    if (!cliente) {
+      toast.error("Cliente no encontrado");
+      return;
+    }
+
+    actualizarCliente({
+      clienteData: {
+        ...cliente,
+        etapa_venta: nuevaEtapa,
+      },
+      currentUser,
+    });
 
     // Buscar la oportunidad actual en cache (opcional, si necesitas más datos)
     // Aquí asumimos que solo necesitas id y etapa
