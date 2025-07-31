@@ -26,6 +26,15 @@ export const useOportunidadAccion = () => {
       return;
     }
 
+    const validarExistencia =
+      Array.isArray(oportunidades) &&
+      oportunidades.find((o) => o.cliente_id === data.cliente_id);
+
+    if (validarExistencia) {
+      toast.error("Ya existe una pipeline para este cliente");
+      return;
+    }
+
     if (clientes) {
       const cliente = clientes.find((c) => c.id === data.cliente_id);
       if (cliente) {
