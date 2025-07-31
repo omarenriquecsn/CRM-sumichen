@@ -130,9 +130,9 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
                     id={`precio-${producto.producto_id}`}
                     type="number"
                     min={0}
-                    step="100"
+                    step="0.01"
                     value={producto.precio_unitario}
-                    onChange={(e) => cambiarPrecio(producto.producto_id, Number(e.target.value))}
+                    onChange={(e) => cambiarPrecio(producto.producto_id, parseFloat(e.target.value))}
                     className="w-full border rounded px-2 py-1"
                   />
                 </div>
