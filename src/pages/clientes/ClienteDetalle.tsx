@@ -160,7 +160,6 @@ export const ClienteDetalle: React.FC = () => {
         navigate,
         crearReunion,
         setModalCopen,
-        handleCrearActividad,
       });
     };
 

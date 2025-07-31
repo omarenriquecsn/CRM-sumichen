@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Layout } from "../../components/layout/Layout";
 import {
   Calendar,
@@ -24,8 +24,10 @@ import {
   handleActualizarReunionUtil,
   getEstadoColor,
   handleCrearReunionUtil,
+  formatReunionPayload,
+  filtrarReuniones,
+  obtenerProximasReuniones,
 } from "../../utils/reuniones";
-import { handleCrearActividadUtil } from "../../utils/actividades";
 import Modal from "../../components/ui/Modal";
 import CrearReunion from "../../components/forms/CrearReunion";
 import Select from "react-select";
@@ -70,82 +72,28 @@ export const Reuniones: React.FC = () => {
   const { mutate: crearReunion, isPending: pendingCrearReunion } =
     supabase.useCrearReunion();
 
-  const { mutate: crearActividad } = supabase.useCrearActividad();
-
-  const clientesMap = useMemo(() => buildClientesMap(clientes), [clientes]);
+  const clientesMap = buildClientesMap(clientes);
 
   // filtros
-  const reunionesFiltradas = useMemo(() => {
-    if (!reuniones) return [];
-    const busquedaLower = terminoBusqueda.toLowerCase();
+  const reunionesFiltradas = filtrarReuniones({
+    reuniones,
+    filtroEstado,
+    terminoBusqueda,
+    clientesMap,
+  });
 
-    return (Array.isArray(reuniones) ? reuniones : []).filter((reunion) => {
-      // Filtro por estado
-      const pasaFiltroEstado =
-        filtroEstado === "todas" || reunion.estado === filtroEstado;
-
-      // Filtro por término de búsqueda
-      const clienteNombre = clientesMap.get(reunion.cliente_id)?.nombre ?? "";
-      const pasaFiltroBusqueda =
-        terminoBusqueda.trim() === "" ||
-        reunion.titulo.toLowerCase().includes(busquedaLower) ||
-        (reunion.descripcion?.toLowerCase().includes(busquedaLower) ?? false) ||
-        clienteNombre.toLowerCase().includes(busquedaLower);
-
-      return pasaFiltroEstado && pasaFiltroBusqueda;
-    });
-  }, [reuniones, filtroEstado, terminoBusqueda, clientesMap]);
-
-  const proximasReuniones = useMemo(() => {
-    if (!reuniones) return [];
-    return (Array.isArray(reuniones) ? reuniones : [])
-      .filter(
-        (r) =>
-          r.estado === "programada" && new Date(r.fecha_inicio) > new Date()
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.fecha_inicio).getTime() -
-          new Date(b.fecha_inicio).getTime()
-      )
-      .slice(0, 3);
-  }, [reuniones]);
+  const proximasReuniones = obtenerProximasReuniones(reuniones);
 
   if (!currentUser) {
     toast.error("Usuario no logueado");
     navigate("/login");
     return;
   }
-  const formatReunionPayload = (data: IFormReunion) => {
-    const { fecha, inicio, fin, ...rest } = data;
-
-    const fecha_inicio = new Date(
-      dayjs(fecha)
-        .hour(Number(inicio.split(":")[0]))
-        .minute(Number(inicio.split(":")[1]))
-        .second(0)
-        .millisecond(0)
-        .toISOString()
-    );
-
-    const fecha_fin = new Date(
-      dayjs(fecha)
-        .hour(Number(fin.split(":")[0]))
-        .minute(Number(fin.split(":")[1]))
-        .second(0)
-        .millisecond(0)
-        .toISOString()
-    );
-
-    return { ...rest, fecha_inicio, fecha_fin };
-  };
-
-
 
   const handleCrearReunion = (data: IFormReunion) => {
-    if(!clienteSeleccionado) {
+    if (!clienteSeleccionado) {
       toast.error("No hay cliente seleccionado");
-      return
+      return;
     }
     data.cliente_id = clienteSeleccionado;
     handleCrearReunionUtil({
@@ -154,16 +102,7 @@ export const Reuniones: React.FC = () => {
       navigate,
       crearReunion,
       setModalCopen,
-      handleCrearActividad: (actividadData) =>
-        handleCrearActividadUtil({
-          data: actividadData,
-          currentUser,
-          navigate,
-          crearActividad,
-        }),
     });
-
-   
   };
 
   const handleCambiarReunion = (data: IFormReunion) => {
@@ -184,7 +123,6 @@ export const Reuniones: React.FC = () => {
       id: reunionSeleccionada.id, // Aseguramos que el id esté presente
     };
 
- 
     handleActualizarReunionUtil({
       data: newReunion,
       currentUser,
@@ -337,11 +275,9 @@ export const Reuniones: React.FC = () => {
                         {reunion.titulo}
                       </h4>
                       <p className="text-xs text-gray-500">
-                        {clientesMap.get(reunion.cliente_id)?.nombre ??
+                        {clientesMap.get(reunion.cliente_id)?.empresa ??
                           "Cliente"}{" "}
-                        {clientesMap.get(reunion.cliente_id)?.apellido ??
-                          "Cliente"}
-                        {""}
+                       
                       </p>
                     </div>
                   </div>
@@ -426,10 +362,8 @@ export const Reuniones: React.FC = () => {
                           <User className="h-4 w-4 text-gray-400" />
                           <div>
                             <p className="font-medium text-gray-900">
-                              {clientesMap.get(reunion.cliente_id)?.nombre ||
+                              {clientesMap.get(reunion.cliente_id)?.empresa ||
                                 "Cliente no encontrado"}{" "}
-                              {clientesMap.get(reunion.cliente_id)?.apellido ||
-                                ""}
                             </p>
                             <p className="text-sm text-gray-500">
                               {clientesMap.get(reunion.cliente_id)?.telefono}

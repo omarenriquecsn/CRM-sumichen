@@ -1,5 +1,47 @@
 import { Cliente, Reunion } from "../types";
 
+export function filtrarReuniones({ reuniones, filtroEstado, terminoBusqueda, clientesMap }: {
+  reuniones: Reunion[] | undefined,
+  filtroEstado: string,
+  terminoBusqueda: string,
+  clientesMap: Map<string, Cliente>
+}) {
+  if (!reuniones) return [];
+  const busquedaLower = terminoBusqueda.toLowerCase();
+  return (Array.isArray(reuniones) ? reuniones : []).filter((reunion) => {
+    // Filtro por estado
+    const pasaFiltroEstado =
+      filtroEstado === "todas" || reunion.estado === filtroEstado;
+
+    // Filtro por término de búsqueda
+    const clienteNombre = clientesMap.get(reunion.cliente_id)?.nombre ?? "";
+    const clienteEmpresa = clientesMap.get(reunion.cliente_id)?.empresa ?? "";
+    const pasaFiltroBusqueda =
+      terminoBusqueda.trim() === "" ||
+      reunion.titulo.toLowerCase().includes(busquedaLower) ||
+      (reunion.descripcion?.toLowerCase().includes(busquedaLower) ?? false) ||
+      clienteNombre.toLowerCase().includes(busquedaLower) ||
+      clienteEmpresa.toLowerCase().includes(busquedaLower);
+
+    return pasaFiltroEstado && pasaFiltroBusqueda;
+  });
+}
+
+export function obtenerProximasReuniones(reuniones: Reunion[] | undefined) {
+  if (!reuniones) return [];
+  return (Array.isArray(reuniones) ? reuniones : [])
+    .filter(
+      (r) =>
+        r.estado === "programada" && new Date(r.fecha_inicio) > new Date()
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.fecha_inicio).getTime() -
+        new Date(b.fecha_inicio).getTime()
+    )
+    .slice(0, 3);
+}
+
 export function buildClientesMap(clientes: Cliente[] | undefined) {
   if (!clientes) return new Map();
   return new Map(clientes.map((cliente) => [cliente.id, cliente]));
@@ -8,7 +50,7 @@ import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction } from "react";
 import { NavigateFunction } from "react-router-dom";
-import { Actividad, ICrearReunion, IFormReunion } from "../types";
+import {  ICrearReunion, IFormReunion } from "../types";
 import { User } from "@supabase/supabase-js";
 import { UseMutateFunction } from "@tanstack/react-query";
 
@@ -27,7 +69,6 @@ export interface HandleCrearReunionParams {
     }
   ) => void;
   setModalCopen: Dispatch<SetStateAction<boolean>>;
-  handleCrearActividad: (data: Partial<Actividad>) => void;
 }
 
 export const handleCrearReunionUtil = ({
@@ -36,7 +77,6 @@ export const handleCrearReunionUtil = ({
   navigate,
   crearReunion,
   setModalCopen,
-  handleCrearActividad,
 }: HandleCrearReunionParams) => {
   if (!currentUser) {
     toast.error("Error usuario no logueado");
@@ -81,17 +121,7 @@ export const handleCrearReunionUtil = ({
       },
     }
   );
-  const actividadReunion: Partial<Actividad> = {
-    cliente_id: data.cliente_id,
-    vendedor_id: data.vendedor_id,
-    tipo: "reunion",
-    titulo: data.titulo,
-    descripcion: data.descripcion,
-    fecha: new Date(fecha_inicio),
-    fecha_vencimiento: new Date(fecha_fin),
-    completado: false,
-  };
-  handleCrearActividad(actividadReunion);
+
 };
 
 interface HandleActualizarReunionParams {
@@ -149,3 +179,28 @@ export const getEstadoColor = (estado: string) => {
       return "bg-gray-100 text-gray-800";
   }
 };
+
+
+ export const formatReunionPayload = (data: IFormReunion) => {
+    const { fecha, inicio, fin, ...rest } = data;
+
+    const fecha_inicio = new Date(
+      dayjs(fecha)
+        .hour(Number(inicio.split(":")[0]))
+        .minute(Number(inicio.split(":")[1]))
+        .second(0)
+        .millisecond(0)
+        .toISOString()
+    );
+
+    const fecha_fin = new Date(
+      dayjs(fecha)
+        .hour(Number(fin.split(":")[0]))
+        .minute(Number(fin.split(":")[1]))
+        .second(0)
+        .millisecond(0)
+        .toISOString()
+    );
+
+    return { ...rest, fecha_inicio, fecha_fin };
+  };

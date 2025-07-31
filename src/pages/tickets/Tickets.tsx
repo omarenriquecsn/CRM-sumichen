@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Layout } from "../../components/layout/Layout";
 import {
   Plus,
@@ -22,13 +22,24 @@ import { Ticket } from "../../types";
 import CrearTicket from "../../components/forms/CrearTicket";
 import Modal from "../../components/ui/Modal";
 import Select from "react-select";
+import {
+  actualizarTicketUtil,
+  creaandoTicketUtil,
+  utilsTikets,
+  filtrarTickets,
+  calcularEstadisticasTickets,
+} from "../../utils/tikets";
 
 export const Tickets: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const supabase = useSupabase();
+
+  const { getEstadoColor, getPrioridadColor, getCategoriaColor } =
+    utilsTikets();
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroPrioridad, setFiltroPrioridad] = useState("todas");
+  const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [mostrarToast, setMostrarToast] = useState(false);
   const [ticketIdSeleccionada, setReunionIdSeleccionada] = useState<
     string | null
@@ -52,51 +63,6 @@ export const Tickets: React.FC = () => {
   const { mutate: crearTicket, isPending: pendingCrearReunion } =
     supabase.useCrearTicket();
 
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case "abierto":
-        return "bg-red-100 text-red-800";
-      case "en_proceso":
-        return "bg-yellow-100 text-yellow-800";
-      case "resuelto":
-        return "bg-green-100 text-green-800";
-      case "cerrado":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getPrioridadColor = (prioridad: string) => {
-    switch (prioridad) {
-      case "urgente":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "alta":
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case "media":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "baja":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getCategoriaColor = (categoria: string) => {
-    switch (categoria) {
-      case "tecnico":
-        return "bg-blue-100 text-blue-800";
-      case "facturacion":
-        return "bg-purple-100 text-purple-800";
-      case "producto":
-        return "bg-indigo-100 text-indigo-800";
-      case "servicio":
-        return "bg-teal-100 text-teal-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case "abierto":
@@ -112,71 +78,48 @@ export const Tickets: React.FC = () => {
     }
   };
 
-  const clientesMap = (id: string) => {
-    const cliente = clientes?.find((c) => c.id === id);
-    return cliente;
-  };
+  const clientesMap = useCallback(
+    (id: string) => {
+      const cliente = clientes?.find((c) => c.id === id);
+      return cliente;
+    },
+    [clientes]
+  );
 
   const actualizarTicket = (data: Partial<Ticket>) => {
     if (!currentUser) {
-      toast.error("No estás logueado");
+      toast.error("No estas logueado");
+      navigate("/login");
       return;
     }
-    mutateTicket(
-      {
-        TicketData: data,
-        currentUser,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Ticket actualizado correctamente");
-        },
-        onError: (error) => {
-          toast.error(error.message);
-        },
-      }
-    );
+    actualizarTicketUtil({ data, currentUser, mutateTicket });
   };
 
   const creaandoTicket = (ticketData: Partial<Ticket>) => {
     if (!currentUser) {
-      toast.error("Usuario no logueado");
+      toast.error("No estas logueado");
       navigate("/login");
       return;
     }
-
-    crearTicket(
-      {
-        ticketData,
-        currentUser,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Ticket creado con éxito");
-          setModalTicket(false);
-        },
-        onError: (error) => {
-          toast.error(error.message);
-        },
-      }
-    );
+    creaandoTicketUtil({
+      ticketData,
+      currentUser,
+      navigate,
+      crearTicket,
+      setModalTicket,
+    });
   };
 
-  const ticketsFiltrados = tickets?.filter((ticket) => {
-    const matchesEstado =
-      filtroEstado === "todos" || ticket.estado === filtroEstado;
-    const matchesPrioridad =
-      filtroPrioridad === "todas" || ticket.prioridad === filtroPrioridad;
-    return matchesEstado && matchesPrioridad;
+  // Filtrado y estadísticas usando utils
+  const ticketsFiltrados = filtrarTickets({
+    tickets: tickets ?? [],
+    filtroEstado,
+    filtroPrioridad,
+    terminoBusqueda,
+    clientesMap,
   });
 
-  const estadisticas = {
-    total: tickets?.length,
-    abiertos: tickets?.filter((t) => t.estado === "abierto").length,
-    enProceso: tickets?.filter((t) => t.estado === "en_proceso").length,
-    resueltos: tickets?.filter((t) => t.estado === "resuelto").length,
-    urgentes: tickets?.filter((t) => t.prioridad === "urgente").length,
-  };
+  const estadisticas = calcularEstadisticasTickets(ticketsFiltrados);
 
   const prepararCancelacion = (reunion_id: string) => {
     setReunionIdSeleccionada(reunion_id);
@@ -186,7 +129,12 @@ export const Tickets: React.FC = () => {
   const confirmarCancelacion = () => {
     if (!ticketIdSeleccionada) return;
 
+    const tiket = tickets?.find((t) => t.id === ticketIdSeleccionada);
     actualizarTicket({
+      titulo: tiket?.titulo,
+      descripcion: tiket?.descripcion,
+      vendedor_id: currentUser?.id,
+      cliente_id: tiket?.cliente_id,
       id: ticketIdSeleccionada,
       estado: "resuelto",
       fecha_actualizacion: new Date(),
@@ -228,18 +176,6 @@ export const Tickets: React.FC = () => {
 
           <div className="bg-white rounded-lg p-4 border border-gray-100">
             <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-yellow-600" />
-              <span className="text-sm font-medium text-gray-600">
-                En Proceso
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-yellow-600 mt-2">
-              {estadisticas.enProceso}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 border border-gray-100">
-            <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
               <span className="text-sm font-medium text-gray-600">
                 Resueltos
@@ -272,6 +208,8 @@ export const Tickets: React.FC = () => {
               <input
                 type="text"
                 placeholder="Buscar tickets..."
+                value={terminoBusqueda}
+                onChange={(e) => setTerminoBusqueda(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
               />
             </div>
@@ -287,9 +225,7 @@ export const Tickets: React.FC = () => {
               >
                 <option value="todos">Todos los estados</option>
                 <option value="abierto">Abiertos</option>
-                <option value="en_proceso">En Proceso</option>
                 <option value="resuelto">Resueltos</option>
-                <option value="cerrado">Cerrados</option>
               </select>
 
               <select
@@ -373,10 +309,8 @@ export const Tickets: React.FC = () => {
                           <User className="h-4 w-4 text-gray-400" />
                           <div>
                             <p className="font-medium text-gray-900">
-                              {clientesMap(ticket.cliente_id)?.nombre ??
+                              {clientesMap(ticket.cliente_id)?.empresa ??
                                 "Cliente"}{" "}
-                              {clientesMap(ticket.cliente_id)?.apellido ??
-                                "Cliente"}
                             </p>
                             <p className="text-sm text-gray-500">
                               {clientesMap(ticket.cliente_id)?.email}{" "}
