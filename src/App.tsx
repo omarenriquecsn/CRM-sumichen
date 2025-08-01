@@ -24,6 +24,7 @@ import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
 import TicketDetail from "./pages/tickets/TicketsDetail";
 import PedidosDetail from "./pages/pedidos/PedidosDetail";
 import { ExcelViewer } from "./pages/productos/Productos";
+import ExcelProductos from "./components/forms/ExcelProductos";
 
 const queryClientet = new QueryClient();
 
@@ -38,9 +39,11 @@ function App() {
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/productos" element={<ExcelViewer />} />
+              <Route path="/excel" element={<ExcelProductos />} />
 
               {/* Rutas protegidas */}
+
+              <Route path="/productos" element={<ProtectedRoute><ExcelViewer /></ProtectedRoute>} />
               <Route
                 path="/"
                 element={
