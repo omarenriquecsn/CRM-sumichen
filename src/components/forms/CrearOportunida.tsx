@@ -13,7 +13,7 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
   const supabase = useSupabase();
   const [formData, setFormData] = useState<Partial<Oportunidad>>({
     cliente_id: "",
-    titulo: "",
+    titulo: "Oportunidad",
     descripcion: "",
     valor: 0,
     probabilidad: 0,
@@ -41,18 +41,7 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Título
-      </label>
-      <input
-        type="text"
-        name="titulo"
-        placeholder="Título de la oportunidad"
-        value={formData.titulo}
-        onChange={handledChange}
-        required
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-      />
+  
       <label className="block text-sm font-medium text-gray-700 mb-1">
         Descripción
       </label>

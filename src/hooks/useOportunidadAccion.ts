@@ -42,6 +42,7 @@ export const useOportunidadAccion = () => {
           clienteData: {
             ...cliente,
             etapa_venta: data.etapa || cliente.etapa_venta,
+            notas: data.descripcion || cliente.notas,
           },
           currentUser,
         });
