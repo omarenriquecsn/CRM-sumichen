@@ -41,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { to: '/reuniones', icon: Calendar, label: 'Reuniones' },
     { to: '/tickets', icon: Ticket, label: 'Tickets' },
     { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos' },
+    { to: '/productos', icon: ShoppingCart, label: 'Productos' },
     { to: '/analitica', icon: BarChart3, label: 'Analítica' },
     { to: '/configuracion', icon: Settings, label: 'Configuración' },
   ];
@@ -53,6 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { to: '/reuniones', icon: Calendar, label: 'Reuniones' },
     { to: '/tickets', icon: Ticket, label: 'Tickets' },
     { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos' },
+    
     { to: '/analitica', icon: BarChart3, label: 'Analítica' },
     { to: '/configuracion', icon: Settings, label: 'Configuración' },
   ];
