@@ -44,7 +44,6 @@ export const ExcelViewer: React.FC = () => {
 
   const encabezado = ['Numero', 'Producto', 'Presentacion', 'Precio Unitario'];
 
-  console.log(data)
   return (
     <Layout
       title="Productos"
