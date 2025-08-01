@@ -22,6 +22,7 @@ const ExcelProductos = () => {
       .then((data) => {
         console.log("Success:", data);
         toast.success("Archivo enviado correctamente.");
+        
       })
       .catch((error) => {
         console.error("Error:", error);
