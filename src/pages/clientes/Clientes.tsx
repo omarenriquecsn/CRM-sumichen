@@ -7,11 +7,11 @@ import {
   Filter,
   Phone,
   Mail,
-  Building,
   User,
   // Calendar,
   DollarSign,
   IdCard,
+  User2,
 } from "lucide-react";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../context/useAuth";
@@ -158,10 +158,13 @@ export const Clientes: React.FC = () => {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Cliente
+                    Rif
                   </th>
                   <th className="text-left py-4 px-6 font-medium text-gray-900">
                     Empresa
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Contacto
                   </th>
                   <th className="text-left py-4 px-6 font-medium text-gray-900">
                     Estado
@@ -172,20 +175,24 @@ export const Clientes: React.FC = () => {
                   <th className="text-left py-4 px-6 font-medium text-gray-900">
                     Ventas
                   </th>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Rif
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredClientes?.map((cliente) => (
                   <tr key={cliente.id} className="hover:bg-gray-50">
                     <td className="py-4 px-6">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-1 text-sm text-gray-500">
+                        <IdCard className="h-4 w-4" />
+                        <span>{cliente.rif.toLocaleString()}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-2 w-60">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-blue-600 font-semibold text-sm">
-                            {cliente.nombre[0]}
-                            {cliente.apellido[0]}
+                            {cliente.empresa?.[0]
+                              ? cliente.empresa[0].toUpperCase()
+                              : "Empresa"}
                           </span>
                         </div>
                         <div>
@@ -193,9 +200,24 @@ export const Clientes: React.FC = () => {
                             to={`/clientes/${cliente.id}`}
                             className="font-medium text-gray-900 hover:text-blue-600"
                           >
-                            {cliente.nombre} {cliente.apellido}
+                            {cliente.empresa}
                           </Link>
-                          <div className="flex items-center space-x-4 mt-1">
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <Link
+                            to={`/clientes/${cliente.id}`}
+                            className="font-medium text-gray-900 hover:text-blue-600"
+                          >
+                            <div className="flex items-center space-x-1 gap-2">
+                              <User2 className="h-5 w-5 text-blue-600" />
+                              {cliente.nombre} {cliente.apellido}
+                            </div>
+                          </Link>
+                          <div className="flex-column items-center space-x-4 mt-1">
                             <div className="flex items-center space-x-1 text-sm text-gray-500">
                               <Mail className="h-4 w-4" />
                               <span>{cliente.email}</span>
@@ -205,16 +227,6 @@ export const Clientes: React.FC = () => {
                               <span>{cliente.telefono}</span>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-gray-400" />
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {cliente.empresa}
-                          </p>
                         </div>
                       </div>
                     </td>
@@ -241,19 +253,15 @@ export const Clientes: React.FC = () => {
                         <DollarSign className="h-4 w-4 text-green-600" />
                         <span className="font-medium text-gray-900">
                           $
-                          {Number(
-                            pedidosPorCliente(cliente.id)?.reduce(
-                              (total, pedido) => total + Number(pedido.total),
-                              0
-                            )
-                          ) || 0}
+                          {(
+                            Number(
+                              pedidosPorCliente(cliente.id)?.reduce(
+                                (total, pedido) => total + Number(pedido.total),
+                                0
+                              )
+                            ) || 0
+                          ).toFixed(2)}
                         </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <IdCard className="h-4 w-4" />
-                        <span>{cliente.rif.toLocaleString()}</span>
                       </div>
                     </td>
                   </tr>
@@ -310,12 +318,14 @@ export const Clientes: React.FC = () => {
             </div>
             <p className="text-2xl font-bold text-gray-900 mt-2">
               $
-              {Number(
-                (Array.isArray(pedidos) ? pedidos : []).reduce(
-                  (total, pedido) => total + Number(pedido.total),
-                  0
-                )
-              ) || 0}
+              {(
+                Number(
+                  (Array.isArray(pedidos) ? pedidos : []).reduce(
+                    (total, pedido) => total + Number(pedido.total),
+                    0
+                  )
+                ) || 0
+              ).toFixed(2)}
             </p>
           </div>
         </div>

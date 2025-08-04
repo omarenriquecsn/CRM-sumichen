@@ -6,7 +6,7 @@ type props = {
   onSubmit: (data: Partial<Oportunidad>) => void;
   id?: string;
   accion: string;
-  etapa?: "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado" ;
+  etapa?: "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado";
 };
 
 const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
@@ -41,7 +41,29 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
 
   return (
     <form onSubmit={handleSubmit}>
-  
+      <div>
+        <label
+          htmlFor="cliente"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Cliente
+        </label>
+        <select
+          name="cliente_id"
+          id="cliente"
+          value={formData.cliente_id}
+          onChange={handledChange}
+          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
+        >
+          <option value="">Seleccione un cliente</option>
+          {clientes?.map((cliente) => (
+            <option key={cliente.rif} value={cliente.id}>
+              {cliente.empresa}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <label className="block text-sm font-medium text-gray-700 mb-1">
         Descripción
       </label>
@@ -79,28 +101,6 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
       />
 
-      <div>
-        <label
-          htmlFor="cliente"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Cliente
-        </label>
-        <select
-          name="cliente_id"
-          id="cliente"
-          value={formData.cliente_id}
-          onChange={handledChange}
-          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
-        >
-          <option value="">Seleccione un cliente</option>
-          {clientes?.map((cliente) => (
-            <option key={cliente.rif} value={cliente.id}>
-             {cliente.empresa}
-            </option>
-          ))}
-        </select>
-      </div>
       <div className="flex justify-end pt-4">
         <button
           type="submit"

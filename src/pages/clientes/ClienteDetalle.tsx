@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Phone,
   Mail,
-  Building,
   MapPin,
   Calendar,
   Edit,
@@ -14,6 +13,7 @@ import {
   FileText,
   Clock,
   IdCard,
+  User2,
 } from "lucide-react";
 import {
   Actividad,
@@ -237,12 +237,12 @@ export const ClienteDetalle: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-bold text-xl">
-                        {cliente.nombre[0]}
+                        {cliente.empresa ? cliente.empresa[0].toUpperCase() : "E"}
                       </span>
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900">
-                        {cliente?.nombre} {cliente?.apellido}
+                        {cliente?.empresa}
                       </h2>
 
                       <div className="flex items-center space-x-3 mt-2">
@@ -297,11 +297,11 @@ export const ClienteDetalle: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                      <Building className="h-5 w-5 text-gray-400" />
+                      <User2 className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-500">Empresa</p>
+                        <p className="text-sm text-gray-500">Contacto</p>
                         <p className="font-medium text-gray-900">
-                          {cliente?.empresa}
+                          {cliente?.nombre} {cliente?.apellido}
                         </p>
                       </div>
                     </div>
@@ -527,7 +527,7 @@ export const ClienteDetalle: React.FC = () => {
                         ? dayjs(ultimaCompra.fecha_creacion).format(
                             "D [de] MMMM [de] YYYY"
                           )
-                        : "No ha comprdo"}
+                        : "No ha comprado"}
                     </p>
                   </div>
                 </div>
