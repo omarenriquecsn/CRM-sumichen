@@ -113,7 +113,7 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
                 <span className="md:col-span-5 font-medium text-gray-800">{producto.nombre}</span>
                 
                 <div className="md:col-span-3">
-                  <label htmlFor={`cantidad-${producto.producto_id}`} className="text-xs text-gray-500">Cantidad</label>
+                  <label htmlFor={`cantidad-${producto.producto_id}`} className="text-xs text-gray-500">Cantidad En Kg</label>
                   <input
                     id={`cantidad-${producto.producto_id}`}
                     type="number"
