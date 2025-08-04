@@ -76,6 +76,15 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+  if (e.key === "Enter") {
+    // Evita el submit si no hay productos seleccionados
+    if (productosSeleccionados.length === 0) {
+      e.preventDefault();
+    }
+  }
+};
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -87,7 +96,7 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
     onSubmit(pedidoConProductos);
   };
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-4">
       <div className="space-y-4 p-6 bg-white">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Crear Nuevo Pedido
@@ -262,6 +271,7 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
         <div className="flex justify-end pt-4">
           <button
             type="submit"
+            disabled={productosSeleccionados.length === 0 }
             className="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-6 py-2 rounded-lg font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             {accion}

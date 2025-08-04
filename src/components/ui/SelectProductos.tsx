@@ -120,8 +120,24 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
                     min={1}
                     value={producto.cantidad}
                     onChange={(e) => cambiarCantidad(producto.producto_id, Number(e.target.value))}
-                    className="w-full border rounded px-2 py-1"
+                    onFocus={e => {
+                      if (e.target.value === "1") {
+                        e.target.value = "";
+                      }
+                    }}
+                    className="w-full border rounded px-2 py-1 appearance-none"
+                    style={{ MozAppearance: 'textfield' }}
                   />
+                  <style>{`
+                    input[type=number]::-webkit-inner-spin-button,
+                    input[type=number]::-webkit-outer-spin-button {
+                      -webkit-appearance: none;
+                      margin: 0;
+                    }
+                    input[type=number] {
+                      -moz-appearance: textfield;
+                    }
+                  `}</style>
                 </div>
 
                 <div className="md:col-span-3">
