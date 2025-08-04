@@ -19,7 +19,7 @@ export async function ExportExcel() {
 }
 
 export const ExcelViewer: React.FC = () => {
-  const encabezado = ["Numero", "Producto", "Presentacion", "Precio Unitario"];
+  const encabezado = ["CODIGO", "DESCRIPCION", "GLOBALCA", "WMS", "TOTAL"];
   const {
     data: excelData,
     isLoading,
