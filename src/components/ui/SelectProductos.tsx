@@ -133,8 +133,24 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
                     step="0.01"
                     value={producto.precio_unitario}
                     onChange={(e) => cambiarPrecio(producto.producto_id, parseFloat(e.target.value))}
-                    className="w-full border rounded px-2 py-1"
+                    onFocus={e => {
+                      if (e.target.value === "0" || e.target.value === "0.00") {
+                        e.target.value = "";
+                      }
+                    }}
+                    className="w-full border rounded px-2 py-1 appearance-none"
+                    style={{ MozAppearance: 'textfield' }}
                   />
+                  <style>{`
+                    input[type=number]::-webkit-inner-spin-button,
+                    input[type=number]::-webkit-outer-spin-button {
+                      -webkit-appearance: none;
+                      margin: 0;
+                    }
+                    input[type=number] {
+                      -moz-appearance: textfield;
+                    }
+                  `}</style>
                 </div>
 
                 <div className="md:col-span-1 flex justify-end">
