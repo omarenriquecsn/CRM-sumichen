@@ -39,6 +39,7 @@ export const Pedidos: React.FC = () => {
   //   null
   // );
 
+  const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
   const { data: pedidos } = supabase.usePedidos();
@@ -73,12 +74,32 @@ export const Pedidos: React.FC = () => {
     }
   };
 
-  const pedidosFiltrados = (Array.isArray(pedidos) ? pedidos : []).filter(
-    (pedido) => {
+  const cliente = (cliente_id: string) => {
+    if (!Array.isArray(clientes)) return undefined;
+    return clientes.find((c) => c.id === cliente_id);
+  };
+
+  const pedidosFiltrados = (Array.isArray(pedidos) ? pedidos : [])
+    .filter((pedido) => {
       if (filtroEstado === "todos") return true;
       return pedido.estado === filtroEstado;
-    }
-  );
+    })
+    .filter((pedido) => {
+      if (!terminoBusqueda.trim()) return true;
+      const busquedaLower = terminoBusqueda.toLowerCase();
+      const empresa = cliente(pedido.cliente_id)?.empresa?.toLowerCase() || "";
+      const nombreCliente = cliente(pedido.cliente_id)
+        ? `${cliente(pedido.cliente_id)?.nombre ?? ""} ${cliente(pedido.cliente_id)?.apellido ?? ""}`.toLowerCase()
+        : "";
+      return (
+        pedido.numero?.toString().toLowerCase().includes(busquedaLower) ||
+        pedido.cliente_id?.toLowerCase().includes(busquedaLower) ||
+        pedido.estado?.toLowerCase().includes(busquedaLower) ||
+        pedido.total?.toString().toLowerCase().includes(busquedaLower) ||
+        empresa.includes(busquedaLower) ||
+        nombreCliente.includes(busquedaLower)
+      );
+    });
 
   const estadisticas = {
     total: pedidos?.length,
@@ -103,11 +124,6 @@ export const Pedidos: React.FC = () => {
       nuevoPedido,
       setModalPedidoVisible,
     });
-  };
-
-  const cliente = (cliente_id: string) => {
-    const cliente = clientes?.find((c) => c.id === cliente_id);
-    return cliente;
   };
 
   return (
@@ -198,6 +214,8 @@ export const Pedidos: React.FC = () => {
               <input
                 type="text"
                 placeholder="Buscar pedidos..."
+                value={terminoBusqueda}
+                onChange={(e) => setTerminoBusqueda(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
               />
             </div>
