@@ -72,7 +72,7 @@ export const ExcelViewer: React.FC = () => {
                       }
                     >
                       {typeof cell === "number"
-                        ? cell.toFixed(2)
+                        ? cell.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : cell}
                     </td>
                   ))}
