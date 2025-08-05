@@ -71,7 +71,9 @@ export const ExcelViewer: React.FC = () => {
                           : "px-4 py-2 border-b text-sm text-gray-800"
                       }
                     >
-                      {cell}
+                      {typeof cell === "number"
+                        ? cell.toFixed(2)
+                        : cell}
                     </td>
                   ))}
                 </tr>
