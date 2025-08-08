@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Si el usuario se crea exitosamente, crear el perfil en la tabla vendedores
     if (data.user) {
-      await fetch(`${URL}/vendedores`, {
+      await fetch(`${URL}/usuarios`, {
         method: "POST",
         credentials: "include",
         headers: {

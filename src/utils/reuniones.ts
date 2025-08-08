@@ -44,7 +44,7 @@ export function obtenerProximasReuniones(reuniones: Reunion[] | undefined) {
 
 export function buildClientesMap(clientes: Cliente[] | undefined) {
   if (!clientes) return new Map();
-  return new Map(clientes.map((cliente) => [cliente.id, cliente]));
+  return new Map(Array.isArray(clientes) ? clientes.map((cliente) => [cliente.id, cliente]) : []);
 }
 import { toast } from "react-toastify";
 import dayjs from "dayjs";

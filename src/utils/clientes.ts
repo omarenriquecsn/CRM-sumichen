@@ -12,15 +12,15 @@ export const cliente = (
   export const clientesActivos = (
     clientes: Cliente[] | undefined
   ) =>
-    clientes?.filter((cliente) => cliente.estado === "activo") ?? [];
+  Array.isArray(clientes) ? clientes?.filter((cliente) => cliente.estado === "activo") ?? [] : [];
 
   export const clientesNuevos = (
     clientes: Cliente[] | undefined
-  ) =>    clientes?.filter((cliente) => new Date(cliente.fecha_creacion).getMonth() === 
-    new Date().getMonth()) ?? [];
+  ) => Array.isArray(clientes) ? clientes?.filter((cliente) => new Date(cliente.fecha_creacion).getMonth() ===
+    new Date().getMonth()) ?? [] : [];
 
     export const clientesNuevosMes = (cliente: Cliente[] | undefined, mes: number) => {
-      return cliente?.filter((c) => new Date(c.fecha_creacion).getMonth() === mes).length;
+      return Array.isArray(cliente) ? cliente.filter((c) => new Date(c.fecha_creacion).getMonth() === mes).length : 0;
     }
 
     export const getEtapaColor = (etapa: string) => {

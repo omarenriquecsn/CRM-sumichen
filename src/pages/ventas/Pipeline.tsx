@@ -113,7 +113,11 @@ export const Pipeline: React.FC = () => {
     return cliente;
   };
 
-  const oportunidades = oportunidadesOptimista || [...(Oportunidades || [])];
+  const oportunidades = oportunidadesOptimista
+    ? oportunidadesOptimista
+    : Oportunidades
+    ? Oportunidades
+    : [];
 
   // onDragEnd handler
   const handleDragStart = (event: { active: { id: string | number } }) => {
@@ -192,10 +196,11 @@ export const Pipeline: React.FC = () => {
                     etapa.color
                   )}`}
                 >
+
                   {
-                    oportunidades.filter(
+                    Array.isArray(oportunidades) ? oportunidades.filter(
                       (oportunidad) => oportunidad.etapa === etapa.id
-                    ).length
+                    ).length : 0
                   }
                 </span>
               </div>
@@ -216,7 +221,7 @@ export const Pipeline: React.FC = () => {
         >
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {etapas.map((etapa) => {
-              const oportunidadesEtapa = oportunidades.filter((o) => o.etapa === etapa.id);
+              const oportunidadesEtapa = Array.isArray(oportunidades) ? oportunidades.filter((o) => o.etapa === etapa.id) : [];
               return (
                 <PipelineColumn
                   key={etapa.id}
@@ -250,7 +255,7 @@ export const Pipeline: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">
-                {oportunidades.length}
+                {Array.isArray(oportunidades) ? oportunidades.length : 0}
               </p>
               <p className="text-sm text-gray-600">Oportunidades Totales</p>
             </div>

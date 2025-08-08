@@ -24,27 +24,27 @@ export const calcularTotalEtapa = (
   oportunidades: Oportunidad[],
   etapaId: string
 ): number =>
-  oportunidades
+  Array.isArray(oportunidades) ? oportunidades
     .filter((o) => o.etapa === etapaId)
-    .reduce((acc, o) => acc + Number(o.valor), 0);
+    .reduce((acc, o) => acc + Number(o.valor), 0) : 0;
 
 export const OportunidadesUtilmes = (
   oportunidades: Oportunidad[] | undefined
 ): Oportunidad[] | [] => {
   const OportunidadesMes =
-    oportunidades?.filter(
+    Array.isArray(oportunidades) ? oportunidades?.filter(
       (oportunidad) =>
         new Date(oportunidad.fecha_creacion).getMonth() ===
         new Date().getMonth()
-    ) ?? [];
+    ) ?? [] : [];
   return OportunidadesMes;
 };
 
 export const valorPipeline = (oportunidades: Oportunidad[] | undefined) =>
-  oportunidades?.reduce(
+  Array.isArray(oportunidades) ? oportunidades?.reduce(
     (total, oportunidad) => total + Number(oportunidad.valor),
     0
-  );
+  ) : 0;
 
 export function obtenerReunionesProximas(reuniones: Reunion[]): Reunion[] {
   if (!reuniones) return [];
@@ -74,9 +74,9 @@ export const clientePorEtapaAnalitica = (
       cantidad: 0,
       porcentaje: 0,
     };
-  const oportunidadesFiltradas = oportunidades.filter(
+  const oportunidadesFiltradas = Array.isArray(oportunidades) ? oportunidades.filter(
     (oportunidad) => oportunidad.etapa === etapa
-  );
+  ) : [];
 
   
   return {

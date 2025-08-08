@@ -93,17 +93,7 @@ export const Clientes: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // Mostrar mensaje si no hay clientes
-  if (!clientesArray.length) {
-    return (
-      <Layout
-        title="Gestión de Clientes"
-        subtitle="Administra tu cartera de clientes y prospectos"
-      >
-        <p>No hay clientes</p>
-      </Layout>
-    );
-  }
+ 
   return (
     <Layout
       title="Gestión de Clientes"
@@ -152,6 +142,11 @@ export const Clientes: React.FC = () => {
         </div>
 
         {/* Lista de clientes */}
+        { clientesArray.length === 0 ? (
+          <div className="text-center text-gray-500 mt-10">
+            <p>No se encontraron clientes.</p>
+          </div>
+        ) : null}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">

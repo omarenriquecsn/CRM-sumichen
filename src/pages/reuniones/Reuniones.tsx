@@ -510,10 +510,10 @@ export const Reuniones: React.FC = () => {
             Selecciona un cliente
           </h3>
           <Select
-            options={clientes?.map((c) => ({
+            options={Array.isArray(clientes) ? clientes.map((c) => ({
               value: c.id,
               label: c.nombre + " " + c.apellido,
-            }))}
+            })) : []}
             onChange={(opcion) => setClienteSeleccionado(opcion?.value ?? "")}
             placeholder="Selecciona un cliente"
             isSearchable
