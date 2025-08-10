@@ -1,5 +1,5 @@
 import { User } from "@supabase/supabase-js";
-import { Cliente, formProducto, Pedido, PedidoData } from "../types";
+import { Cliente, formProducto, Pedido, PedidoData, Actividad } from "../types";
 import { toast } from "react-toastify";
 
 export interface HandleCrearPedidoParams {
@@ -122,7 +122,34 @@ export const utilsPedidos = (pedidos: Pedido[], cliente: Cliente) => {
         })
       : null;
 
-  const abrirGmail = () => {
+  /**
+   * Abre Gmail y crea una actividad automáticamente
+   * @param {object} params - Parámetros necesarios
+   * @param {Cliente} params.cliente - Cliente destinatario
+   * @param {User} params.currentUser - Usuario actual
+   * @param {NavigateFunction} params.navigate - Función de navegación
+   * @param {function} params.crearActividad - Función para crear actividad
+   */
+  const abrirGmail = async ({
+    cliente,
+    currentUser,
+    navigate,
+    crearActividad,
+  }: {
+    cliente: Cliente;
+    currentUser: import("@supabase/supabase-js").User;
+    navigate: import("react-router-dom").NavigateFunction;
+    crearActividad: (
+      params: {
+        actividadData: Partial<Actividad>;
+        currentUser: import("@supabase/supabase-js").User | Partial<import("@supabase/supabase-js").User>;
+      },
+      callbacks: {
+        onSuccess: () => void;
+        onError: (error: unknown) => void;
+      }
+    ) => void;
+  }) => {
     const destinatario = encodeURIComponent(cliente.email);
     const asunto = encodeURIComponent("¡Hola desde Sumichem!");
     const cuerpo = encodeURIComponent(
@@ -130,8 +157,37 @@ export const utilsPedidos = (pedidos: Pedido[], cliente: Cliente) => {
     );
 
     const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${destinatario}&su=${asunto}&body=${cuerpo}`;
-
     window.open(url, "_blank"); // Abre Gmail en nueva pestaña
+
+    // Crear actividad automáticamente
+    const actividadData: Partial<Actividad> = {
+      titulo: `Email a la empresa ${cliente.empresa}`,
+      descripcion: `Correo enviado a ${cliente.empresa}`,
+      tipo: "email",
+      cliente_id: cliente.id,
+      fecha: new Date(),
+      vendedor_id: currentUser.id,
+      completado: true, // Estado inicial de la actividad
+      
+    };
+    // Importar y usar handleCrearActividadUtil
+    try {
+      // handleCrearActividadUtil debe estar importada en este archivo
+      if (typeof crearActividad === "function") {
+        // Llamada directa a la función utilitaria
+        import("./actividades").then(({ handleCrearActividadUtil }) => {
+          handleCrearActividadUtil({
+            data: actividadData,
+            currentUser,
+            navigate,
+            crearActividad,
+          });
+        });
+      }
+    } catch (error) {
+      // Si hay error, solo muestra en consola
+      console.error("Error creando actividad de correo:", error);
+    }
   };
   return {
     pedidosFiltrados,

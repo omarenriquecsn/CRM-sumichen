@@ -470,7 +470,12 @@ export const ClienteDetalle: React.FC = () => {
                     </a>
                   ) : (
                     <button
-                      onClick={abrirGmail}
+                      onClick={() => abrirGmail({
+                        cliente,
+                        currentUser,
+                        navigate,
+                        crearActividad
+                      })}
                       className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                     >
                       <Mail className="h-4 w-4" />
