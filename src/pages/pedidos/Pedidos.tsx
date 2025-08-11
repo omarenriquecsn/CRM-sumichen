@@ -17,14 +17,19 @@ import {
 import { toast } from "react-toastify";
 import { useSupabase } from "../../hooks/useSupabase";
 import dayjs from "dayjs";
-import { PedidoData, ProductoPedido } from "../../types";
+import { Cliente, Pedido, PedidoData, ProductoPedido } from "../../types";
 import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import Modal from "../../components/ui/Modal";
 import CrearPedido from "../../components/forms/CrearPedido";
 import SelectCliente from "../../components/ui/SelectCliente";
 import { getEstadoColor, handleCrearPedidoUtil } from "../../utils/pedidos";
-export const Pedidos: React.FC = () => {
+type PedidosProps = {
+  pedidosProp?: Pedido[];
+  clientesProp?: Cliente[];
+};
+
+export const Pedidos: React.FC<PedidosProps> = ({ pedidosProp, clientesProp }) => {
   const navigate = useNavigate();
   const { currentUser, session } = useAuth();
   const supabase = useSupabase();
@@ -42,9 +47,13 @@ export const Pedidos: React.FC = () => {
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
 
-  const { data: pedidos } = supabase.usePedidos();
+  const { data: pedidosDb } = supabase.usePedidos();
 
-  const { data: clientes } = supabase.useClientes();
+  const { data: clientesDb } = supabase.useClientes();
+
+
+  const pedidos = pedidosProp ?? pedidosDb ?? [];
+  const clientes = clientesProp ?? clientesDb ?? [];
 
   const { mutate: nuevoPedido, isPending: isCreandoPedido } =
     supabase.useCrearPedido();
@@ -405,6 +414,7 @@ export const Pedidos: React.FC = () => {
           setClienteSeleccionado={setClienteSeleccionado}
           setModalClienteVisible={setModalClienteVisible}
           setModalFormularioVisible={setModalPedidoVisible}
+          clientesProp={clientes}
         />
       </Modal>
     </Layout>

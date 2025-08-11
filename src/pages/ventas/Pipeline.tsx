@@ -66,8 +66,15 @@ import {
 } from "../../utils/oportunidades";
 import { useOportunidadAccion } from "../../hooks/useOportunidadAccion";
 import OportunidadCard from "./OportunidadCard";
+import { User } from "@supabase/supabase-js";
 
-export const Pipeline: React.FC = () => {
+type PipelineProps = {
+  currentUserProp?: User | null;
+  OportunidadesProp?: Oportunidad[];
+  clientesProp?: Cliente[];
+};
+
+export const Pipeline: React.FC<PipelineProps> = ({currentUserProp, OportunidadesProp, clientesProp}) => {
   // Sensores para drag and drop, mejorando experiencia mobile
   const sensors = useSensors(
     useSensor(MouseSensor),
@@ -79,15 +86,21 @@ export const Pipeline: React.FC = () => {
     }),
     useSensor(KeyboardSensor)
   );
+  const supabase = useSupabase();
+
+  const { currentUser: contextUser } = useAuth();
+  const { data: clientesDb } = supabase.useClientes();
+  const { data: OportunidadesDb } = supabase.useOportunidades();
+
+const clientes = clientesProp ?? clientesDb ?? [];
+const Oportunidades = OportunidadesProp ?? OportunidadesDb ?? [];
+const currentUser = currentUserProp ?? contextUser;
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [oportunidadesOptimista, setOportunidadesOptimista] = useState<Oportunidad[] | null>(null);
-  const { currentUser } = useAuth();
-  const supabase = useSupabase();
 
   const { submitOportunidad, actualizarEtapaDrag } = useOportunidadAccion();
 
-  const { data: Oportunidades } = supabase.useOportunidades();
-  const { data: clientes } = supabase.useClientes();
 
   const { isPending: pendingOportunidad } = supabase.useCrearOportunidades();
 

@@ -18,7 +18,7 @@ import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
-import { Ticket } from "../../types";
+import { Cliente, Ticket } from "../../types";
 import CrearTicket from "../../components/forms/CrearTicket";
 import Modal from "../../components/ui/Modal";
 import Select from "react-select";
@@ -30,7 +30,12 @@ import {
   calcularEstadisticasTickets,
 } from "../../utils/tikets";
 
-export const Tickets: React.FC = () => {
+type TicketsProps = {
+  ticketsProp?: Ticket[];
+  clientesProp?: Cliente[];
+};
+
+export const Tickets: React.FC<TicketsProps> = ({ ticketsProp, clientesProp }) => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const supabase = useSupabase();
@@ -49,12 +54,19 @@ export const Tickets: React.FC = () => {
   const [modalClienteVisible, setModalClienteVisible] = useState(false);
 
   // tickets
-  const { data: tickets } = supabase.useTickets();
+  const { data: ticketsDb } = supabase.useTickets();
 
   // clientes
-  const { data: clientes } = supabase.useClientes();
+  const { data: clientesDb } = supabase.useClientes();
 
   // Actualizar Ticket
+
+  const tickets = ticketsProp ?? ticketsDb ?? [];
+  
+  const clientes = React.useMemo(
+    () => clientesProp ?? clientesDb ?? [],
+    [clientesProp, clientesDb]
+  );
 
   const { mutate: mutateTicket } = supabase.useActualizarTicket();
 

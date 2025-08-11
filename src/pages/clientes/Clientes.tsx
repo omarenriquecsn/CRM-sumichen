@@ -17,11 +17,22 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../context/useAuth";
 import Modal from "../../components/ui/Modal";
 import ClienteForm from "../../components/forms/ClienteFom";
-import { ClienteFormData, Estado, EtapaVenta } from "../../types";
+import {
+  Cliente,
+  ClienteFormData,
+  Estado,
+  EtapaVenta,
+  Pedido,
+} from "../../types";
 import { toast } from "react-toastify";
 import { getEtapaColor, getEstadoColor } from "../../utils/clientes";
 
-export const Clientes: React.FC = () => {
+type PropsClientes = {
+  clientes?: Cliente[];
+  pedidos?: Pedido[];
+};
+
+export const Clientes: React.FC<PropsClientes> = (props) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
@@ -32,13 +43,14 @@ export const Clientes: React.FC = () => {
 
   const { currentUser } = useAuth();
 
-  // Clientes
-  const { data: clientes } = supabase.useClientes();
+  // Local state for clientes and pedidos if not provided as props
+  const { data: fetchedClientes } = supabase.useClientes();
+  const { data: fetchedPedidos } = supabase.usePedidos();
+
+  const clientes = props.clientes ?? fetchedClientes ?? [];
+  const pedidos = props.pedidos ?? fetchedPedidos ?? [];
+
   const { mutate: crearCliente, isPending } = supabase.useCrearCliente();
-
-  // Pedidos
-  const { data: pedidos } = supabase.usePedidos();
-
   const handleCreateCliente = (user: ClienteFormData) => {
     if (!currentUser) {
       toast.error("Usuario no logueado");
@@ -93,7 +105,6 @@ export const Clientes: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
- 
   return (
     <Layout
       title="Gestión de Clientes"
@@ -142,7 +153,7 @@ export const Clientes: React.FC = () => {
         </div>
 
         {/* Lista de clientes */}
-        { clientesArray.length === 0 ? (
+        {clientesArray.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">
             <p>No se encontraron clientes.</p>
           </div>

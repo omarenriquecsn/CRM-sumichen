@@ -275,3 +275,13 @@ export type Mes = {
     productosPedido: formProducto[];
     currentUser: User;
   };
+
+  export interface Vendedor {
+    id: string;
+   supabase_id: string;
+   nombre: string;
+   apellido: string;
+   telefono: string;
+   meta_mensual_ventas: number;
+   meta_mensual_clientes: number;
+  }
