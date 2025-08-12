@@ -14,16 +14,18 @@ import {
   XCircle,
   ShoppingCart,
   Truck,
-  Edit,
   CreditCard,
   DollarSign,
   Building,
+  Check,
+  X,
 } from "lucide-react";
 import { Layout } from "../../components/layout/Layout";
 import dayjs from "dayjs";
 import { ProductoPedido } from "../../types";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { getEstadoColor } from "../../utils/pedidos";
+import { handleActualizarPedidoUtil } from "../../utils/pedidos";
 
 const PedidosDetail = () => {
   const { id } = useParams();
@@ -37,6 +39,9 @@ const PedidosDetail = () => {
     isLoading: loadingPedidos,
     error: errorPedidos,
   } = supabase.usePedidos();
+
+  const { mutate: actualizarPedido } = supabase.useActualizarPedido();
+  const { mutate: cancelarPedido } = supabase.useCancelarPedido();
 
   // Clientes
   const {
@@ -84,6 +89,25 @@ const PedidosDetail = () => {
     navigate("/pedidos");
     return;
   }
+
+  const handleAprobarPedido = () => {
+    pedido.estado = "procesado";
+    const { productos_pedido, ...pedidoData } = pedido;
+
+    console.log(productos_pedido);
+    handleActualizarPedidoUtil({
+      data: pedidoData,
+      currentUser,
+      actualizarPedido,
+    });
+  };
+
+  const handleCancelarPedido = () => {
+    const id = pedido.id;
+    cancelarPedido(id);
+    toast.success("Pedido cancelado exitosamente.");
+    navigate("/pedidos");
+  };
 
   const getEstadoIcon = (estado: string) => {
     const iconProps = { className: "h-8 w-8" };
@@ -301,11 +325,22 @@ const PedidosDetail = () => {
             <div className="space-y-3">
               {session?.user.user_metadata.rol === "admin" && (
                 <button
-                  onClick={() => navigate(`/pedidos/editar/${pedido.id}`)}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                  onClick={() => handleAprobarPedido()}
+                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
                 >
-                  <Edit className="h-4 w-4" />
-                  <span>Editar Pedido</span>
+                  <Check className="h-4 w-4" />
+                  <span>Aprobar Pedido</span>
+                </button>
+              )}
+            </div>
+            <div className="space-y-3 mt-1">
+              {session?.user.user_metadata.rol === "admin" && (
+                <button
+                  onClick={handleCancelarPedido}
+                  className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <X className="h-4 w-4" />
+                  <span>Cancelar Pedido</span>
                 </button>
               )}
             </div>

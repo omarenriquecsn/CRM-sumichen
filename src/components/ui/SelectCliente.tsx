@@ -2,12 +2,14 @@ import Select from "react-select";
 import { useSupabase } from "../../hooks/useSupabase";
 import { toast } from "react-toastify";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { Cliente } from "../../types";
 
 
 type SelectClienteProps = {
     setClienteSeleccionado: React.Dispatch<React.SetStateAction<string | null>>;
     setModalClienteVisible: React.Dispatch<React.SetStateAction<boolean>>;
     setModalFormularioVisible: React.Dispatch<React.SetStateAction<boolean>>;
+    clientesProp?: Cliente[]
 };
 
 
@@ -16,12 +18,15 @@ const SelectCliente = ({
     setClienteSeleccionado,
     setModalClienteVisible,
     setModalFormularioVisible,
+    clientesProp
   }: SelectClienteProps) => {
     const supabase = useSupabase();
 
 
-    const{data: clientes, isLoading: loadingClientes, error: errorClientes} = supabase.useClientes();
+    const{data: clientesDb, isLoading: loadingClientes, error: errorClientes} = supabase.useClientes();
 
+
+    const clientes = clientesProp ?? clientesDb;
     if(errorClientes){
         toast.error("Error al cargar los clientes");
         return;

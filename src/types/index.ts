@@ -226,6 +226,8 @@ export interface PedidoData extends Pedido {
   archivoAdjunto?: File | null;
 }
 
+
+
 export interface ProductoPedido {
   id: string;
   pedido_id: string;
@@ -275,3 +277,13 @@ export type Mes = {
     productosPedido: formProducto[];
     currentUser: User;
   };
+
+  export interface Vendedor {
+    id: string;
+   supabase_id: string;
+   nombre: string;
+   apellido: string;
+   telefono: string;
+   meta_mensual_ventas: number;
+   meta_mensual_clientes: number;
+  }

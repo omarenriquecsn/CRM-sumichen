@@ -15,14 +15,18 @@ import {
   Building2,
   X,
 } from 'lucide-react';
+import { UserData } from '../../context/types';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  userDataProp?: UserData
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { userData, signOut } = useAuth();
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userDataProp }) => {
+  const { userData: userDataContex, signOut } = useAuth();
+
+  const userData = userDataProp || userDataContex;
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -49,14 +53,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const adminLinks = [
     { to: '/admin', icon: Shield, label: 'Panel Admin' },
     { to: '/dashboard', icon: LayoutDashboard, label: 'Mi Dashboard' },
+    { to: '/vendedores', icon: Users, label: 'Vendedores' },
     { to: '/clientes', icon: Users, label: 'Clientes' },
-    { to: '/pipeline', icon: TrendingUp, label: 'Pipeline de Ventas' },
-    { to: '/reuniones', icon: Calendar, label: 'Reuniones' },
-    { to: '/tickets', icon: Ticket, label: 'Tickets' },
     { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos' },
-    
-    { to: '/analitica', icon: BarChart3, label: 'Analítica' },
-    { to: '/configuracion', icon: Settings, label: 'Configuración' },
+
+
   ];
 
   const links = userData?.rol === 'admin' ? adminLinks : vendedorLinks;

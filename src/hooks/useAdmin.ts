@@ -15,20 +15,20 @@ import {
 } from "../types";
 import { Ticket } from "../types";
 
-export const useSupabase = () => {
+export const useAdmin = () => {
   const URL = import.meta.env.VITE_BACKEND_URL;
   const queryClient = useQueryClient();
   const { session } = useAuth();
 
   // Hook para obtener clientes
-  const useClientes = () => {
+  const useClientes = (id: string) => {
     const { currentUser, session } = useAuth();
     return useQuery<Cliente[]>({
-      queryKey: ["clientes", currentUser?.id],
+      queryKey: ["clientesAdmin", id],
       queryFn: async () => {
         if (!currentUser || !session?.access_token)
           throw new Error("Usuario no logueado o sin sesión");
-        const clientesData = await fetch(`${URL}/clientes/${currentUser.id}`, {
+        const clientesData = await fetch(`${URL}/clientes/${id}`, {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
@@ -44,7 +44,7 @@ export const useSupabase = () => {
   };
 
   // Hook para crear cliente
-  const useCrearCliente = () => {
+  const useCrearCliente = (id: string) => {
     return useMutation({
       mutationFn: async ({
         clienteData,
@@ -57,7 +57,7 @@ export const useSupabase = () => {
           throw new Error("Usuario no autenticado o no hay token");
 
         if (!currentUser.id) throw new Error("Usuario no autenticado");
-        clienteData.vendedor_id = currentUser.id;
+        clienteData.vendedor_id = id;
         await fetch(`${URL}/clientes`, {
           method: "POST",
           headers: {
@@ -73,13 +73,13 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["clientes"] });
+        queryClient.invalidateQueries({ queryKey: ["clientesAdmin"] });
       },
     });
   };
 
   // Hook para Actualizar Clientes
-  const useActualizarCliente = () => {
+  const useActualizarCliente = (id: string) => {
     return useMutation({
       mutationFn: async ({
         clienteData,
@@ -89,7 +89,7 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        await fetch(`${URL}/clientes/${clienteData.id}`, {
+        await fetch(`${URL}/clientes/${id}`, {
           method: "PUT",
           credentials: "include",
           headers: {
@@ -105,20 +105,20 @@ export const useSupabase = () => {
       },
 
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["clientes"] });
+        queryClient.invalidateQueries({ queryKey: ["clientesAdmin"] });
       },
     });
   };
 
   // Hook para obtener pedidos
-  const usePedidos = () => {
+  const usePedidos = (id: string) => {
     const { currentUser, session } = useAuth();
     return useQuery({
-      queryKey: ["pedidos", currentUser?.id],
+      queryKey: ["pedidosAdmin", id],
       queryFn: async () => {
         if (!currentUser || !session?.access_token)
           throw new Error("Usuario no logueado o sin sesión");
-        const pedidosData = await fetch(`${URL}/pedidos/${currentUser.id}`, {
+        const pedidosData = await fetch(`${URL}/pedidos/${id}`, {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
@@ -141,7 +141,7 @@ export const useSupabase = () => {
   };
 
   // Hook para crear pedido
-  const useCrearPedido = () => {
+  const useCrearPedido = (id: string) => {
     return useMutation({
       mutationFn: async ({
         pedidoData,
@@ -151,7 +151,7 @@ export const useSupabase = () => {
       }: CrearPedidoParams) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         const pedidoDB: PedidoDb = {
-          vendedor_id: currentUser.id,
+          vendedor_id: id,
           cliente_id: pedidoData.cliente_id || "",
           impuestos:
             pedidoData.impuestos && pedidoData.impuestos > 0 ? "iva" : "exento",
@@ -208,7 +208,7 @@ export const useSupabase = () => {
         }
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+        queryClient.invalidateQueries({ queryKey: ["pedidosAdmin"] });
       },
 
       onError: (error: unknown) => {
@@ -218,14 +218,14 @@ export const useSupabase = () => {
   };
 
   // Hook para obtener actividades
-  const useActividades = () => {
+  const useActividades = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["actividades", currentUser?.id],
+      queryKey: ["actividadesAdmin", id],
       queryFn: async () => {
         if (!currentUser) return [];
         const ActividadesData = await fetch(
-          `${URL}/actividades/${currentUser.id}`,
+          `${URL}/actividades/${id}`,
           {
             headers: {
               Authorization: `Bearer ${session?.access_token}`,
@@ -246,7 +246,7 @@ export const useSupabase = () => {
     currentUser: Partial<User>;
   };
   // Hook para crear actividad
-  const useCrearActividad = () => {
+  const useCrearActividad = (id: string) => {
     return useMutation({
       mutationFn: async ({
         actividadData,
@@ -260,7 +260,7 @@ export const useSupabase = () => {
             Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
-          body: JSON.stringify(actividadData),
+          body: JSON.stringify({ actividadData, vendedor_id: id }),
         }).then((response) => {
           if (!response.ok) {
             throw new Error("Error al crear la actividad");
@@ -268,20 +268,20 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["actividades"] });
+        queryClient.invalidateQueries({ queryKey: ["actividadesAdmin"] });
       },
     });
   };
 
   // Hook para obtener reuniones
-  const useReuniones = () => {
+  const useReuniones = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["reuniones", currentUser?.id],
+      queryKey: ["reunionesAdmin", id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         const reunionesData = await fetch(
-          `${URL}/reuniones/${currentUser.id}`,
+          `${URL}/reuniones/${id}`,
           {
             headers: {
               Authorization: `Bearer ${session?.access_token}`,
@@ -297,13 +297,13 @@ export const useSupabase = () => {
   };
 
   // Hook para obtener tickets
-  const useTickets = () => {
+  const useTickets = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["tickets", currentUser?.id],
+      queryKey: ["ticketsAdmin", id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const ticketsData = await fetch(`${URL}/tickets/${currentUser.id}`, {
+        const ticketsData = await fetch(`${URL}/tickets/${id}`, {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
           },
@@ -317,14 +317,14 @@ export const useSupabase = () => {
   };
 
   // Hook para obtener oportunidades (pipeline)
-  const useOportunidades = () => {
+  const useOportunidades = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["oportunidades", currentUser?.id],
+      queryKey: ["oportunidadesAdmin", id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         const oportunidadData = await fetch(
-          `${URL}/oportunidades/${currentUser.id}`,
+          `${URL}/oportunidades/${id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -361,7 +361,7 @@ export const useSupabase = () => {
   };
 
   // hook para crear Reuniones
-  const useCrearReunion = () => {
+  const useCrearReunion = (id: string) => {
     return useMutation({
       mutationFn: async ({
         reunionData,
@@ -378,7 +378,7 @@ export const useSupabase = () => {
             Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
-          body: JSON.stringify(reunionData),
+          body: JSON.stringify({ ...reunionData, vendedor_id: id }),
         }).then((response) => {
           if (!response.ok) {
             throw new Error("Error al crear la reunion");
@@ -386,13 +386,13 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["reuniones"] });
+        queryClient.invalidateQueries({ queryKey: ["reunionesAdmin"] });
       },
     });
   };
 
   // hook para crear tickets
-  const useCrearTicket = () => {
+  const useCrearTicket = (id: string) => {
     return useMutation({
       mutationFn: async ({
         ticketData,
@@ -409,7 +409,7 @@ export const useSupabase = () => {
             Autorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
-          body: JSON.stringify({ ...ticketData, vendedor_id: currentUser.id }),
+          body: JSON.stringify({ ...ticketData, vendedor_id: id }),
         }).then((response) => {
           if (!response.ok) {
             throw new Error("Error al crear el ticket");
@@ -420,13 +420,13 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+        queryClient.invalidateQueries({ queryKey: ["ticketsAdmin"] });
       },
     });
   };
 
   // hook para crear Oportunidades
-  const useCrearOportunidades = () => {
+  const useCrearOportunidades = (id: string) => {
     return useMutation({
       mutationFn: async ({
         oportunidadData,
@@ -443,7 +443,7 @@ export const useSupabase = () => {
             Autorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
-          body: JSON.stringify(oportunidadData),
+          body: JSON.stringify({ ...oportunidadData, vendedor_id: id }),
         }).then((response) => {
           if (!response.ok) {
             throw new Error("Error al crear la oportunidad");
@@ -454,7 +454,7 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
+        queryClient.invalidateQueries({ queryKey: ["oportunidadesAdmin"] });
       },
     });
   };
@@ -485,7 +485,7 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
+        queryClient.invalidateQueries({ queryKey: ["oportunidadesAdmin"] });
       },
     });
   };
@@ -516,7 +516,7 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["reuniones"] });
+        queryClient.invalidateQueries({ queryKey: ["reunionesAdmin"] });
       },
     });
   };
@@ -547,7 +547,7 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+        queryClient.invalidateQueries({ queryKey: ["ticketsAdmin"] });
       },
     });
   };
@@ -556,21 +556,21 @@ export const useSupabase = () => {
   const useActualizarPedido = () => {
     return useMutation({
       mutationFn: async ({
-        pedidoData,
+        PedidoData,
         currentUser,
       }: {
-        pedidoData: Partial<Pedido>;
+        PedidoData: Partial<Pedido>;
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error();
-        await fetch(`${URL}/pedidos/${pedidoData.id}`, {
+        await fetch(`${URL}/pedidos/${PedidoData.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
-          body: JSON.stringify(pedidoData),
+          body: JSON.stringify(PedidoData),
         }).then((response) => {
           if (!response.ok) {
             throw new Error("Error al actualizar el pedido");
@@ -581,19 +581,19 @@ export const useSupabase = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+        queryClient.invalidateQueries({ queryKey: ["pedidosAdmin"] });
       },
     });
   };
 
   // Hook para obtener metas
-  const useMetas = () => {
+  const useMetas = (id: string) => {
     const { currentUser, session } = useAuth();
     return useQuery({
-      queryKey: ["metas"],
+      queryKey: ["metas", id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        const metas = await fetch(`${URL}/metas/${currentUser?.id}`, {
+        const metas = await fetch(`${URL}/metas/${id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -605,29 +605,6 @@ export const useSupabase = () => {
       },
       staleTime: 1000 * 60 * 5,
       retry: 1,
-    });
-  };
-
-  const useCancelarPedido = () => {
-    const {  session } = useAuth();
-    return useMutation({
-      mutationFn: async (id: string) => {
-        await fetch(`${URL}/pedidos/${id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          credentials: "include",
-        }).then((response) => {
-          if (!response.ok) {
-            throw new Error("Error al cancelar el pedido");
-          }
-        });
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
-      },
     });
   };
 
@@ -651,6 +628,5 @@ export const useSupabase = () => {
     useActualizarOportunidad,
     useProductos,
     useMetas,
-    useCancelarPedido
   };
 };

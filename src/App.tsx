@@ -25,6 +25,8 @@ import TicketDetail from "./pages/tickets/TicketsDetail";
 import PedidosDetail from "./pages/pedidos/PedidosDetail";
 import { ExcelViewer } from "./pages/productos/Productos";
 import ExcelProductos from "./components/forms/ExcelProductos";
+import Vendedores from "./pages/vendedores/Vendedores";
+import { VendedorPanel } from "./pages/vendedores/VendedorPanel";
 
 const queryClientet = new QueryClient();
 
@@ -70,6 +72,24 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              <Route
+                path="/vendedores"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Vendedores />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vendedores/:id"
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <VendedorPanel />
+                  </ProtectedRoute>
+                }
+              />
+
 
               <Route
                 path="/clientes"
