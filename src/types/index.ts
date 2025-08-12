@@ -226,6 +226,8 @@ export interface PedidoData extends Pedido {
   archivoAdjunto?: File | null;
 }
 
+
+
 export interface ProductoPedido {
   id: string;
   pedido_id: string;

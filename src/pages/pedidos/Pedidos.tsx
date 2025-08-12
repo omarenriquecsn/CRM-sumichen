@@ -24,15 +24,24 @@ import Modal from "../../components/ui/Modal";
 import CrearPedido from "../../components/forms/CrearPedido";
 import SelectCliente from "../../components/ui/SelectCliente";
 import { getEstadoColor, handleCrearPedidoUtil } from "../../utils/pedidos";
+import { handleActualizarPedidoUtil } from "../../utils/pedidos";
+
 type PedidosProps = {
   pedidosProp?: Pedido[];
   clientesProp?: Cliente[];
 };
 
-export const Pedidos: React.FC<PedidosProps> = ({ pedidosProp, clientesProp }) => {
+export const Pedidos: React.FC<PedidosProps> = ({
+  pedidosProp,
+  clientesProp,
+}) => {
   const navigate = useNavigate();
   const { currentUser, session } = useAuth();
   const supabase = useSupabase();
+
+  const { mutate: cancelarPedido } = supabase.useCancelarPedido();
+
+  const { mutate: aprobarPedido } = supabase.useActualizarPedido();
 
   const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
 
@@ -51,7 +60,6 @@ export const Pedidos: React.FC<PedidosProps> = ({ pedidosProp, clientesProp }) =
 
   const { data: clientesDb } = supabase.useClientes();
 
-
   const pedidos = pedidosProp ?? pedidosDb ?? [];
   const clientes = clientesProp ?? clientesDb ?? [];
 
@@ -63,6 +71,24 @@ export const Pedidos: React.FC<PedidosProps> = ({ pedidosProp, clientesProp }) =
     navigate("/login");
     return;
   }
+
+  const handleCancelarPedido = (id: string) => {
+    cancelarPedido(id);
+    toast.success("Pedido cancelado exitosamente.");
+  };
+
+  const handleAprobarPedido = (data: Partial<Pedido>) => {
+    const { productos_pedido, ...pedido } = data;
+    console.log(productos_pedido);
+    pedido.estado = "procesado";
+
+    handleActualizarPedidoUtil({
+      data: pedido,
+      currentUser,
+      actualizarPedido: aprobarPedido,
+    });
+    toast.success("Pedido aprobado exitosamente.");
+  };
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
@@ -98,7 +124,9 @@ export const Pedidos: React.FC<PedidosProps> = ({ pedidosProp, clientesProp }) =
       const busquedaLower = terminoBusqueda.toLowerCase();
       const empresa = cliente(pedido.cliente_id)?.empresa?.toLowerCase() || "";
       const nombreCliente = cliente(pedido.cliente_id)
-        ? `${cliente(pedido.cliente_id)?.nombre ?? ""} ${cliente(pedido.cliente_id)?.apellido ?? ""}`.toLowerCase()
+        ? `${cliente(pedido.cliente_id)?.nombre ?? ""} ${
+            cliente(pedido.cliente_id)?.apellido ?? ""
+          }`.toLowerCase()
         : "";
       return (
         pedido.numero?.toString().toLowerCase().includes(busquedaLower) ||
@@ -377,10 +405,16 @@ export const Pedidos: React.FC<PedidosProps> = ({ pedidosProp, clientesProp }) =
                   {session?.user.user_metadata.rol === "admin" &&
                     pedido.estado === "pendiente" && (
                       <div className="flex items-center space-x-2">
-                        <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                        <button
+                          onClick={() => handleAprobarPedido(pedido)}
+                          className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                        >
                           Aprobar
                         </button>
-                        <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                        <button
+                          onClick={() => handleCancelarPedido(pedido.id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                        >
                           Cancelar
                         </button>
                       </div>

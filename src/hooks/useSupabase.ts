@@ -556,21 +556,21 @@ export const useSupabase = () => {
   const useActualizarPedido = () => {
     return useMutation({
       mutationFn: async ({
-        PedidoData,
+        pedidoData,
         currentUser,
       }: {
-        PedidoData: Partial<Pedido>;
+        pedidoData: Partial<Pedido>;
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error();
-        await fetch(`${URL}/pedidos/${PedidoData.id}`, {
+        await fetch(`${URL}/pedidos/${pedidoData.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
-          body: JSON.stringify(PedidoData),
+          body: JSON.stringify(pedidoData),
         }).then((response) => {
           if (!response.ok) {
             throw new Error("Error al actualizar el pedido");
@@ -608,6 +608,29 @@ export const useSupabase = () => {
     });
   };
 
+  const useCancelarPedido = () => {
+    const {  session } = useAuth();
+    return useMutation({
+      mutationFn: async (id: string) => {
+        await fetch(`${URL}/pedidos/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          credentials: "include",
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al cancelar el pedido");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
+      },
+    });
+  };
+
   return {
     useClientes,
     useActividades,
@@ -628,5 +651,6 @@ export const useSupabase = () => {
     useActualizarOportunidad,
     useProductos,
     useMetas,
+    useCancelarPedido
   };
 };

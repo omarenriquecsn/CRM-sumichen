@@ -54,6 +54,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userDataProp 
     { to: '/admin', icon: Shield, label: 'Panel Admin' },
     { to: '/dashboard', icon: LayoutDashboard, label: 'Mi Dashboard' },
     { to: '/vendedores', icon: Users, label: 'Vendedores' },
+    { to: '/clientes', icon: Users, label: 'Clientes' },
+    { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos' },
+
+
   ];
 
   const links = userData?.rol === 'admin' ? adminLinks : vendedorLinks;

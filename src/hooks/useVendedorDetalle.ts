@@ -4,7 +4,6 @@ const URL = import.meta.env.VITE_BACKEND_URL;
 
 const useVendedorDetalle = (id: string) => {
   const { session } = useAuth();
-  console.log(URL);
   return useQuery({
     queryKey: ["vendedor", id],
     queryFn: async () => {
@@ -18,7 +17,6 @@ const useVendedorDetalle = (id: string) => {
       });
       if (!res.ok) throw new Error("Error al obtener vendedor");
       const data = await res.json();
-      console.log(data);
       return data;
     },
     staleTime: 1000 * 60 * 5,

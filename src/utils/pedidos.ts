@@ -1,6 +1,7 @@
 import { User } from "@supabase/supabase-js";
 import { Cliente, formProducto, Pedido, PedidoData, Actividad } from "../types";
 import { toast } from "react-toastify";
+import { UseMutateFunction } from "@tanstack/react-query";
 
 export interface HandleCrearPedidoParams {
   data: PedidoData;
@@ -19,6 +20,18 @@ export interface HandleCrearPedidoParams {
     }
   ) => void;
   setModalPedidoVisible: (v: boolean) => void;
+}
+export interface HandleActualizarPedidoParams {
+  data: Partial<PedidoData>;
+  currentUser: User;
+  actualizarPedido: UseMutateFunction<
+    void,
+    unknown,
+    {
+      pedidoData: Partial<Pedido>;
+      currentUser: User;
+    }
+  >;
 }
 
 export function handleCrearPedidoUtil({
@@ -81,6 +94,38 @@ export function handleCrearPedidoUtil({
   );
 }
 
+export const handleActualizarPedidoUtil = async ({
+  data,
+  currentUser,
+  actualizarPedido,
+}: HandleActualizarPedidoParams) => {
+  if (!currentUser) {
+    toast.error("Debes iniciar sesión para crear un pedido");
+    return;
+  }
+
+  actualizarPedido(
+    {
+      pedidoData: { ...data },
+      currentUser,
+    },
+    {
+      onError: async (error: unknown) => {
+        let errorMsg = "Error al crear el pedido";
+        if (error instanceof Error) {
+          errorMsg = error.message;
+        }
+        toast.error(errorMsg);
+      },
+      onSuccess: () => {
+        toast.success("¡Pedido creado exitosamente!");
+      },
+    }
+  );
+};
+
+
+
 export const getEstadoColor = (estado: string) => {
   switch (estado) {
     case "borrador":
@@ -142,7 +187,9 @@ export const utilsPedidos = (pedidos: Pedido[], cliente: Cliente) => {
     crearActividad: (
       params: {
         actividadData: Partial<Actividad>;
-        currentUser: import("@supabase/supabase-js").User | Partial<import("@supabase/supabase-js").User>;
+        currentUser:
+          | import("@supabase/supabase-js").User
+          | Partial<import("@supabase/supabase-js").User>;
       },
       callbacks: {
         onSuccess: () => void;
@@ -168,7 +215,6 @@ export const utilsPedidos = (pedidos: Pedido[], cliente: Cliente) => {
       fecha: new Date(),
       vendedor_id: currentUser.id,
       completado: true, // Estado inicial de la actividad
-      
     };
     // Importar y usar handleCrearActividadUtil
     try {
@@ -189,6 +235,7 @@ export const utilsPedidos = (pedidos: Pedido[], cliente: Cliente) => {
       console.error("Error creando actividad de correo:", error);
     }
   };
+
   return {
     pedidosFiltrados,
     ultimaCompra,
