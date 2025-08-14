@@ -8,7 +8,7 @@ import {
 import { AuthProvider } from "./context/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Login } from "./pages/auth/Login";
-import { Register } from "./pages/auth/Register";
+// import { Register } from "./pages/auth/Register";
 import { DashboardVendedor } from "./pages/dashboard/DashboardVendedor";
 import { DashboardAdmin } from "./pages/dashboard/DashboardAdmin";
 import { Clientes } from "./pages/clientes/Clientes";
@@ -40,7 +40,7 @@ function App() {
               {/* Rutas públicas */}
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              {/* <Route path="/register" element={<Register />} /> */}
               <Route path="/excel" element={<ExcelProductos />} />
 
               {/* Rutas protegidas */}

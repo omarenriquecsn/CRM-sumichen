@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 
@@ -131,7 +131,7 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          {/* <div className="mt-6 text-center">
             <p className="text-gray-600">
               ¿No tienes una cuenta?{" "}
               <Link
@@ -141,7 +141,7 @@ export const Login: React.FC = () => {
                 Regístrate aquí
               </Link>
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* Información adicional */}

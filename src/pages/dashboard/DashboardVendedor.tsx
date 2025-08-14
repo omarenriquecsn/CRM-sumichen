@@ -83,7 +83,7 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     {
       title: "Clientes Activos",
       value: clientesActivos(_clientes).length ?? "0",
-      change: `${incremento}%`,
+      change: `${incremento.toFixed(2)}%`,
       changeType: `${typeChange(incremento)}` as const,
       icon: Users,
       color: "blue",
@@ -91,7 +91,7 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     {
       title: "Ventas del Mes",
       value: `${cifraVentasMes()}`,
-      change: `${incrementoVentas}%`,
+      change: `${incrementoVentas.toFixed(2)}%`,
       changeType: `${typeChange(incrementoVentas)}` as const,
       icon: DollarSign,
       color: "green",
@@ -99,7 +99,7 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     {
       title: "Pipeline",
       value: `$${valorPipeline(_oportunidades)}`,
-      change: `${incrementoPipeline}`,
+      change: `${incrementoPipeline.toFixed(2)}%`,
       changeType: `${typeChange(incrementoPipeline)}` as const,
       icon: TrendingUp,
       color: "purple",
