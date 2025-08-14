@@ -12,8 +12,10 @@ import {
   ProductoDb,
   // ProductoPedido,
   Reunion,
+  Vendedor,
 } from "../types";
 import { Ticket } from "../types";
+import useVendedores from "./useVendedores";
 
 export const useSupabase = () => {
   const URL = import.meta.env.VITE_BACKEND_URL;
@@ -142,6 +144,8 @@ export const useSupabase = () => {
 
   // Hook para crear pedido
   const useCrearPedido = () => {
+    const { data: clientes } = useClientes();
+    const { data: vendedores } = useVendedores();
     return useMutation({
       mutationFn: async ({
         pedidoData,
@@ -150,8 +154,15 @@ export const useSupabase = () => {
         archivoAdjunto,
       }: CrearPedidoParams) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
+        const cliente = clientes?.find(
+          (c: Cliente) => c.id === pedidoData.cliente_id
+        );
+        const vendedor = vendedores?.find(
+          (v: Vendedor) => v.id === cliente?.vendedor_id
+        );
+
         const pedidoDB: PedidoDb = {
-          vendedor_id: currentUser.id,
+          vendedor_id: vendedor?.id || currentUser.id,
           cliente_id: pedidoData.cliente_id || "",
           impuestos:
             pedidoData.impuestos && pedidoData.impuestos > 0 ? "iva" : "exento",
@@ -239,7 +250,6 @@ export const useSupabase = () => {
       enabled: !!currentUser,
     });
   };
-
 
   type CrearActividadParams = {
     actividadData: Partial<Actividad>;
@@ -609,7 +619,7 @@ export const useSupabase = () => {
   };
 
   const useCancelarPedido = () => {
-    const {  session } = useAuth();
+    const { session } = useAuth();
     return useMutation({
       mutationFn: async (id: string) => {
         await fetch(`${URL}/pedidos/${id}`, {
@@ -651,6 +661,6 @@ export const useSupabase = () => {
     useActualizarOportunidad,
     useProductos,
     useMetas,
-    useCancelarPedido
+    useCancelarPedido,
   };
 };
