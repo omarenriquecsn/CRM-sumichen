@@ -24,7 +24,7 @@ export const useAdmin = () => {
   const useClientes = (id: string) => {
     const { currentUser, session } = useAuth();
     return useQuery<Cliente[]>({
-      queryKey: ["clientesAdmin", id],
+      queryKey: ["clientes", id],
       queryFn: async () => {
         if (!currentUser || !session?.access_token)
           throw new Error("Usuario no logueado o sin sesión");
@@ -73,7 +73,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["clientesAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["clientes"] });
       },
     });
   };
@@ -105,7 +105,7 @@ export const useAdmin = () => {
       },
 
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["clientesAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["clientes"] });
       },
     });
   };
@@ -114,7 +114,7 @@ export const useAdmin = () => {
   const usePedidos = (id: string) => {
     const { currentUser, session } = useAuth();
     return useQuery({
-      queryKey: ["pedidosAdmin", id],
+      queryKey: ["pedidos", id],
       queryFn: async () => {
         if (!currentUser || !session?.access_token)
           throw new Error("Usuario no logueado o sin sesión");
@@ -208,7 +208,7 @@ export const useAdmin = () => {
         }
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["pedidosAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
       },
 
       onError: (error: unknown) => {
@@ -221,7 +221,7 @@ export const useAdmin = () => {
   const useActividades = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["actividadesAdmin", id],
+      queryKey: ["actividades", id],
       queryFn: async () => {
         if (!currentUser) return [];
         const ActividadesData = await fetch(
@@ -268,7 +268,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["actividadesAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["actividades"] });
       },
     });
   };
@@ -277,7 +277,7 @@ export const useAdmin = () => {
   const useReuniones = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["reunionesAdmin", id],
+      queryKey: ["reuniones", id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         const reunionesData = await fetch(
@@ -300,7 +300,7 @@ export const useAdmin = () => {
   const useTickets = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["ticketsAdmin", id],
+      queryKey: ["tickets", id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         const ticketsData = await fetch(`${URL}/tickets/${id}`, {
@@ -320,7 +320,7 @@ export const useAdmin = () => {
   const useOportunidades = (id: string) => {
     const { currentUser } = useAuth();
     return useQuery({
-      queryKey: ["oportunidadesAdmin", id],
+      queryKey: ["oportunidades", id],
       queryFn: async () => {
         if (!currentUser) throw new Error("Usuario no autenticado");
         const oportunidadData = await fetch(
@@ -386,7 +386,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["reunionesAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["reuniones"] });
       },
     });
   };
@@ -420,7 +420,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["ticketsAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
       },
     });
   };
@@ -454,7 +454,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["oportunidadesAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
       },
     });
   };
@@ -485,7 +485,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["oportunidadesAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
       },
     });
   };
@@ -516,7 +516,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["reunionesAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["reuniones"] });
       },
     });
   };
@@ -547,7 +547,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["ticketsAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
       },
     });
   };
@@ -581,7 +581,7 @@ export const useAdmin = () => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["pedidosAdmin"] });
+        queryClient.invalidateQueries({ queryKey: ["pedidos"] });
       },
     });
   };
