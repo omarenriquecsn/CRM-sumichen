@@ -445,7 +445,7 @@ export const Tickets: React.FC<TicketsProps> = ({ ticketsProp, clientesProp }) =
           <Select
             options={Array.isArray(clientes) ? clientes.map((c) => ({
               value: c.id,
-              label: c.nombre + " " + c.apellido,
+              label: c.empresa,
             })) : []}
             onChange={(opcion) => setCliente_id(opcion?.value ?? "")}
             placeholder="Selecciona un cliente"
