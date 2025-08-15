@@ -19,10 +19,7 @@ import {
   arrayMeses,
 } from "../../utils/ventas";
 import { typeChange } from "../../constants/typeCange";
-import {
-  clientesNuevos,
-  clientesActivos,
-} from "../../utils/clientes";
+import { clientesNuevos, clientesActivos } from "../../utils/clientes";
 import { Mes } from "../../types";
 import { actividadesPoCategoria } from "../../utils/actividades";
 import { getColorClasses } from "../../utils/analitica";
@@ -75,7 +72,10 @@ export const Analitica: React.FC = () => {
     },
     {
       titulo: "Actividades Completadas",
-      valor: (Array.isArray(actividades) ? actividades : []).filter((a) => a.completado).length || 0,
+      valor:
+        (Array.isArray(actividades) ? actividades : []).filter(
+          (a) => a.completado
+        ).length || 0,
       cambio: Number(incrementoActividad),
       tipo: typeChange(incrementoActividad),
       icon: Activity,
@@ -88,8 +88,6 @@ export const Analitica: React.FC = () => {
 
   // Funcion para obtener los ultimos 5 meses
   const ventasPorMes = atras5meses(ventasPorMeses);
-
-  
 
   const clientesPorEtapa = [
     clientePorEtapaAnalitica(oportunidades, "inicial"),
@@ -126,7 +124,9 @@ export const Analitica: React.FC = () => {
                   </p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
                     {typeof metrica.valor === "number"
-                      ? metrica.valor.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                      ? metrica.valor.toLocaleString(undefined, {
+                          maximumFractionDigits: 2,
+                        })
                       : metrica.valor}
                   </p>
                   <p
@@ -137,8 +137,11 @@ export const Analitica: React.FC = () => {
                     }`}
                   >
                     {typeof metrica.cambio === "number"
-                      ? metrica.cambio.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                      : metrica.cambio} vs mes anterior
+                      ? metrica.cambio.toLocaleString(undefined, {
+                          maximumFractionDigits: 2,
+                        })
+                      : metrica.cambio}{" "}
+                    vs mes anterior
                   </p>
                 </div>
                 <div
@@ -182,7 +185,10 @@ export const Analitica: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-gray-900">
-                      ${mes.ventas.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      $
+                      {mes.ventas.toLocaleString(undefined, {
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                     <p className="text-xs text-gray-500">
                       {mes.clientes} clientes
@@ -245,7 +251,9 @@ export const Analitica: React.FC = () => {
                     </div>
                     <span className="text-sm font-semibold text-gray-900 w-8">
                       {typeof etapa.cantidad === "number"
-                        ? etapa.cantidad.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                        ? etapa.cantidad.toLocaleString(undefined, {
+                            maximumFractionDigits: 2,
+                          })
                         : etapa.cantidad}
                     </span>
                   </div>
@@ -304,7 +312,9 @@ export const Analitica: React.FC = () => {
                     </div>
                     <span className="text-sm font-semibold text-gray-900 w-8">
                       {typeof actividad.cantidad === "number"
-                        ? actividad.cantidad.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                        ? actividad.cantidad.toLocaleString(undefined, {
+                            maximumFractionDigits: 2,
+                          })
                         : actividad.cantidad}
                     </span>
                   </div>
@@ -398,19 +408,23 @@ export const Analitica: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-green-600">+18%</p>
+              <p className="text-2xl font-bold text-green-600">{`+${incrementoVentas > 0 ? incrementoVentas : 0}%`}</p>
               <p className="text-sm text-gray-600">Crecimiento en ventas</p>
             </div>
 
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-blue-600">24</p>
+              <p className="text-2xl font-bold text-blue-600">{nuevosClientes.length || 0}</p>
               <p className="text-sm text-gray-600">Nuevos clientes este mes</p>
             </div>
 
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <Calendar className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-purple-600">156</p>
+              <p className="text-2xl font-bold text-purple-600">
+                {(Array.isArray(actividades) ? actividades : []).filter(
+                  (a) => a.completado
+                ).length || 0}
+              </p>
               <p className="text-sm text-gray-600">Actividades completadas</p>
             </div>
           </div>

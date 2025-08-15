@@ -18,10 +18,12 @@ import { Pedido } from "../types";
         
         // funcion para obtener la cifra de ventas del mes
         const cifraVentasMes = () => {
-            return `$${VentasdelMes.reduce(
+            console.log(PedidosProcesados,'pedidosProcesadps')
+            const totalPedidosMes = VentasdelMes.reduce(
                 (total, pedido) => total + Number(pedido.total),
                 0
-            )}`;
+            );
+            return totalPedidosMes;
         };
         return {
             PedidosProcesados,
