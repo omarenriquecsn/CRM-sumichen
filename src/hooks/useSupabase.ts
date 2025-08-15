@@ -257,12 +257,21 @@ export const useSupabase = () => {
   };
   // Hook para crear actividad
   const useCrearActividad = () => {
+    const { data: clientes } = useClientes();
+    const { data: vendedores } = useVendedores();
     return useMutation({
       mutationFn: async ({
         actividadData,
         currentUser,
       }: CrearActividadParams) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
+        const cliente = clientes?.find(
+          (c: Cliente) => c.id === actividadData.cliente_id
+        );
+        const vendedor = vendedores?.find(
+          (v: Vendedor) => v.id === cliente?.vendedor_id
+        );
+        actividadData.vendedor_id = vendedor?.id || currentUser.id;
         await fetch(`${URL}/actividades`, {
           method: "POST",
           headers: {
@@ -371,6 +380,8 @@ export const useSupabase = () => {
 
   // hook para crear Reuniones
   const useCrearReunion = () => {
+     const { data: clientes } = useClientes();
+    const { data: vendedores } = useVendedores();
     return useMutation({
       mutationFn: async ({
         reunionData,
@@ -380,6 +391,14 @@ export const useSupabase = () => {
         currentUser: Partial<User>;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
+        const cliente = clientes?.find(
+          (c: Cliente) => c.id === reunionData.cliente_id
+        );
+        const vendedor = vendedores?.find(
+          (v: Vendedor) => v.id === cliente?.vendedor_id
+        );
+        reunionData.vendedor_id = vendedor?.id || currentUser.id;
+
         await fetch(`${URL}/reuniones`, {
           method: "POST",
           headers: {
@@ -402,6 +421,8 @@ export const useSupabase = () => {
 
   // hook para crear tickets
   const useCrearTicket = () => {
+     const { data: clientes } = useClientes();
+    const { data: vendedores } = useVendedores();
     return useMutation({
       mutationFn: async ({
         ticketData,
@@ -411,6 +432,14 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
+        const cliente = clientes?.find(
+          (c: Cliente) => c.id === ticketData.cliente_id
+        );
+        const vendedor = vendedores?.find(
+          (v: Vendedor) => v.id === cliente?.vendedor_id
+        );
+        ticketData.vendedor_id = vendedor?.id || currentUser.id;
+
         await fetch(`${URL}/tickets`, {
           method: "POST",
           headers: {
@@ -436,6 +465,8 @@ export const useSupabase = () => {
 
   // hook para crear Oportunidades
   const useCrearOportunidades = () => {
+    const { data: clientes } = useClientes();
+    const { data: vendedores } = useVendedores();
     return useMutation({
       mutationFn: async ({
         oportunidadData,
@@ -445,6 +476,14 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
+        const cliente = clientes?.find(
+          (c: Cliente) => c.id === oportunidadData.cliente_id
+        );
+        const vendedor = vendedores?.find(
+          (v: Vendedor) => v.id === cliente?.vendedor_id
+        );
+        oportunidadData.vendedor_id = vendedor?.id || currentUser.id;
+
         await fetch(`${URL}/oportunidades`, {
           method: "POST",
           headers: {
