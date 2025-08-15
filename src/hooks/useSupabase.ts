@@ -337,8 +337,7 @@ export const useSupabase = () => {
           `${URL}/oportunidades/${currentUser.id}`,
           {
             headers: {
-              "Content-Type": "application/json",
-              Autorization: `Bearer ${session?.access_token}`,
+              Authorization: `Bearer ${session?.access_token}`,
             },
             credentials: "include",
           }
@@ -359,7 +358,7 @@ export const useSupabase = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
         }).then((response) => response.json());
@@ -416,7 +415,7 @@ export const useSupabase = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
           body: JSON.stringify({ ...ticketData, vendedor_id: currentUser.id }),
@@ -450,7 +449,7 @@ export const useSupabase = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
           body: JSON.stringify(oportunidadData),

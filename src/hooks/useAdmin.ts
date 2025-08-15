@@ -328,7 +328,7 @@ export const useAdmin = () => {
           {
             headers: {
               "Content-Type": "application/json",
-              Autorization: `Bearer ${session?.access_token}`,
+              Authorization: `Bearer ${session?.access_token}`,
             },
             credentials: "include",
           }
@@ -349,7 +349,7 @@ export const useAdmin = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
         }).then((response) => response.json());
@@ -406,7 +406,7 @@ export const useAdmin = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
           body: JSON.stringify({ ...ticketData, vendedor_id: id }),
@@ -440,7 +440,7 @@ export const useAdmin = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Autorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
           credentials: "include",
           body: JSON.stringify({ ...oportunidadData, vendedor_id: id }),

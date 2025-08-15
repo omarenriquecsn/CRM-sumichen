@@ -61,6 +61,8 @@ export const Tickets: React.FC<TicketsProps> = ({ ticketsProp, clientesProp }) =
 
   // Actualizar Ticket
 
+  console.log("ticketsProp:", ticketsProp);
+  console.log("ticketsDb:", ticketsDb);
   const tickets = ticketsProp ?? ticketsDb ?? [];
   
   const clientes = React.useMemo(
