@@ -14,6 +14,8 @@ import {
   Clock,
   IdCard,
   User2,
+  Check,
+  Trash,
 } from "lucide-react";
 import {
   Actividad,
@@ -57,13 +59,16 @@ export const ClienteDetalle: React.FC = () => {
   const { data: actividadesTodas, error: errorActividades } =
     supabase.useActividades();
 
+    const { mutate: crearActividad, isPending: pendingActividad } =
+      supabase.useCrearActividad();
+  
+    const {mutate: actualizarActividad} = supabase.useActualizarActividad();
+
+    const {mutate: eliminarActividad} = supabase.useEliminarActividad();
   // Clientes
   const { data: clientes } = supabase.useClientes();
   const { mutate: editarCliente, isPending: pendigEditar } =
     supabase.useActualizarCliente();
-
-  const { mutate: crearActividad, isPending: pendingActividad } =
-    supabase.useCrearActividad();
 
   // Pedidos
   const { data: pedidos } = supabase.usePedidos();
@@ -110,6 +115,26 @@ export const ClienteDetalle: React.FC = () => {
       cliente
     );
 
+    // Completando actividad
+    const completarActividad = (actividad: Actividad) => {
+      if (!currentUser) return;
+
+      
+
+      actualizarActividad({
+        ...actividad,
+        completado: true,
+      });
+      toast.success("Actividad completada");
+    };
+
+    // Eliminar actividad
+    const eliminarActividadFn = (actividad: Actividad) => {
+      if (!currentUser) return;
+
+      eliminarActividad(actividad);
+      toast.success("Actividad eliminada");
+    };
 
     // Handlers
     // Handle Update Cliente
@@ -411,6 +436,16 @@ export const ClienteDetalle: React.FC = () => {
                                     .toLocaleString()
                                     .slice(0, 10)}
                                 </span>
+                                {!actividad.completado &&
+                                  <button onClick={() => completarActividad(actividad)}>
+                                  <Check className="h-5 w-5  text-green-600 hover:text-green-900" />
+                                </button>
+                                }
+                                <div>
+                                  <button onClick={() => eliminarActividadFn(actividad)}>
+                                    <Trash className="h-5 w-5 text-red-600 hover:text-red-900" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                             <p className="text-gray-600 mt-1">

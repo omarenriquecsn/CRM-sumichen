@@ -66,6 +66,7 @@ export interface Actividad {
   completado: boolean;
   fecha_vencimiento: Date;
   fecha_creacion: Date;
+  id_tipo_actividad?: string;
 }
 
 export interface ICrearActividad {

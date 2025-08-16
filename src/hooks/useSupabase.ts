@@ -415,6 +415,7 @@ export const useSupabase = () => {
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["reuniones"] });
+        queryClient.invalidateQueries({ queryKey: ["actividades"] });
       },
     });
   };
@@ -679,10 +680,139 @@ export const useSupabase = () => {
     });
   };
 
+  const useActualizarActividad = () => {
+    const { session } = useAuth();
+    return useMutation({
+      mutationFn: async (actividadData: Partial<Actividad>) => {
+        await fetch(`${URL}/actividades/${actividadData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          credentials: "include",
+          body: JSON.stringify(actividadData),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al actualizar la actividad");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["actividades"] });
+      },
+    });
+  };
+
+  const useEliminarActividad = () => {
+    const { session } = useAuth();
+    return useMutation({
+      mutationFn: async (actividad: Actividad) => {
+
+        if(actividad.tipo === 'reunion'){
+          console.log(actividad)
+          await fetch(`${URL}/reuniones/${actividad.id_tipo_actividad}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            credentials: "include",
+          }).then((response) => {
+            if (!response.ok) {
+              throw new Error("Error al eliminar la reunión");
+            }
+          });
+        }
+
+        if(actividad.tipo === 'tarea'){
+          await fetch(`${URL}/tickets/${actividad.id_tipo_actividad}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            credentials: "include",
+          }).then((response) => {
+            if (!response.ok) {
+              throw new Error("Error al eliminar el ticket");
+            }
+          });
+        }
+
+        await fetch(`${URL}/actividades/${actividad.id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          credentials: "include",
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al eliminar la actividad");
+          }
+        });
+        
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["actividades"] });
+        queryClient.invalidateQueries({ queryKey: ["reuniones"] });
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      },
+    });
+  };
+
+  const useEliminarReunion = () => {
+    const { session } = useAuth();
+    return useMutation({
+      mutationFn: async (id: string) => {
+        await fetch(`${URL}/reuniones/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          credentials: "include",
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al eliminar la reunión");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["reuniones"] });
+      },
+    });
+  };
+
+  const useEliminarTicket = () => {
+    const { session } = useAuth();
+    return useMutation({
+      mutationFn: async (id: string) => {
+        await fetch(`${URL}/tickets/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          credentials: "include",
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al eliminar el ticket");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      },
+    });
+  };
+
   return {
     useClientes,
     useActividades,
     useReuniones,
+    useEliminarReunion,
     useTickets,
     usePedidos,
     useOportunidades,
@@ -700,5 +830,8 @@ export const useSupabase = () => {
     useProductos,
     useMetas,
     useCancelarPedido,
+    useActualizarActividad,
+    useEliminarActividad,
+    useEliminarTicket
   };
 };
