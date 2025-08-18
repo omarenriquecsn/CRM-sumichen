@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import { Layout } from "../../components/layout/Layout";
 import { useQuery } from "@tanstack/react-query";
@@ -31,6 +31,17 @@ export const ExcelViewer: React.FC = () => {
     refetchInterval: 60000,
   });
 
+  const [search, setSearch] = useState("");
+
+  const filteredData =
+  excelData && search
+    ? (excelData as Array<Array<string | number>>).filter(row =>
+        row.some(cell =>
+          String(cell).toLowerCase().includes(search.toLowerCase())
+        )
+      )
+    : excelData;
+
   if (error) return <div className="text-red-500">{String(error)}</div>;
 
   return (
@@ -38,9 +49,18 @@ export const ExcelViewer: React.FC = () => {
       title="Productos"
       subtitle="Lista de productos disponibles en el inventario."
     >
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Buscar producto..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border px-3 py-2 rounded w-full max-w-md"
+        />
+      </div>
       {isLoading ? (
         <div>Cargando archivo Excel...</div>
-      ) : excelData && excelData.length > 0 ? (
+      ) : filteredData && filteredData.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-200">
             <thead>
@@ -60,7 +80,7 @@ export const ExcelViewer: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {(excelData as Array<Array<string | number>>).map((row, i) => (
+              {(filteredData as Array<Array<string | number>>).map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
                     <td
