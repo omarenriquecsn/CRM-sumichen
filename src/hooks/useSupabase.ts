@@ -710,7 +710,7 @@ export const useSupabase = () => {
       mutationFn: async (actividad: Actividad) => {
 
         if(actividad.tipo === 'reunion'){
-          console.log(actividad)
+          
           await fetch(`${URL}/reuniones/${actividad.id_tipo_actividad}`, {
             method: "DELETE",
             headers: {

@@ -63,7 +63,7 @@ export const VendedorPanel = () => {
   const tickets = Array.isArray(ticketsdb)
   ? ticketsdb.filter((t) => t.vendedor_id === vendedor.id)
   : [];
-  console.log(ticketsdb);
+
 
   // data debe contener vendedor, clientes, pedidos, pipeline, etc.
   return (
