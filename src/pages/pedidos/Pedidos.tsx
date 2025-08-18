@@ -139,7 +139,7 @@ export const Pedidos: React.FC<PedidosProps> = ({
     });
 
   const estadisticas = {
-    total: pedidos?.length,
+    total: pedidos?.length ?? 0,
     pendientes: (Array.isArray(pedidos) ? pedidos : []).filter(
       (p) => p.estado === "pendiente"
     ).length,
