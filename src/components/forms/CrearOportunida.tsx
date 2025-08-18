@@ -11,12 +11,30 @@ type props = {
 
 const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
   const supabase = useSupabase();
+
+  const valorProbabilidad = (etapa: string | undefined) => {
+    switch (etapa) {
+      case "inicial":
+        return 10;
+      case "calificado":
+        return 30;
+      case "propuesta":
+        return 50;
+      case "negociacion":
+        return 70;
+      case "cerrado":
+        return 100;
+      default:
+        return 0;
+    }
+  };
+
   const [formData, setFormData] = useState<Partial<Oportunidad>>({
     cliente_id: "",
     titulo: "Oportunidad",
     descripcion: "",
     valor: 0,
-    probabilidad: 0,
+    probabilidad: valorProbabilidad(etapa),
     etapa: etapa || "inicial",
     fecha_creacion: new Date(),
   });
@@ -86,7 +104,7 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
         required
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
       />
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      {/* <label className="block text-sm font-medium text-gray-700 mb-1">
         Probabilidad (%)
       </label>
       <input
@@ -99,7 +117,7 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
         min="0"
         max="100"
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-      />
+      /> */}
 
       <div className="flex justify-end pt-4">
         <button

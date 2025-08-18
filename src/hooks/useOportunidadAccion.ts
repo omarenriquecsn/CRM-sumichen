@@ -58,6 +58,14 @@ export const useOportunidadAccion = () => {
     onClose();
   };
 
+       const probabilidadPorEtapa: Record<string, number> = {
+    inicial: 10,
+    calificado: 30,
+    propuesta: 50,
+    negociacion: 70,
+    cerrado: 100,
+  };
+
   //   Handle Drag and Drop para dnd-kit
   const actualizarEtapaDrag = (
     oportunidadId: string,
@@ -67,6 +75,7 @@ export const useOportunidadAccion = () => {
       | "propuesta"
       | "negociacion"
       | "cerrado"
+
   ) => {
     if (!currentUser || !oportunidades || !clientes) return;
 
@@ -99,6 +108,7 @@ export const useOportunidadAccion = () => {
       OportunidadData: {
         id: oportunidadId,
         etapa: nuevaEtapa,
+        probabilidad: probabilidadPorEtapa[nuevaEtapa],
       },
       currentUser,
     });

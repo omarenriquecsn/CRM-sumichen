@@ -177,6 +177,9 @@ export const Pipeline: React.FC<PipelineProps> = ({
     ? Oportunidades
     : [];
 
+
+ 
+
   // onDragEnd handler
   const handleDragStart = (event: { active: { id: string | number } }) => {
     setActiveId(String(event.active.id));
@@ -243,6 +246,8 @@ export const Pipeline: React.FC<PipelineProps> = ({
       setOportunidadesOptimista(null);
     }
   };
+
+
 
   return (
     <Layout
