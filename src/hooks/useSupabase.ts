@@ -785,6 +785,8 @@ export const useSupabase = () => {
     });
   };
 
+ 
+
   const useEliminarTicket = () => {
     const { session } = useAuth();
     return useMutation({
@@ -804,6 +806,29 @@ export const useSupabase = () => {
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      },
+    });
+  };
+
+  const useEliminarOportunidad = () => {
+    const { session } = useAuth();
+    return useMutation({
+      mutationFn: async (id: string) => {
+        await fetch(`${URL}/oportunidades/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          credentials: "include",
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al eliminar la oportunidad");
+          }
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["oportunidades"] });
       },
     });
   };
@@ -832,6 +857,7 @@ export const useSupabase = () => {
     useCancelarPedido,
     useActualizarActividad,
     useEliminarActividad,
-    useEliminarTicket
+    useEliminarTicket,
+    useEliminarOportunidad
   };
 };

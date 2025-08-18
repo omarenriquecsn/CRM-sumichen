@@ -5,6 +5,7 @@ import { Cliente, Oportunidad } from "../../types";
 import { Calendar, DollarSign, User } from "lucide-react";
 import dayjs from "dayjs";
 import { getProbabilityColor } from "../../utils/oportunidades"
+// import { useSupabase } from "../../hooks/useSupabase";
 
 // Componente de tarjeta de oportunidad con useSortable
 type OportunidadCardProps = {
@@ -31,6 +32,13 @@ type OportunidadCardProps = {
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+  // const supabase = useSupabase();
+
+  // const { mutate: eliminarOportunidad } = supabase.useEliminarOportunidad();
+
+  // const handleDeleteOportunidad = (oportunidad: Oportunidad) => {
+  //   eliminarOportunidad(oportunidad.id);
+  // };
 
   return (
     <div
@@ -42,8 +50,11 @@ type OportunidadCardProps = {
         isDragging ? "shadow-lg" : ""
       }`}
     >
+    
       <div className="space-y-3">
+       
         <div>
+        
           <h4 className="font-medium text-gray-900 text-sm text-center">
             {cliente?.empresa}
           </h4>

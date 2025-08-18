@@ -1,12 +1,23 @@
 import React, { useState } from "react";
 import { Layout } from "../../components/layout/Layout";
-import { DndContext, closestCenter, DragEndEvent, useDroppable, DragOverlay, TouchSensor, MouseSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
-import {  restrictToWindowEdges } from "@dnd-kit/modifiers";
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  useDroppable,
+  DragOverlay,
+  TouchSensor,
+  MouseSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 
 import { SortableContext } from "@dnd-kit/sortable";
 
 import type { Cliente } from "../../types";
-type Etapa = typeof etapas[number];
+type Etapa = (typeof etapas)[number];
 
 type PipelineColumnProps = {
   etapa: Etapa;
@@ -15,11 +26,22 @@ type PipelineColumnProps = {
   onAdd: () => void;
 };
 
-function PipelineColumn({ etapa, oportunidadesEtapa, cliente, onAdd }: PipelineColumnProps) {
+function PipelineColumn({
+  etapa,
+  oportunidadesEtapa,
+  cliente,
+  onAdd,
+}: PipelineColumnProps) {
   const { setNodeRef } = useDroppable({ id: etapa.id });
+  const { setNodeRef: setTrashRef, isOver: isOverTrash } = useDroppable({
+    id: "trash",
+  });
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-      <div className={`p-4 rounded-t-xl border-b ${getColorClasses(etapa.color)}`}>
+      <div
+        className={`p-4 rounded-t-xl border-b ${getColorClasses(etapa.color)}`}
+      >
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">{etapa.titulo}</h3>
           <button
@@ -33,8 +55,26 @@ function PipelineColumn({ etapa, oportunidadesEtapa, cliente, onAdd }: PipelineC
           ${calcularTotalEtapa(oportunidadesEtapa, etapa.id).toLocaleString()}
         </p>
       </div>
-      <SortableContext items={oportunidadesEtapa.map((o) => o.id)} id={etapa.id}>
-        <div ref={setNodeRef} className="p-4 min-h-[200px] md:min-h-[400px] md:max-h-screen md:overflow-auto">
+      <div
+        ref={setTrashRef}
+        className={`fixed bottom-8 right-8 z-50 flex items-center justify-center w-20 h-20 rounded-full shadow-lg transition-colors
+    ${
+      isOverTrash
+        ? "bg-red-600 text-white scale-110"
+        : "bg-gray-200 text-gray-500"
+    }`}
+        style={{ fontSize: 32, cursor: "pointer" }}
+      >
+        🗑️
+      </div>
+      <SortableContext
+        items={oportunidadesEtapa.map((o) => o.id)}
+        id={etapa.id}
+      >
+        <div
+          ref={setNodeRef}
+          className="p-4 min-h-[200px] md:min-h-[400px] md:max-h-screen md:overflow-auto"
+        >
           {oportunidadesEtapa.map((oportunidad: Oportunidad) => {
             const cli = cliente(oportunidad.cliente_id);
             if (!cli) return null;
@@ -60,10 +100,7 @@ import CrearOportunidad from "../../components/forms/CrearOportunida";
 import { Oportunidad } from "../../types";
 import { useAuth } from "../../context/useAuth";
 import { etapas } from "../../constants/etapas";
-import {
-  getColorClasses,
-  calcularTotalEtapa,
-} from "../../utils/oportunidades";
+import { getColorClasses, calcularTotalEtapa } from "../../utils/oportunidades";
 import { useOportunidadAccion } from "../../hooks/useOportunidadAccion";
 import OportunidadCard from "./OportunidadCard";
 import { User } from "@supabase/supabase-js";
@@ -74,7 +111,11 @@ type PipelineProps = {
   clientesProp?: Cliente[];
 };
 
-export const Pipeline: React.FC<PipelineProps> = ({currentUserProp, OportunidadesProp, clientesProp}) => {
+export const Pipeline: React.FC<PipelineProps> = ({
+  currentUserProp,
+  OportunidadesProp,
+  clientesProp,
+}) => {
   // Sensores para drag and drop, mejorando experiencia mobile
   const sensors = useSensors(
     useSensor(MouseSensor),
@@ -91,16 +132,20 @@ export const Pipeline: React.FC<PipelineProps> = ({currentUserProp, Oportunidade
   const { currentUser: contextUser } = useAuth();
   const { data: clientesDb } = supabase.useClientes();
   const { data: OportunidadesDb } = supabase.useOportunidades();
+  const { mutate: eliminarOportunidad } = supabase.useEliminarOportunidad();
 
-const clientes = clientesProp ?? clientesDb ?? [];
-const Oportunidades = OportunidadesProp ?? OportunidadesDb ?? [];
-const currentUser = currentUserProp ?? contextUser;
+
+
+  const clientes = clientesProp ?? clientesDb ?? [];
+  const Oportunidades = OportunidadesProp ?? OportunidadesDb ?? [];
+  const currentUser = currentUserProp ?? contextUser;
 
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [oportunidadesOptimista, setOportunidadesOptimista] = useState<Oportunidad[] | null>(null);
+  const [oportunidadesOptimista, setOportunidadesOptimista] = useState<
+    Oportunidad[] | null
+  >(null);
 
   const { submitOportunidad, actualizarEtapaDrag } = useOportunidadAccion();
-
 
   const { isPending: pendingOportunidad } = supabase.useCrearOportunidades();
 
@@ -139,6 +184,14 @@ const currentUser = currentUserProp ?? contextUser;
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+
+      if (over && over.id === "trash") {
+    setOportunidadesOptimista((prev) => prev?.filter((o) => o.id !== active.id) ?? null);
+    eliminarOportunidad(String(active.id)); // Aquí llamas a tu mutación/backend
+    return;
+  }
+
+
     setActiveId(null);
     if (!over || active.id === over.id) {
       setOportunidadesOptimista(null);
@@ -146,7 +199,9 @@ const currentUser = currentUserProp ?? contextUser;
     }
 
     // Buscar la oportunidad arrastrada
-    const oportunidad = (oportunidadesOptimista || Oportunidades || []).find((o) => o.id === String(active.id));
+    const oportunidad = (oportunidadesOptimista || Oportunidades || []).find(
+      (o) => o.id === String(active.id)
+    );
     if (!oportunidad) {
       setOportunidadesOptimista(null);
       return;
@@ -154,7 +209,7 @@ const currentUser = currentUserProp ?? contextUser;
 
     // Determinar la etapa destino
     let etapaDestino = oportunidad.etapa;
-    
+
     let found = false;
     for (const etapa of etapas) {
       const idsEtapa = (oportunidadesOptimista || Oportunidades || [])
@@ -209,12 +264,11 @@ const currentUser = currentUserProp ?? contextUser;
                     etapa.color
                   )}`}
                 >
-
-                  {
-                    Array.isArray(oportunidades) ? oportunidades.filter(
-                      (oportunidad) => oportunidad.etapa === etapa.id
-                    ).length : 0
-                  }
+                  {Array.isArray(oportunidades)
+                    ? oportunidades.filter(
+                        (oportunidad) => oportunidad.etapa === etapa.id
+                      ).length
+                    : 0}
                 </span>
               </div>
               <p className="text-lg font-bold text-gray-900">
@@ -234,7 +288,9 @@ const currentUser = currentUserProp ?? contextUser;
         >
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {etapas.map((etapa) => {
-              const oportunidadesEtapa = Array.isArray(oportunidades) ? oportunidades.filter((o) => o.etapa === etapa.id) : [];
+              const oportunidadesEtapa = Array.isArray(oportunidades)
+                ? oportunidades.filter((o) => o.etapa === etapa.id)
+                : [];
               return (
                 <PipelineColumn
                   key={etapa.id}
@@ -250,13 +306,19 @@ const currentUser = currentUserProp ?? contextUser;
             })}
           </div>
           <DragOverlay>
-            {activeId ? (() => {
-              const oportunidad = oportunidades.find((o) => o.id === activeId);
-              if (!oportunidad) return null;
-              const cli = cliente(oportunidad.cliente_id);
-              if (!cli) return null;
-              return <OportunidadCard oportunidad={oportunidad} cliente={cli} />;
-            })() : null}
+            {activeId
+              ? (() => {
+                  const oportunidad = oportunidades.find(
+                    (o) => o.id === activeId
+                  );
+                  if (!oportunidad) return null;
+                  const cli = cliente(oportunidad.cliente_id);
+                  if (!cli) return null;
+                  return (
+                    <OportunidadCard oportunidad={oportunidad} cliente={cli} />
+                  );
+                })()
+              : null}
           </DragOverlay>
         </DndContext>
 
