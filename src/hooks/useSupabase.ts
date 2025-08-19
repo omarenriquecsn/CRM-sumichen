@@ -91,6 +91,11 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
+        if (clienteData.etapa_venta === "cerrado") {
+          clienteData.estado = "activo";
+        }else{
+          clienteData.estado = "prospecto";
+        }
         await fetch(`${URL}/clientes/${clienteData.id}`, {
           method: "PUT",
           credentials: "include",
@@ -380,7 +385,7 @@ export const useSupabase = () => {
 
   // hook para crear Reuniones
   const useCrearReunion = () => {
-     const { data: clientes } = useClientes();
+    const { data: clientes } = useClientes();
     const { data: vendedores } = useVendedores();
     return useMutation({
       mutationFn: async ({
@@ -422,7 +427,7 @@ export const useSupabase = () => {
 
   // hook para crear tickets
   const useCrearTicket = () => {
-     const { data: clientes } = useClientes();
+    const { data: clientes } = useClientes();
     const { data: vendedores } = useVendedores();
     return useMutation({
       mutationFn: async ({
@@ -708,9 +713,7 @@ export const useSupabase = () => {
     const { session } = useAuth();
     return useMutation({
       mutationFn: async (actividad: Actividad) => {
-
-        if(actividad.tipo === 'reunion'){
-          
+        if (actividad.tipo === "reunion") {
           await fetch(`${URL}/reuniones/${actividad.id_tipo_actividad}`, {
             method: "DELETE",
             headers: {
@@ -725,7 +728,7 @@ export const useSupabase = () => {
           });
         }
 
-        if(actividad.tipo === 'tarea'){
+        if (actividad.tipo === "tarea") {
           await fetch(`${URL}/tickets/${actividad.id_tipo_actividad}`, {
             method: "DELETE",
             headers: {
@@ -752,7 +755,6 @@ export const useSupabase = () => {
             throw new Error("Error al eliminar la actividad");
           }
         });
-        
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["actividades"] });
@@ -784,8 +786,6 @@ export const useSupabase = () => {
       },
     });
   };
-
- 
 
   const useEliminarTicket = () => {
     const { session } = useAuth();
@@ -858,6 +858,6 @@ export const useSupabase = () => {
     useActualizarActividad,
     useEliminarActividad,
     useEliminarTicket,
-    useEliminarOportunidad
+    useEliminarOportunidad,
   };
 };
