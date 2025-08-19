@@ -2,17 +2,26 @@ import React from "react";
 import { Layout } from "../../components/layout/Layout";
 import {
   Users,
-  TrendingUp,
+  // TrendingUp,
   DollarSign,
   Target,
   Award,
   AlertTriangle,
   UserCheck,
-  BarChart3,
+  // BarChart3,
 } from "lucide-react";
 import PanelAdmin from "../../utils/panelAdmin";
 import { calculoIncremento } from "../../utils/ventas";
 import { typeChange } from "../../constants/typeCange";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
 export const DashboardAdmin: React.FC = () => {
   const {
@@ -62,41 +71,7 @@ export const DashboardAdmin: React.FC = () => {
     },
   ];
 
-  const topVendedores = [
-    ...VendedoresTop
-    // {
-    //   id: 1,
-    //   nombre:`${VendedoresTop[0]?.nombre} ${VendedoresTop[0]?.apellido}`,
-    //   ventas: ``,
-    //   clientes: 24,
-    //   meta: 95,
-    //   avatar: "AG",
-    // },
-    // {
-    //   id: 2,
-    //   nombre: "Carlos López",
-    //   ventas: "$38,750",
-    //   clientes: 19,
-    //   meta: 88,
-    //   avatar: "CL",
-    // },
-    // {
-    //   id: 3,
-    //   nombre: "María Rodríguez",
-    //   ventas: "$35,600",
-    //   clientes: 22,
-    //   meta: 82,
-    //   avatar: "MR",
-    // },
-    // {
-    //   id: 4,
-    //   nombre: "Juan Martínez",
-    //   ventas: "$32,100",
-    //   clientes: 18,
-    //   meta: 78,
-    //   avatar: "JM",
-    // },
-  ];
+  const topVendedores = [...VendedoresTop];
 
   const alertas = [
     {
@@ -117,6 +92,20 @@ export const DashboardAdmin: React.FC = () => {
       mensaje: "8 tickets de soporte pendientes de resolución",
       urgencia: "alta",
     },
+  ];
+
+  const ventasPorMes = [
+    { mes: "Ene", ventas: 12000 },
+    { mes: "Feb", ventas: 15000 },
+    { mes: "Mar", ventas: 18000 },
+    // ...etc
+  ];
+
+  const rendimientoVendedores = [
+    { nombre: "Ana", ventas: 32000 },
+    { nombre: "Carlos", ventas: 28000 },
+    { nombre: "María", ventas: 25000 },
+    // ...etc
   ];
 
   return (
@@ -289,10 +278,15 @@ export const DashboardAdmin: React.FC = () => {
               Ventas por Mes
             </h3>
             <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500">Gráfico de ventas mensuales</p>
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={ventasPorMes}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="ventas" fill="#4F46E5" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
@@ -301,10 +295,15 @@ export const DashboardAdmin: React.FC = () => {
               Rendimiento por Vendedor
             </h3>
             <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500">Comparativa de rendimiento</p>
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={rendimientoVendedores}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="nombre" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="ventas" fill="#16A34A" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
