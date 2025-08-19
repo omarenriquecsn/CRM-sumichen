@@ -136,7 +136,7 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
               >
                 <option value="todos">Todos los estados</option>
                 <option value="prospecto">Prospectos</option>
-                <option value="cliente">Clientes</option>
+                <option value="activo">Activos</option>
                 <option value="inactivo">Inactivos</option>
               </select>
             </div>

@@ -40,7 +40,7 @@ const schema = yup.object({
     ),
   cliente_id: yup.string().required("El cliente es obligatorio"),
   vendedor_id: yup.string().required("El vendedor es obligatorio"),
-  completado: yup.boolean().default(true),
+  completado: yup.boolean().default(false),
 });
 
 const CrearActividad = ({ id, onSubmit, accion }: props) => {
@@ -60,7 +60,7 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
       descripcion: "",
       fecha: new Date(),
       fecha_vencimiento: new Date(),
-      completado: true,
+      completado: false,
     },
   });
 

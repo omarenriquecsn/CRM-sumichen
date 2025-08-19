@@ -159,8 +159,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${errors.estado ? "border-red-500" : "border-gray-300"}`}
             >
               <option value="prospecto">Prospecto</option>
-              <option value="activo">Cliente</option>
-              <option value="inactivo">Inactivo</option>
+              <option value="activo">Activo</option>
             </select>
             {errors.estado && (
               <p className="text-red-500 text-xs mt-1">{errors.estado.message}</p>
