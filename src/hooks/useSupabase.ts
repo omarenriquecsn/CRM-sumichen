@@ -728,7 +728,7 @@ export const useSupabase = () => {
           });
         }
 
-        if (actividad.tipo === "tarea") {
+        if (actividad.tipo === "tarea" && actividad.id_tipo_actividad) {
           await fetch(`${URL}/tickets/${actividad.id_tipo_actividad}`, {
             method: "DELETE",
             headers: {
@@ -739,6 +739,21 @@ export const useSupabase = () => {
           }).then((response) => {
             if (!response.ok) {
               throw new Error("Error al eliminar el ticket");
+            }
+          });
+        }
+
+        if (actividad.tipo === "reunion" && actividad.id_tipo_actividad) {
+          await fetch(`${URL}/reuniones/${actividad.id_tipo_actividad}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            credentials: "include",
+          }).then((response) => {
+            if (!response.ok) {
+              throw new Error("Error al eliminar la reunión");
             }
           });
         }
