@@ -176,6 +176,7 @@ export const useSupabase = () => {
           transporte: pedidoData.transporte || "interno",
           dias_credito: pedidoData.dias_credito,
           fecha_entrega: pedidoData.fecha_entrega || new Date(),
+          notas: pedidoData.notas,
         };
         const productosFormateados = productosPedido.map((p: ProductoDb) => ({
           producto_id: p.producto_id,
