@@ -209,8 +209,8 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
               onChange={handleOnChage}
               className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
             >
-              <option value="interno">usd</option>
-              <option value="externo">bs</option>
+              <option value="usd">usd</option>
+              <option value="bs">bs</option>
             </select>
           </div>
         </div>
