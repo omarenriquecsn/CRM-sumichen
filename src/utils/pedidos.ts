@@ -12,7 +12,7 @@ export interface HandleCrearPedidoParams {
       pedidoData: Partial<Pedido>;
       currentUser: User;
       productosPedido: formProducto[];
-      archivoAdjunto: File | null;
+      archivoAdjunto: FileList | null;
     },
     callbacks: {
       onError: (error: unknown) => void;
@@ -76,7 +76,7 @@ export function handleCrearPedidoUtil({
       pedidoData: { ...rest },
       currentUser,
       productosPedido: productos,
-      archivoAdjunto: data.archivoAdjunto || null,
+      archivoAdjunto: (data.archivoAdjunto instanceof FileList ? data.archivoAdjunto : null),
     },
     {
       onError: async (error: unknown) => {

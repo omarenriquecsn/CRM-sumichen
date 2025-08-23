@@ -144,7 +144,7 @@ export const useSupabase = () => {
     pedidoData: Partial<Pedido>;
     productosPedido: formProducto[];
     currentUser: User;
-    archivoAdjunto: File | null;
+    archivoAdjunto: FileList | null;
   };
 
   // Hook para crear pedido
@@ -208,7 +208,9 @@ export const useSupabase = () => {
         // 2. Si hay archivo adjunto y se obtuvo el id, subirlo a /pedidos/:id/evidencia
         if (archivoAdjunto && pedidoId) {
           const formData = new FormData();
-          formData.append("file", archivoAdjunto);
+          Array.from(archivoAdjunto).forEach((file) => {
+            formData.append("files", file);
+          });
           await fetch(`${URL}/pedidos/${pedidoId}/evidencia`, {
             method: "POST",
             credentials: "include",

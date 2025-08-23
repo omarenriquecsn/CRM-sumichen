@@ -36,7 +36,7 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
   });
 
   // Estado para el archivo adjunto
-  const [archivoAdjunto, setArchivoAdjunto] = useState<File | null>(null);
+  const [archivoAdjunto, setArchivoAdjunto] = useState<FileList | null>(null);
 
   const {
     data: productos,
@@ -70,7 +70,7 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
 
   const handleArchivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setArchivoAdjunto(e.target.files[0]);
+      setArchivoAdjunto(e.target.files);
     } else {
       setArchivoAdjunto(null);
     }
@@ -260,12 +260,13 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
           <input
             type="file"
             id="archivoAdjunto"
-            name="archivoAdjunto"
+            name="files"
             onChange={handleArchivoChange}
             className="mt-1 block w-full"
+            multiple
           />
-          {archivoAdjunto && (
-            <p className="text-sm text-gray-600 mt-1">Archivo seleccionado: {archivoAdjunto.name}</p>
+          {archivoAdjunto?.length && (
+            <p className="text-sm text-gray-600 mt-1">Archivos seleccionados: {Array.from(archivoAdjunto).map(file => file.name).join(", ")}</p>
           )}
         </div>
         <div className="flex justify-end pt-4">
