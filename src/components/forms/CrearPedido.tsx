@@ -262,6 +262,7 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
             id="archivoAdjunto"
             name="files"
             onChange={handleArchivoChange}
+            accept="image/*,application/pdf"
             className="mt-1 block w-full"
             multiple
           />
