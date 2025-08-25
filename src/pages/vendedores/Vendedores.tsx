@@ -4,14 +4,32 @@ import { Link } from "react-router-dom";
 import { User, Phone, DollarSign } from "lucide-react";
 import useVendedores from "../../hooks/useVendedores";
 import { Vendedor } from "../../types"; // Asegúrate de que la interfaz Vendedor esté definida en tu types.ts
-
+import Modal from "../../components/ui/Modal";
+import MetasForm from "../../components/forms/metasForm";
 const Vendedores: React.FC = () => {
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [vendedorSeleccionado, setVendedorSeleccionado] =
+    React.useState<Vendedor | null>(null);
   const { data: vendedores, isLoading, error } = useVendedores();
   //   const navigate = useNavigate();
 
-  if (isLoading) return <Layout title="Vendedores" subtitle="Cargando..."><div>Cargando vendedores...</div></Layout>;
-  if (error) return <Layout title="Vendedores" subtitle="Error al cargar datos"><div>Error al cargar vendedores</div></Layout>;
+  if (isLoading)
+    return (
+      <Layout title="Vendedores" subtitle="Cargando...">
+        <div>Cargando vendedores...</div>
+      </Layout>
+    );
+  if (error)
+    return (
+      <Layout title="Vendedores" subtitle="Error al cargar datos">
+        <div>Error al cargar vendedores</div>
+      </Layout>
+    );
 
+  const abrirModalMetas = (vendedor: Vendedor) => {
+    setVendedorSeleccionado(vendedor);
+    setModalOpen(true);
+  };
   return (
     <Layout title="Vendedores" subtitle="Lista de vendedores registrados">
       <div className="space-y-6">
@@ -31,6 +49,9 @@ const Vendedores: React.FC = () => {
                   </th>
                   <th className="text-left py-4 px-6 font-medium text-gray-900">
                     Panel
+                  </th>
+                  <th className="text-left py-4 px-6 font-medium text-gray-900">
+                    Metas
                   </th>
                 </tr>
               </thead>
@@ -68,6 +89,14 @@ const Vendedores: React.FC = () => {
                         Ver Panel
                       </Link>
                     </td>
+                    <td className="py-4 px-6">
+                      <button
+                        className="text-blue-600 hover:underline font-medium"
+                        onClick={() => abrirModalMetas(vendedor)}
+                      >
+                        Asignar Metas
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -75,7 +104,22 @@ const Vendedores: React.FC = () => {
           </div>
         </div>
       </div>
+            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+        {vendedorSeleccionado && (
+          <MetasForm
+            vendedor={vendedorSeleccionado}
+            onSubmit={(metas) => {
+              console.log(metas);
+              // Aquí puedes manejar el guardado de metas
+              // Por ejemplo, llamar a tu API y luego cerrar el modal:
+              // await guardarMetas(vendedorSeleccionado.id, metas);
+              setModalOpen(false);
+            }}
+          />
+        )}
+      </Modal>
     </Layout>
+    
   );
 };
 
