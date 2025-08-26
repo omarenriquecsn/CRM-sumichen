@@ -48,7 +48,7 @@ export const Analitica: React.FC = () => {
   const metricas = [
     {
       titulo: "Ventas del Mes",
-      valor: Number(cifraVentasMes()) || 0,
+      valor: Number(cifraVentasMes(new Date().getMonth())) || 0,
       cambio: Number(incrementoVentas),
       tipo: typeChange(incrementoVentas),
       icon: DollarSign,

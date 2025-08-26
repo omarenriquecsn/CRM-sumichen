@@ -3,15 +3,19 @@ import { Layout } from "../../components/layout/Layout";
 import { Link } from "react-router-dom";
 import { User, Phone, DollarSign } from "lucide-react";
 import useVendedores from "../../hooks/useVendedores";
-import { Vendedor } from "../../types"; // Asegúrate de que la interfaz Vendedor esté definida en tu types.ts
+import { Meta, Vendedor } from "../../types"; // Asegúrate de que la interfaz Vendedor esté definida en tu types.ts
 import Modal from "../../components/ui/Modal";
 import MetasForm from "../../components/forms/metasForm";
+import { usePostMetas } from "../../hooks/useMetas";
 const Vendedores: React.FC = () => {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [vendedorSeleccionado, setVendedorSeleccionado] =
     React.useState<Vendedor | null>(null);
   const { data: vendedores, isLoading, error } = useVendedores();
   //   const navigate = useNavigate();
+
+ // metas
+ const {mutate: actualizarMetas} = usePostMetas();
 
   if (isLoading)
     return (
@@ -30,6 +34,13 @@ const Vendedores: React.FC = () => {
     setVendedorSeleccionado(vendedor);
     setModalOpen(true);
   };
+
+  const handleActualizarMetas = (metas: Partial<Meta>) => {
+    if (vendedorSeleccionado) {
+      actualizarMetas({ vendedorId: vendedorSeleccionado.id, metas });
+    }
+  };
+
   return (
     <Layout title="Vendedores" subtitle="Lista de vendedores registrados">
       <div className="space-y-6">
@@ -109,10 +120,7 @@ const Vendedores: React.FC = () => {
           <MetasForm
             vendedor={vendedorSeleccionado}
             onSubmit={(metas) => {
-              console.log(metas);
-              // Aquí puedes manejar el guardado de metas
-              // Por ejemplo, llamar a tu API y luego cerrar el modal:
-              // await guardarMetas(vendedorSeleccionado.id, metas);
+              handleActualizarMetas(metas);
               setModalOpen(false);
             }}
           />

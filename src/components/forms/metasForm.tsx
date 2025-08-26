@@ -1,38 +1,28 @@
 import React, { useState } from "react";
-import { Vendedor } from "../../types";
+import { MesEnum, Vendedor } from "../../types";
+import { Meta } from "../../types";
 
 type MetasFormProps = {
   vendedor: Vendedor;
-  onSubmit: (metas: MetasFormState) => void;
+  onSubmit: (metas: Partial<Meta>) => void;
   loading?: boolean;
 };
 
-type MetasFormState = {
-  mes: string;
-  emails: number;
-  tareas: number;
-  llamadas: number;
-  reuniones: number;
-  clientesNuevos: number;
-  conversiones: number;
-  ventas: number;
-};
 
 const meses = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  MesEnum.Enero, MesEnum.Febrero, MesEnum.Marzo, MesEnum.Abril, MesEnum.Mayo, MesEnum.Junio,
+  MesEnum.Julio, MesEnum.Agosto, MesEnum.Septiembre, MesEnum.Octubre, MesEnum.Noviembre, MesEnum.Diciembre
 ];
 
 export const MetasForm: React.FC<MetasFormProps> = ({ vendedor, onSubmit, loading }) => {
-  const [form, setForm] = useState<MetasFormState>({
-    mes: "",
+  const [form, setForm] = useState<Partial<Meta>>({
+    mes: MesEnum.Enero,
     emails: 0,
     tareas: 0,
     llamadas: 0,
     reuniones: 0,
-    clientesNuevos: 0,
-    conversiones: 0,
-    ventas: 0,
+    objetivo_clientes: 0,
+    objetivo_ventas: 0,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -130,21 +120,8 @@ const inputNumberStyle: React.CSSProperties = {
           <label className="block font-medium mb-1">Clientes nuevos</label>
           <input
             type="number"
-            name="clientesNuevos"
-            value={form.clientesNuevos}
-            onChange={handleChange}
-            min={0}
-            className="border rounded px-3 py-2 w-full"
-            style={inputNumberStyle}
-            onFocus={e => e.target.value = ""}
-          />
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Conversiones</label>
-          <input
-            type="number"
-            name="conversiones"
-            value={form.conversiones}
+            name="objetivo_clientes"
+            value={form.objetivo_clientes}
             onChange={handleChange}
             min={0}
             className="border rounded px-3 py-2 w-full"
@@ -156,8 +133,8 @@ const inputNumberStyle: React.CSSProperties = {
           <label className="block font-medium mb-1">Meta de ventas ($)</label>
           <input
             type="number"
-            name="ventas"
-            value={form.ventas}
+            name="objetivo_ventas"
+            value={form.objetivo_ventas}
             onChange={handleChange}
             min={0}
             className="border rounded px-3 py-2 w-full"

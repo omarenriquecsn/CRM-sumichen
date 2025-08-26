@@ -17,8 +17,13 @@ import { Pedido } from "../types";
 
         
         // funcion para obtener la cifra de ventas del mes
-        const cifraVentasMes = () => {
-           
+        const cifraVentasMes = (mes: number) => {
+           const VentasdelMes =
+     PedidosProcesados.filter(
+         (pedido) =>
+            new Date(pedido.fecha_creacion).getMonth() === mes
+        ) ?? [];
+
             const totalPedidosMes = VentasdelMes.reduce(
                 (total, pedido) => total + Number(pedido.total),
                 0

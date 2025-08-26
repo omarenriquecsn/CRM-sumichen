@@ -4,25 +4,41 @@ import { useAuth } from "../../context/useAuth";
 import {
   Actividad,
   Cliente,
+  MesEnum,
+  Meta,
   Oportunidad,
   Pedido,
   Reunion,
-  User
+  User,
 } from "../../types";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useNavigate } from "react-router-dom";
 
-import { Users, TrendingUp, Calendar, DollarSign, Target, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Users,
+  TrendingUp,
+  Calendar,
+  DollarSign,
+  Target,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/es";
 import { useVentas } from "../../hooks/useVentas";
-import {calculoIncremento} from "../../utils/ventas";
-import { OportunidadesUtilmes, valorPipeline, obtenerReunionesProximas } from "../../utils/oportunidades";
-import {clientesActivos} from "../../utils/clientes";
+import { calculoIncremento } from "../../utils/ventas";
+import {
+  OportunidadesUtilmes,
+  valorPipeline,
+  obtenerReunionesProximas,
+} from "../../utils/oportunidades";
+import { clientesActivos } from "../../utils/clientes";
 import { typeChange } from "../../constants/typeCange";
-import {formatearActividades} from "../../utils/actividades";
+import { formatearActividades } from "../../utils/actividades";
+import { useGetMetas } from "../../hooks/useMetas";
 
 dayjs.extend(relativeTime);
 dayjs.locale("es");
@@ -37,7 +53,6 @@ type DashboardVendedorProps = {
 };
 
 export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
-
   currentUser,
   pedidos,
   clientes,
@@ -45,11 +60,30 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
   reuniones,
   oportunidades,
 }) => {
-
   const navigate = useNavigate();
   const { userData, currentUser: contextUser } = useAuth();
   const supabase = useSupabase();
+  const meses = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
 
+  const mesActual: MesEnum = meses[new Date().getMonth()] as MesEnum; // +1 porque getMonth() devuelve 0-11
+  const mesAnterior: MesEnum = meses[new Date().getMonth() - 1] as MesEnum;
+  //metas
+  const { data: metasDataActual } = useGetMetas(
+    currentUser?.id || contextUser?.id || ""
+  );
   // Si no se pasan props, usa los hooks de supabase
   const { data: clientesData } = supabase.useClientes();
   const { data: pedidosData } = supabase.usePedidos();
@@ -75,6 +109,31 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     return null;
   }
 
+  const metasMesActual =
+    Array.isArray(metasDataActual) &&
+    metasDataActual?.find((meta: Meta) => meta.mes === mesActual);
+
+  const metasMesAnterior =
+    Array.isArray(metasDataActual) &&
+    metasDataActual?.find((meta: Meta) => meta.mes === mesAnterior);
+
+  const ventaMes = cifraVentasMes(new Date().getMonth());
+
+  const porcentajeMeta =
+    Array.isArray(metasDataActual) &&
+    metasMesActual?.objetivo_ventas > 0 &&
+    ventaMes > 0
+      ? (+ventaMes / +metasMesActual?.objetivo_ventas) * 100
+      : 0;
+  const porcentajeMetaAnterior =
+    Array.isArray(metasDataActual) &&
+    metasMesAnterior?.objetivo_ventas > 0 &&
+    cifraVentasMes(new Date().getMonth() - 1) > 0
+      ? (+cifraVentasMes(new Date().getMonth() - 1) /
+          +metasMesAnterior?.objetivo_ventas) *
+        100
+      : 0;
+
   const incremento = calculoIncremento(clientesActivos(_clientes));
   const incrementoVentas = calculoIncremento(PedidosProcesados);
   const incrementoPipeline = calculoIncremento(OportunidadesMes);
@@ -90,7 +149,7 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     },
     {
       title: "Ventas del Mes",
-      value: `${cifraVentasMes()}`,
+      value: `${cifraVentasMes(new Date().getMonth())}`,
       change: `${incrementoVentas.toFixed(2)}%`,
       changeType: `${typeChange(incrementoVentas)}` as const,
       icon: DollarSign,
@@ -106,9 +165,12 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     },
     {
       title: "Meta Mensual",
-      value: "78%",
-      change: "+5%",
-      changeType: "positive" as const,
+      value: `${porcentajeMeta.toFixed(2)}%`,
+      change: `${(porcentajeMeta - porcentajeMetaAnterior).toFixed(2)}%`,
+      changeType:
+        metasMesActual && ventaMes >= metasMesActual.objetivo_ventas
+          ? "positive"
+          : "negative",
       icon: Target,
       color: "orange",
     },
@@ -119,154 +181,152 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
   const reunionesArray = Array.isArray(_reuniones) ? _reuniones : [];
   const upcomingMeetings = [...obtenerReunionesProximas(reunionesArray)];
 
-    return (
-      <Layout
-        title={`¡Bienvenido, ${userData?.nombre}!`}
-        subtitle="Aquí tienes un resumen de tu actividad de ventas"
-      >
-        <div className="space-y-6">
-          {/* Estadísticas principales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat) => (
-              <div
-                key={stat.title}
-                className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      {stat.title}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">
-                      {stat.value}
-                    </p>
-                    <p
-                      className={`text-sm mt-2 ${
-                        stat.changeType === "positive" || stat.changeType === "neutral"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {stat.change} vs mes anterior
-                    </p>
-                  </div>
-                  <div
-                    className={`p-3 rounded-full ${
-                      stat.color === "blue"
-                        ? "bg-blue-100"
-                        : stat.color === "green"
-                        ? "bg-green-100"
-                        : stat.color === "purple"
-                        ? "bg-purple-100"
-                        : "bg-orange-100"
+  return (
+    <Layout
+      title={`¡Bienvenido, ${userData?.nombre}!`}
+      subtitle="Aquí tienes un resumen de tu actividad de ventas"
+    >
+      <div className="space-y-6">
+        {/* Estadísticas principales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat) => (
+            <div
+              key={stat.title}
+              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    {stat.title}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {stat.value}
+                  </p>
+                  <p
+                    className={`text-sm mt-2 ${
+                      stat.changeType === "positive" ||
+                      stat.changeType === "neutral"
+                        ? "text-green-600"
+                        : "text-red-600"
                     }`}
                   >
-                    <stat.icon
-                      className={`h-6 w-6 ${
-                        stat.color === "blue"
-                          ? "text-blue-600"
-                          : stat.color === "green"
-                          ? "text-green-600"
-                          : stat.color === "purple"
-                          ? "text-purple-600"
-                          : "text-orange-600"
-                      }`}
-                    />
-                  </div>
+                    {stat.change} vs mes anterior
+                  </p>
+                </div>
+                <div
+                  className={`p-3 rounded-full ${
+                    stat.color === "blue"
+                      ? "bg-blue-100"
+                      : stat.color === "green"
+                      ? "bg-green-100"
+                      : stat.color === "purple"
+                      ? "bg-purple-100"
+                      : "bg-orange-100"
+                  }`}
+                >
+                  <stat.icon
+                    className={`h-6 w-6 ${
+                      stat.color === "blue"
+                        ? "text-blue-600"
+                        : stat.color === "green"
+                        ? "text-green-600"
+                        : stat.color === "purple"
+                        ? "text-purple-600"
+                        : "text-orange-600"
+                    }`}
+                  />
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Actividades recientes */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Actividades Recientes
-              </h3>
-              <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg"
-                  >
-                    <div
-                      className={`p-2 rounded-full ${
-                        activity.status === "completada"
-                          ? "bg-green-100"
-                          : activity.status === "pendiente"
-                          ? "bg-yellow-100"
-                          : "bg-red-100"
-                      }`}
-                    >
-                      {activity.status === "completada" ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      ) : activity.status === "pendiente" ? (
-                        <Clock className="h-4 w-4 text-yellow-600" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-red-600" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">
-                        {activity.title}
-                      </p>
-                      <p className="text-sm text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
+          ))}
+        </div>
 
-            {/* Próximas reuniones */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Próximas Reuniones
-              </h3>
-              <div className="space-y-4">
-                {upcomingMeetings.map((meeting) => (
-                  <div
-                    key={meeting.id}
-                    className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg"
-                  >
-                    <div className="p-2 bg-blue-100 rounded-full">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">
-                        {meeting.titulo}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {/* ...cliente info... */}
-                      </p>
-                      <p className="text-sm text-blue-600">
-                        {dayjs(meeting.fecha_inicio).format("dddd")} a las{" "}
-                        {dayjs(new Date(meeting.fecha_inicio).getHours()).format(
-                          "HH:mm"
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Gráfico de rendimiento */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Actividades recientes */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Rendimiento de Ventas
+              Actividades Recientes
             </h3>
-            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <p className="text-gray-500">
-                Gráfico de ventas mensuales (próximamente)
-              </p>
+            <div className="space-y-4">
+              {recentActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg"
+                >
+                  <div
+                    className={`p-2 rounded-full ${
+                      activity.status === "completada"
+                        ? "bg-green-100"
+                        : activity.status === "pendiente"
+                        ? "bg-yellow-100"
+                        : "bg-red-100"
+                    }`}
+                  >
+                    {activity.status === "completada" ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : activity.status === "pendiente" ? (
+                      <Clock className="h-4 w-4 text-yellow-600" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {activity.title}
+                    </p>
+                    <p className="text-sm text-gray-500">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Próximas reuniones */}
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Próximas Reuniones
+            </h3>
+            <div className="space-y-4">
+              {upcomingMeetings.map((meeting) => (
+                <div
+                  key={meeting.id}
+                  className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg"
+                >
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {meeting.titulo}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {/* ...cliente info... */}
+                    </p>
+                    <p className="text-sm text-blue-600">
+                      {dayjs(meeting.fecha_inicio).format("dddd")} a las{" "}
+                      {dayjs(new Date(meeting.fecha_inicio).getHours()).format(
+                        "HH:mm"
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </Layout>
-    );
-  };
 
-  
-  
+        {/* Gráfico de rendimiento */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Rendimiento de Ventas
+          </h3>
+          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+            <p className="text-gray-500">
+              Gráfico de ventas mensuales (próximamente)
+            </p>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};

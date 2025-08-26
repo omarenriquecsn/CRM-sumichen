@@ -155,15 +155,33 @@ export interface Pedido {
   productos_pedido: ProductoPedido[];
 }
 
+export enum MesEnum {
+  Enero = "Enero",
+  Febrero = "Febrero",
+  Marzo = "Marzo",
+  Abril = "Abril",
+  Mayo = "Mayo",
+  Junio = "Junio",
+  Julio = "Julio",
+  Agosto = "Agosto",
+  Septiembre = "Septiembre",
+  Octubre = "Octubre",
+  Noviembre = "Noviembre",
+  Diciembre = "Diciembre",
+}
+
+
 export interface Meta {
   id: string;
   vendedor_id: string;
-  mes: number;
+  mes: MesEnum;
   ano: number;
   objetivo_ventas: number;
   objetivo_clientes: number;
-  ventas_actuales: number;
-  clientes_actuales: number;
+  llamadas: number;
+  reuniones: number;
+  emails: number;
+  tareas: number;
 }
 
 export interface Metrica {
