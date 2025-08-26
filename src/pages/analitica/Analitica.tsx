@@ -20,14 +20,19 @@ import {
 } from "../../utils/ventas";
 import { typeChange } from "../../constants/typeCange";
 import { clientesNuevos, clientesActivos } from "../../utils/clientes";
-import { Mes } from "../../types";
+import { Mes, Meta } from "../../types";
 import { actividadesPoCategoria } from "../../utils/actividades";
 import { getColorClasses } from "../../utils/analitica";
 import { clientePorEtapaAnalitica } from "../../utils/oportunidades";
+import { useGetMetas } from "../../hooks/useMetas";
+import { useAuth } from "../../context/useAuth";
+
+
+
 
 export const Analitica: React.FC = () => {
   const supabase = useSupabase();
-
+const {currentUser} = useAuth();
   // const { data: metas } = supabase.useMetas();
   const { data: pedidos } = supabase.usePedidos();
   const { data: oportunidades } = supabase.useOportunidades();
@@ -35,6 +40,25 @@ export const Analitica: React.FC = () => {
   const { data: actividades } = supabase.useActividades();
   const { data: clientes } = supabase.useClientes();
   const { PedidosProcesados, cifraVentasMes } = useVentas(pedidos);
+// Metas
+const {data: metas} =useGetMetas(currentUser?.id ? currentUser.id : "");
+
+//meta del mes
+const arrayMeses2 = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre'
+];
+const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()]) || [];
 
   const nuevosClientes = clientesNuevos(clientes);
 
@@ -98,11 +122,24 @@ export const Analitica: React.FC = () => {
   ];
 
   const actividadesPorTipo = [
-    actividadesPoCategoria(actividades, "llamada"),
-    actividadesPoCategoria(actividades, "email"),
-    actividadesPoCategoria(actividades, "reunion"),
-    actividadesPoCategoria(actividades, "tarea"),
+    actividadesPoCategoria(actividades, "llamada", metas),
+    actividadesPoCategoria(actividades, "email", metas),
+    actividadesPoCategoria(actividades, "reunion", metas),
+    actividadesPoCategoria(actividades, "tarea", metas),
   ];
+
+  const totalMetas = () => {
+    let total = 0;
+    if(metasMes.reuniones) total += metasMes.reuniones;
+    if(metasMes.ventas) total += metasMes.ventas;
+    if(metasMes.clientes) total += metasMes.clientes;
+    return total;
+  }
+
+  const porcentaje = (parte: number, total: number) => {
+    if (total === 0 || total < 0 || total === undefined ) return 0;
+    return (parte / total) * 100;
+  };
 
   return (
     <Layout
@@ -339,18 +376,18 @@ export const Analitica: React.FC = () => {
                     Meta de Ventas
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    78%
+                    {`${porcentaje(cifraVentasMes(new Date().getMonth()), metasMes?.objetivo_ventas || 0)}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-green-500 h-3 rounded-full"
-                    style={{ width: "78%" }}
+                    style={{ width: `${porcentaje(cifraVentasMes(new Date().getMonth()), metasMes?.objetivo_ventas || 0)}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>$45,230</span>
-                  <span>$58,000</span>
+                  <span>${cifraVentasMes(new Date().getMonth())}</span>
+                  <span>${metasMes?.objetivo_ventas || 0}</span>
                 </div>
               </div>
 
@@ -360,18 +397,18 @@ export const Analitica: React.FC = () => {
                     Meta de Clientes
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    85%
+                    {`${porcentaje(nuevosClientes.length, metasMes?.objetivo_clientes || 0)}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-blue-500 h-3 rounded-full"
-                    style={{ width: "85%" }}
+                    style={{ width: `${porcentaje(nuevosClientes.length, metasMes?.objetivo_clientes || 0)}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>24 clientes</span>
-                  <span>28 clientes</span>
+                  <span>{nuevosClientes.length || 0}</span>
+                  <span>{metasMes?.objetivo_clientes || 0}</span>
                 </div>
               </div>
 
@@ -381,18 +418,18 @@ export const Analitica: React.FC = () => {
                     Meta de Actividades
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    92%
+                    {`${porcentaje(actividades ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-purple-500 h-3 rounded-full"
-                    style={{ width: "92%" }}
+                    style={{ width: `${porcentaje(actividades ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>156 actividades</span>
-                  <span>170 actividades</span>
+                  <span>{(Array.isArray(actividades) ? actividades : []).filter((a) => a.completado).length || 0}</span>
+                  <span>{totalMetas()}</span>
                 </div>
               </div>
             </div>

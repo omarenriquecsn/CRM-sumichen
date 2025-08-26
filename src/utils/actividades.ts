@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import {
   Actividad,
   ActividadFormateada,
+  Meta,
   User,
 } from "../types";
 import { NavigateFunction } from "react-router-dom";
@@ -32,8 +33,38 @@ export function formatearActividades(
 
 export const actividadesPoCategoria = (
   actividades: Actividad[] | undefined,
-  tipo: string
+  tipo: string,
+  metas: Meta[]
 ) => {
+const meses = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre'
+]
+  const metasMesActual = Array.isArray(metas) ? metas.find((meta) => {
+    return meta.mes === meses[new Date().getMonth()]
+  }) : undefined;
+  const tipoParaMetas = () => {
+    if(tipo === "llamada") return "llamadas";
+    if(tipo === "email") return "emails";
+    if(tipo === "reunion") return "reuniones";
+    if(tipo === "tarea") return "tareas";
+    return ;
+  }
+  const tipoMeta = tipoParaMetas();
+  const porcentaje =
+    metasMesActual && typeof tipoMeta === "string" && tipoMeta in metasMesActual
+      ? 50 / (metasMesActual[tipoMeta as keyof Meta] as number)
+      : 0;
   const tipoFormateado =
     tipo === "reunion"
       ? "Reuniones"
@@ -51,7 +82,7 @@ export const actividadesPoCategoria = (
   return {
     tipo: tipoFormateado,
     cantidad: actividadesFiltradas?.length,
-    porcentaje: 10,
+    porcentaje: actividadesFiltradas.length === 0 ? 0 : porcentaje,
   };
 };
 
