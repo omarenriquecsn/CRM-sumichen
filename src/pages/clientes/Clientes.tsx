@@ -12,6 +12,7 @@ import {
   DollarSign,
   IdCard,
   User2,
+  UserCheck
 } from "lucide-react";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../context/useAuth";
@@ -23,9 +24,11 @@ import {
   Estado,
   EtapaVenta,
   Pedido,
+  Vendedor,
 } from "../../types";
 import { toast } from "react-toastify";
 import { getEtapaColor, getEstadoColor } from "../../utils/clientes";
+import useVendedores from "../../hooks/useVendedores";
 
 type PropsClientes = {
   clientes?: Cliente[];
@@ -49,6 +52,8 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
 
   const clientes = props.clientes ?? fetchedClientes ?? [];
   const pedidos = props.pedidos ?? fetchedPedidos ?? [];
+
+  const { data: Vendedores } = useVendedores();
 
   const { mutate: crearCliente, isPending } = supabase.useCrearCliente();
   const handleCreateCliente = (user: ClienteFormData) => {
@@ -163,9 +168,15 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-4 px-6 font-medium text-gray-900">
-                    Rif
-                  </th>
+                  {currentUser?.rol === "vendedor" ? (
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Rif
+                    </th>
+                  ) : (
+                    <th className="text-left py-4 px-6 font-medium text-gray-900">
+                      Vendedor
+                    </th>
+                  )}
                   <th className="text-left py-4 px-6 font-medium text-gray-900">
                     Empresa
                   </th>
@@ -188,8 +199,25 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
                   <tr key={cliente.id} className="hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <IdCard className="h-4 w-4" />
-                        <span>{cliente.rif.toLocaleString()}</span>
+                        {currentUser?.rol === "vendedor" ? (
+                          <>
+                            <IdCard className="h-4 w-4" />
+                            <span>{cliente.rif.toLocaleString()}</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="h-10 w-10  text-blue-600" />
+                            <span>{`${
+                              Vendedores?.find(
+                                (vendedor: Vendedor) =>
+                                  vendedor.id === cliente.vendedor_id
+                              )?.nombre
+                            } ${Vendedores?.find(
+                                (vendedor: Vendedor) =>
+                                  vendedor.id === cliente.vendedor_id
+                              )?.apellido }`}</span>
+                          </>
+                        )}
                       </div>
                     </td>
                     <td className="py-4 px-6">

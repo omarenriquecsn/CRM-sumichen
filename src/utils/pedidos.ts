@@ -224,7 +224,10 @@ export const utilsPedidos = (pedidos: Pedido[], cliente: Cliente) => {
         import("./actividades").then(({ handleCrearActividadUtil }) => {
           handleCrearActividadUtil({
             data: actividadData,
-            currentUser,
+            currentUser: {
+              ...currentUser,
+              rol: currentUser.rol === "vendedor" || currentUser.rol === "admin" ? currentUser.rol : undefined,
+            },
             navigate,
             crearActividad,
           });

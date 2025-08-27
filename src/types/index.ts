@@ -132,6 +132,7 @@ export interface Ticket {
   categoria: "tecnico" | "facturacion" | "producto" | "servicio";
   fecha_creacion: Date;
   fecha_actualizacion: Date;
+  numero: number;
 }
 
 export interface Pedido {

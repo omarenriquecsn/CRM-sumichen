@@ -16,6 +16,7 @@ import {
   User2,
   Check,
   Trash,
+  UserCheck,
 } from "lucide-react";
 import {
   Actividad,
@@ -40,6 +41,7 @@ import CrearPedido from "../../components/forms/CrearPedido";
 import { getEstadoColor, getEtapaColor } from "../../utils/clientes";
 import { handleCrearActividadUtil } from "../../utils/actividades";
 import { handleCrearReunionUtil } from "../../utils/reuniones";
+import SelectVendedor from "../../components/ui/SelectVendedot";
 
 export const ClienteDetalle: React.FC = () => {
   dayjs.locale("es");
@@ -54,6 +56,7 @@ export const ClienteDetalle: React.FC = () => {
   const [isModalBOpen, setModalBOpen] = useState(false);
   const [isModalCOpen, setModalCopen] = useState(false);
   const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
+  const [modalVendedorVisible, setModalVendedorVisible] = useState(false);
 
   // Actividades
   const { data: actividadesTodas, error: errorActividades } =
@@ -69,6 +72,7 @@ export const ClienteDetalle: React.FC = () => {
   const { data: clientes } = supabase.useClientes();
   const { mutate: editarCliente, isPending: pendigEditar } =
     supabase.useActualizarCliente();
+  
 
   // Pedidos
   const { data: pedidos } = supabase.usePedidos();
@@ -186,11 +190,17 @@ export const ClienteDetalle: React.FC = () => {
       );
     };
 
+    //Handle para asignar vendedor
+ 
+
     // Handle Crear Actividad
     const handleCrearActividad = async (data: Partial<Actividad>) => {
       handleCrearActividadUtil({
         data,
-        currentUser,
+        currentUser: {
+          ...currentUser,
+          rol: currentUser.rol as "vendedor" | "admin" | undefined,
+        },
         navigate,
         crearActividad,
         setModalBOpen,
@@ -532,6 +542,18 @@ export const ClienteDetalle: React.FC = () => {
                     <span>Crear Pedido</span>
                   </button>
                 </div>
+                {
+                  currentUser.rol === "admin" &&
+                  <div>
+                  <button
+                    onClick={() => setModalVendedorVisible(true)}
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 mt-4"
+                    >
+                    <UserCheck className="h-4 w-4" />
+                    <span>Asignar Vendedor</span>
+                  </button>
+                </div>
+                  }
               </div>
 
               {/* Resumen de ventas */}
@@ -624,6 +646,18 @@ export const ClienteDetalle: React.FC = () => {
           <CrearPedido
             accion={!isPendingPedido ? "Crear Pedido" : "Creando..."}
             onSubmit={handleCrearPedido}
+          />
+        </Modal>
+        <Modal
+          isOpen={modalVendedorVisible}
+          onClose={() => {
+            setModalVendedorVisible(false);
+          }}
+          title={"Asignar Vendedor"}
+        >
+          <SelectVendedor
+            cliente={cliente}
+            closeModal={() => setModalVendedorVisible(false)}
           />
         </Modal>
       </Layout>
