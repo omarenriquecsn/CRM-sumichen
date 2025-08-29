@@ -418,13 +418,13 @@ const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date()
                     Meta de Actividades
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {`${porcentaje(actividades ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%`}
+                    {`${porcentaje(Array.isArray(actividades) ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-purple-500 h-3 rounded-full"
-                    style={{ width: `${porcentaje(actividades ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%` }}
+                    style={{ width: `${porcentaje(Array.isArray(actividades) ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
