@@ -12,7 +12,7 @@ import {
   DollarSign,
   IdCard,
   User2,
-  UserCheck
+  UserCheck,
 } from "lucide-react";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../context/useAuth";
@@ -39,6 +39,8 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
+  const [page, setPage] = useState(1);
+  const pageSize = 6; // Puedes cambiar este valor si lo deseas
 
   const supabase = useSupabase();
 
@@ -51,6 +53,7 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
   const { data: fetchedPedidos } = supabase.usePedidos();
 
   const clientes = props.clientes ?? fetchedClientes ?? [];
+
   const pedidos = props.pedidos ?? fetchedPedidos ?? [];
 
   const { data: Vendedores } = useVendedores();
@@ -109,6 +112,11 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
 
     return matchesSearch && matchesFilter;
   });
+  const totalPages = Math.ceil(filteredClientes.length / pageSize);
+  const paginatedClientes = filteredClientes.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
     <Layout
@@ -195,7 +203,7 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredClientes?.map((cliente) => (
+                {paginatedClientes?.map((cliente) => (
                   <tr key={cliente.id} className="hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
@@ -212,10 +220,12 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
                                 (vendedor: Vendedor) =>
                                   vendedor.id === cliente.vendedor_id
                               )?.nombre
-                            } ${Vendedores?.find(
+                            } ${
+                              Vendedores?.find(
                                 (vendedor: Vendedor) =>
                                   vendedor.id === cliente.vendedor_id
-                              )?.apellido }`}</span>
+                              )?.apellido
+                            }`}</span>
                           </>
                         )}
                       </div>
@@ -304,6 +314,37 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
             </table>
           </div>
         </div>
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <button
+              className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+                          ${
+                            page === 1
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
+                          }
+                        `}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              ← Anterior
+            </button>
+            <span className="text-gray-700 font-medium">
+              Página {page} de {totalPages}
+            </span>
+            <button
+              className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+                          ${
+                            page === totalPages
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
+                          }
+                        `}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+            >
+              Siguiente →
+            </button>
+          </div>
 
         {/* Estadísticas rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
