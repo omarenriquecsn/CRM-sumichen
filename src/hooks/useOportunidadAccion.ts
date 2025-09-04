@@ -93,6 +93,9 @@ export const useOportunidadAccion = () => {
       toast.error("Cliente no encontrado");
       return;
     }
+    if(nuevaEtapa === 'cerrado'){
+      cliente.estado = 'activo'
+    }
 
     actualizarCliente({
       clienteData: {

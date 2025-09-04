@@ -19,7 +19,12 @@ import {
   arrayMeses,
 } from "../../utils/ventas";
 import { typeChange } from "../../constants/typeCange";
-import { clientesNuevos, clientesActivos } from "../../utils/clientes";
+import {
+  clientesNuevosMes as getClientesNuevosMes,
+  objetivoClientesConvertidos,
+  clientesProspectosMes,
+  clientesNuevosArray,
+} from "../../utils/clientes";
 import { Mes, Meta } from "../../types";
 import { actividadesPoCategoria } from "../../utils/actividades";
 import { getColorClasses } from "../../utils/analitica";
@@ -27,12 +32,9 @@ import { clientePorEtapaAnalitica } from "../../utils/oportunidades";
 import { useGetMetas } from "../../hooks/useMetas";
 import { useAuth } from "../../context/useAuth";
 
-
-
-
 export const Analitica: React.FC = () => {
   const supabase = useSupabase();
-const {currentUser} = useAuth();
+  const { currentUser } = useAuth();
   // const { data: metas } = supabase.useMetas();
   const { data: pedidos } = supabase.usePedidos();
   const { data: oportunidades } = supabase.useOportunidades();
@@ -40,30 +42,40 @@ const {currentUser} = useAuth();
   const { data: actividades } = supabase.useActividades();
   const { data: clientes } = supabase.useClientes();
   const { PedidosProcesados, cifraVentasMes } = useVentas(pedidos);
-// Metas
-const {data: metas} =useGetMetas(currentUser?.id ? currentUser.id : "");
+  // Metas
+  const { data: metas } = useGetMetas(currentUser?.id ? currentUser.id : "");
 
-//meta del mes
-const arrayMeses2 = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre'
-];
-const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()]) || [];
+  //meta del mes
+  const arrayMeses2 = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
+  const metasMes =
+    metas?.find(
+      (meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()]
+    ) || [];
 
-  const nuevosClientes = clientesNuevos(clientes);
+  const clientesProspecto = clientesProspectosMes(
+    clientes,
+    new Date().getMonth()
+  );
+  const clientesNuevosMes = getClientesNuevosMes(
+    clientes,
+    new Date().getMonth()
+  );
 
   const incrementoVentas = calculoIncremento(PedidosProcesados);
-  const incrementoClientes = calculoIncremento(clientesActivos(clientes));
+  const incrementoClientes = calculoIncremento(clientesNuevosArray(clientes));
   const incrementoPipeline = oportunidades
     ? calculoIncremento(oportunidades)
     : 0;
@@ -80,7 +92,7 @@ const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date()
     },
     {
       titulo: "Nuevos Clientes",
-      valor: nuevosClientes.length || 0,
+      valor: clientesNuevosMes,
       cambio: Number(incrementoClientes),
       tipo: typeChange(incrementoClientes),
       icon: Users,
@@ -130,14 +142,14 @@ const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date()
 
   const totalMetas = () => {
     let total = 0;
-    if(metasMes.reuniones) total += metasMes.reuniones;
-    if(metasMes.ventas) total += metasMes.ventas;
-    if(metasMes.clientes) total += metasMes.clientes;
+    if (metasMes.reuniones) total += metasMes.reuniones;
+    if (metasMes.ventas) total += metasMes.ventas;
+    if (metasMes.clientes) total += metasMes.clientes;
     return total;
-  }
+  };
 
   const porcentaje = (parte: number, total: number) => {
-    if (total === 0 || total < 0 || total === undefined ) return 0;
+    if (total === 0 || total < 0 || total === undefined) return 0;
     return (parte / total) * 100;
   };
 
@@ -376,13 +388,21 @@ const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date()
                     Meta de Ventas
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {`${porcentaje(cifraVentasMes(new Date().getMonth()), metasMes?.objetivo_ventas || 0)}%`}
+                    {`${porcentaje(
+                      cifraVentasMes(new Date().getMonth()),
+                      metasMes?.objetivo_ventas || 0
+                    )}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-green-500 h-3 rounded-full"
-                    style={{ width: `${porcentaje(cifraVentasMes(new Date().getMonth()), metasMes?.objetivo_ventas || 0)}%` }}
+                    style={{
+                      width: `${porcentaje(
+                        cifraVentasMes(new Date().getMonth()),
+                        metasMes?.objetivo_ventas || 0
+                      )}%`,
+                    }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -394,20 +414,59 @@ const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date()
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-600">
-                    Meta de Clientes
+                    Meta de Conversion
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {`${porcentaje(nuevosClientes.length, metasMes?.objetivo_clientes || 0)}%`}
+                    {`${porcentaje(
+                      clientesNuevosMes,
+                      objetivoClientesConvertidos(clientes ?? []) || 0
+                    )}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-blue-500 h-3 rounded-full"
-                    style={{ width: `${porcentaje(nuevosClientes.length, metasMes?.objetivo_clientes || 0)}%` }}
+                    style={{
+                      width: `${porcentaje(
+                        clientesNuevosMes,
+                        objetivoClientesConvertidos(clientes ?? []) || 0
+                      )}%`,
+                    }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>{nuevosClientes.length || 0}</span>
+                  <span>{clientesNuevosMes || 0}</span>
+                  <span>
+                    {objetivoClientesConvertidos(clientes ?? []) || 0}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600">
+                    Meta de Prospectos
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {`${porcentaje(
+                      clientesProspecto,
+                      metasMes?.objetivo_clientes || 0
+                    )}%`}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-blue-500 h-3 rounded-full"
+                    style={{
+                      width: `${porcentaje(
+                        clientesProspecto,
+                        metasMes?.objetivo_clientes || 0
+                      )}%`,
+                    }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>{clientesProspecto || 0}</span>
                   <span>{metasMes?.objetivo_clientes || 0}</span>
                 </div>
               </div>
@@ -418,17 +477,33 @@ const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date()
                     Meta de Actividades
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {`${porcentaje(Array.isArray(actividades) ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%`}
+                    {`${porcentaje(
+                      Array.isArray(actividades)
+                        ? actividades.filter((a) => a.completado).length
+                        : 0,
+                      totalMetas()
+                    )}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-purple-500 h-3 rounded-full"
-                    style={{ width: `${porcentaje(Array.isArray(actividades) ? actividades.filter((a) => a.completado).length : 0, totalMetas())}%` }}
+                    style={{
+                      width: `${porcentaje(
+                        Array.isArray(actividades)
+                          ? actividades.filter((a) => a.completado).length
+                          : 0,
+                        totalMetas()
+                      )}%`,
+                    }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>{(Array.isArray(actividades) ? actividades : []).filter((a) => a.completado).length || 0}</span>
+                  <span>
+                    {(Array.isArray(actividades) ? actividades : []).filter(
+                      (a) => a.completado
+                    ).length || 0}
+                  </span>
                   <span>{totalMetas()}</span>
                 </div>
               </div>
@@ -445,13 +520,17 @@ const metasMes = metas?.find((meta: Meta) => meta.mes === arrayMeses2[new Date()
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-green-600">{`+${incrementoVentas > 0 ? incrementoVentas : 0}%`}</p>
+              <p className="text-2xl font-bold text-green-600">{`+${
+                incrementoVentas > 0 ? incrementoVentas : 0
+              }%`}</p>
               <p className="text-sm text-gray-600">Crecimiento en ventas</p>
             </div>
 
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-blue-600">{nuevosClientes.length || 0}</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {clientesNuevosMes || 0}
+              </p>
               <p className="text-sm text-gray-600">Nuevos clientes este mes</p>
             </div>
 

@@ -18,7 +18,6 @@ export interface Cliente {
   email: string;
   telefono: string;
   empresa?: string;
-
   estado: Estado;
   etapa_venta: EtapaVenta;
   // rif: number;

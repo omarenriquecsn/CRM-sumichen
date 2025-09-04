@@ -61,6 +61,7 @@ const meses = [
     return ;
   }
   const tipoMeta = tipoParaMetas();
+  
   const porcentaje =
     metasMesActual && typeof tipoMeta === "string" && tipoMeta in metasMesActual
       ? 50 / (metasMesActual[tipoMeta as keyof Meta] as number)

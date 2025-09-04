@@ -1,5 +1,5 @@
 import { Cliente } from "../types";
-
+// Retorna un cliente por su ID
 export const cliente = (
   cliente_id: string | undefined,
   clientes: Cliente[]
@@ -8,19 +8,57 @@ export const cliente = (
   return clientes?.find((c) => c.id === cliente_id);
 };
 
-
+// Retorna clientes activos
   export const clientesActivos = (
     clientes: Cliente[] | undefined
   ) =>
   Array.isArray(clientes) ? clientes?.filter((cliente) => cliente.estado === "activo") ?? [] : [];
 
+// Retorna clientes inactivos
+  export const clientesProspectos = (
+    clientes: Cliente[] | undefined
+  ) =>
+  Array.isArray(clientes) ? clientes?.filter((cliente) => {
+    const prospectos =  cliente.estado === "prospecto";
+    return prospectos
+   
+  }) ?? [] : [];
+
+
+  // Retorna clientes prospectos creados en un mes específico (0-11)
+
+  export const clientesProspectosMes = (clientes: Cliente[] | undefined, mes: number) => {
+    const prospectosAño = Array.isArray(clientes) ? clientes.filter((c) => new Date(c.fecha_creacion).getFullYear() === new Date().getFullYear()) : [];
+    const prospectosMes = Array.isArray(prospectosAño) ? clientesProspectos(prospectosAño)?.filter((cliente) => {
+      return new Date(cliente.fecha_creacion).getMonth() === mes;
+    }) : [];
+    return prospectosMes.length;
+  }
+
+  // Retorna clientes activos creados en un mes específico (0-11)
   export const clientesNuevos = (
     clientes: Cliente[] | undefined
-  ) => Array.isArray(clientes) ? clientes?.filter((cliente) => new Date(cliente.fecha_creacion).getMonth() ===
-    new Date().getMonth()) ?? [] : [];
+  ) => {return Array.isArray(clientes) ? clientes?.filter((cliente) => {return cliente.estado === 'activo'}) ?? [] : []};
 
+  export const clientesNuevosArray = (
+    clientes: Cliente[] | undefined
+  ) => {
+    const clientesAño = Array.isArray(clientes) ? clientes.filter((c) => new Date(c.fecha_creacion).getFullYear() === new Date().getFullYear()) : [];
+    const clientesMes = Array.isArray(clientesAño) ? clientesNuevos(clientesAño)?.filter((cliente) => {
+      return new Date(cliente.fecha_creacion).getMonth() === new Date().getMonth();
+    }) : [];
+    return Array.isArray(clientesMes) ? clientesMes.filter((cliente) => {return cliente.estado === 'activo'}) ?? [] : []};
+
+  // Retorna clientes activos creados en un mes específico (0-11)
     export const clientesNuevosMes = (cliente: Cliente[] | undefined, mes: number) => {
-      return Array.isArray(cliente) ? cliente.filter((c) => new Date(c.fecha_creacion).getMonth() === mes).length : 0;
+      const clientesAño = Array.isArray(cliente) ? cliente.filter((c) => new Date(c.fecha_creacion).getFullYear() === new Date().getFullYear()) : [];
+      return Array.isArray(clientesAño) ? clientesNuevos(clientesAño)?.filter((c) => new Date(c.fecha_creacion).getMonth() === mes).length : 0;
+    }
+
+    export const objetivoClientesConvertidos = (clientes: Cliente[]) => {
+      const prospectosMes = clientesProspectos(clientes);
+      if (!prospectosMes) return 0;
+      return Math.ceil(prospectosMes.length * 0.25); // Suponiendo una tasa de conversión del 25%
     }
 
     export const getEtapaColor = (etapa: string) => {
