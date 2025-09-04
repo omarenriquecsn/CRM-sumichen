@@ -117,7 +117,7 @@ const inputNumberStyle: React.CSSProperties = {
           />
         </div>
         <div>
-          <label className="block font-medium mb-1">Clientes nuevos</label>
+          <label className="block font-medium mb-1">Nuevos Prospectos</label>
           <input
             type="number"
             name="objetivo_clientes"
