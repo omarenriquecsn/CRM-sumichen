@@ -17,6 +17,7 @@ export const calculoIncremento = (
   return incremento;
 };
 
+// Calculo de tasa de conversion
 export const tasaDeConversion = (oportunidades: Oportunidad[] | undefined) => {
   if (!oportunidades) return 0;
   const totalOportunidades = (Array.isArray(oportunidades) ? oportunidades : []).length;
@@ -29,14 +30,16 @@ export const tasaDeConversion = (oportunidades: Oportunidad[] | undefined) => {
   return tasaDeConversion;
 };
 
+// Calculo de ventas por mes
 export const ventasPorMes = (
   pedidos: Pedido[] | undefined,
   mes: number
 ): number => {
   return (
-    pedidos
+
+   Array.isArray(pedidos) ? pedidos
       ?.filter((pedido) => new Date(pedido.fecha_creacion).getMonth() === mes)
-      .reduce((total, pedido) => total + Number(pedido.total), 0) ?? 0
+      .reduce((total, pedido) => total + Number(pedido.total), 0) ?? 0 : 0
   );
 };
 

@@ -1,6 +1,6 @@
 import useVendedores from "../hooks/useVendedores";
 import { useSupabase } from "../hooks/useSupabase";
-import { Vendedor } from "../types";
+import { Meta, Vendedor } from "../types";
 
 const PanelAdmin = () => {
   const { data: pedidos } = useSupabase().usePedidos();
@@ -29,11 +29,22 @@ const PanelAdmin = () => {
         .reduce((total, pedido) => total + pedido.total, 0)
     : 0;
 
+
   // Calculo de pedidos por vendedor
-  const pedidosPorVendedor = (vendedorId: string) => {
-    return Array.isArray(pedidos)
-      ? pedidos.filter((pedido) => pedido.vendedor_id === vendedorId)
-      : [];
+    const pedidosMes = Array.isArray(pedidos)
+    ? pedidos.filter((pedido) => {
+        const fechaPedido = new Date(pedido.fecha_creacion);
+        const mesPedido = fechaPedido.getMonth();
+        const mesActual = new Date().getMonth();
+        return mesPedido === mesActual;
+      })
+    : [];
+  const calculoVentasVendedores = (vendedorId: string) => {
+    return Array.isArray(pedidosMes)
+      ? pedidosMes
+          .filter((pedido) => pedido.vendedor_id === vendedorId)
+          .reduce((total, pedido) => total + pedido.total, 0)
+      : 0;
   };
 
   // Calculo de cantidad vendedores
@@ -76,27 +87,69 @@ const PanelAdmin = () => {
       : [];
   };
 
+  //Calculo metas Por vendedor
+  const { data: metas } = useSupabase().useMetas();
+  // metas del mes actual
+  const metaMes = Array.isArray(metas)
+    ? metas.filter((meta: Meta) => {
+        const fechaMeta = meta.mes;
+        const meses = [
+          "Enero",
+          "Febrero",
+          "Marzo",
+          "Abril",
+          "Mayo",
+          "Junio",
+          "Julio",
+          "Agosto",
+          "Septiembre",
+          "Octubre",
+          "Noviembre",
+          "Diciembre",
+        ];
+
+        const mesActual = new Date().getMonth();
+        const mesMeta = meses.findIndex((mes) => mes === fechaMeta);
+        if (mesMeta === mesActual) {
+          return meta;
+        }
+
+        return [];
+      })
+    : [];
+  const metaVentasPorVendedor = (vendedorId: string) => {
+    return Array.isArray(metaMes)
+      ? metaMes.find((meta) => meta.vendedor_id === vendedorId)
+          ?.objetivo_ventas || 0
+      : 0;
+  };
   // Top Vendedores
+
+
   const topVendedores = Array.isArray(vendedores)
-    ? vendedores.sort((a, b) => b.total - a.total).slice(0, 4)
+    ? vendedores.map((vendedor, index) => ({
+        id: index + 1,
+        nombre: `${vendedor.nombre} ${vendedor.apellido}`,
+        ventas: calculoVentasVendedores(vendedor.id) || 0,
+        meta:
+          metaVentasPorVendedor(vendedor.id) === 0 ||
+          calculoVentasVendedores(vendedor.id) === 0
+            ? 0
+            : (
+                (calculoVentasVendedores(vendedor.id) /
+                  metaVentasPorVendedor(vendedor.id)) *
+                100
+              ).toFixed(2),
+        clientes: Array.isArray(clientes)
+          ? clientesPorVendedor(vendedor.id).length
+          : 0,
+        avatar: vendedor.nombre.charAt(0) + vendedor.apellido.charAt(0),
+      }))
     : [];
 
-  const VendedoresTop = topVendedores.map((vendedor, index) => ({
-    id: index + 1,
-    nombre: `${vendedor.nombre} ${vendedor.apellido}`,
-    ventas: Array.isArray(pedidos)
-      ? pedidosPorVendedor(vendedor.id).reduce(
-          (total, pedido) => total + pedido.total,
-          0
-        )
-      : 0,
-    meta: 100,
-    clientes: Array.isArray(clientes)
-      ? clientesPorVendedor(vendedor.id).length
-      : 0,
-    avatar: vendedor.nombre.charAt(0) + vendedor.apellido.charAt(0),
-  }));
-
+  const VendedoresTop = Array.isArray(topVendedores)
+    ? topVendedores.sort((a, b) => b.ventas - a.ventas).slice(0, 6)
+    : [];
   return {
     cantidadVendedores,
     ventasCerradas,

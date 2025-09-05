@@ -22,6 +22,10 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { useSupabase } from "../../hooks/useSupabase";
+import { Meta } from "../../types";
+import useVendedores from "../../hooks/useVendedores";
+import { ventasPorMes as ventasCadaMes } from "../../utils/ventas";
 
 export const DashboardAdmin: React.FC = () => {
   const {
@@ -33,14 +37,153 @@ export const DashboardAdmin: React.FC = () => {
     VendedoresTop,
   } = PanelAdmin();
 
+  // incremento ventas
   const incrementoVentas = calculoIncremento(ventasCerradas);
+
+  // incremento clientes
   const incrementoClientes = calculoIncremento(clientesActivos);
+
+  // tickets
+  const { data: tickets } = useSupabase().useTickets();
+
+  // tickets abiertos
+  const ticketsAbiertos = () => {
+    const ticketsAbiertosConst = Array.isArray(tickets)
+      ? tickets?.filter((ticket) => ticket.estado === "abierto")
+      : [];
+    const ticketsUrgentes = Array.isArray(ticketsAbiertosConst)
+      ? ticketsAbiertosConst.filter((ticket) => ticket.prioridad === "alta")
+      : [];
+    return ticketsUrgentes.length;
+  };
+
+  //metas
+  const { data: metas } = useSupabase().useMetas();
+  // metas del mes actual
+  const metaMes = Array.isArray(metas)
+    ? metas.filter((meta: Meta) => {
+        const fechaMeta = meta.mes;
+        const meses = [
+          "Enero",
+          "Febrero",
+          "Marzo",
+          "Abril",
+          "Mayo",
+          "Junio",
+          "Julio",
+          "Agosto",
+          "Septiembre",
+          "Octubre",
+          "Noviembre",
+          "Diciembre",
+        ];
+        const mesActual = new Date().getMonth();
+        const mesMeta = meses.findIndex((mes) => mes === fechaMeta);
+        if (mesMeta === mesActual) {
+          return meta;
+        }
+
+        return [];
+      })
+    : [];
+  //meta de ventas del mes actual
+  const metaVentasMes = metaMes?.reduce(
+    (total: number, meta: Meta) => total + (meta.objetivo_ventas || 0),
+    0
+  );
+
+  //pedidos del mes actual
+  const { data: pedidos } = useSupabase().usePedidos();
+
+  const pedidosMes = Array.isArray(pedidos)
+    ? pedidos.filter((pedido) => {
+        const fechaPedido = new Date(pedido.fecha_creacion);
+        const mesPedido = fechaPedido.getMonth();
+        const mesActual = new Date().getMonth();
+        return mesPedido === mesActual;
+      })
+    : [];
+
+  //total ventas del mes actual
+  const totalVentasMes = Array.isArray(pedidosMes) ? pedidosMes.reduce(
+    (total, pedido) => total + Number(pedido.total),
+    0
+  ) : 0;
+
+  //porcetaje de la meta mensual
+  const porcentajeMeta = () => {
+    if (
+      totalVentasMes === 0 ||
+      totalVentasMes < 0 ||
+      totalVentasMes === undefined
+    )
+      return 0;
+    return (totalVentasMes / metaVentasMes) * 100;
+  };
+
+  //vendedores
+  const { data: vendedores } = useVendedores();
+
+  // cálculo de ventas por vendedor del mes actual
+  const calculoVentasVendedores = (vendedorId: string) => {
+    return Array.isArray(pedidosMes)
+      ? pedidosMes
+          .filter((pedido) => pedido.vendedor_id === vendedorId)
+          .reduce((total, pedido) => total + Number(pedido.total), 0)
+      : 0;
+  };
+
+  // calculo de metas por vendedor
+  const metaVentasPorVendedor = (vendedorId: string) => {
+    return Array.isArray(metaMes)
+      ? metaMes.find((meta) => meta.vendedor_id === vendedorId)
+          ?.objetivo_ventas || 0
+      : 0;
+  };
+
+  // cálculo de vendedores con ventas bajas
+  const calculoVentasBajasDeVendedores = () => {
+    return Array.isArray(vendedores)
+      ? vendedores.map(
+          (vendedor) =>
+            calculoVentasVendedores(vendedor.id) <
+            metaVentasPorVendedor(vendedor.id) * 0.7
+        ).length
+      : 0;
+  };
+
+  //Actividades
+  const { data: actividades } = useSupabase().useActividades();
+
+  // actividades del mes
+  const actividadesDelMes = Array.isArray(actividades)
+    ? actividades.filter((actividad) => {
+        const fechaActividad = new Date(actividad.fecha);
+        const mesActividad = fechaActividad.getMonth();
+        const mesActual = new Date().getMonth();
+        return mesActividad === mesActual;
+      })
+    : [];
+
+  // Clientes
+  const { data: clientes } = useSupabase().useClientes();
+
+  // Calculo de clientes sin Actividad
+
+  const clientesSinActividad = Array.isArray(clientes)
+    ? clientes?.filter((cliente) => {
+        const actividadesDelCliente = actividadesDelMes?.filter(
+          (actividad) => actividad.cliente_id === cliente.id
+        );
+        return actividadesDelCliente?.length === 0;
+      })
+    : [];
 
   const globalStats = [
     {
       title: "Total Vendedores",
       value: cantidadVendedores,
-      change: `+${calculoIncrementoVendedores()}`,
+      change: ``,
       changeType: `${typeChange(calculoIncrementoVendedores())}`,
       icon: Users,
       color: "blue",
@@ -48,7 +191,7 @@ export const DashboardAdmin: React.FC = () => {
     {
       title: "Ventas Totales",
       value: ventasCerradas,
-      change: `${incrementoVentas.toFixed(2)}%`,
+      change: ``,
       changeType: `${typeChange(incrementoVentas)}`,
       icon: DollarSign,
       color: "green",
@@ -56,55 +199,92 @@ export const DashboardAdmin: React.FC = () => {
     {
       title: "Clientes Activos",
       value: CantidadClientesActivos,
-      change: `+${incrementoClientes.toFixed(2)}%`,
+      change: ``,
       changeType: `${typeChange(incrementoClientes)}`,
       icon: UserCheck,
       color: "purple",
     },
     {
       title: "Meta Global",
-      value: "85%",
-      change: "+12%",
-      changeType: "positive" as const,
+      value: `%${porcentajeMeta().toFixed(2)}`,
+      change: "",
+      changeType: "" as const,
       icon: Target,
-      color: "orange",
+      color: "",
     },
   ];
 
   const topVendedores = [...VendedoresTop];
 
   const alertas = [
-    {
-      id: 1,
-      tipo: "meta",
-      mensaje: "3 vendedores están por debajo del 70% de su meta mensual",
-      urgencia: "alta",
-    },
-    {
-      id: 2,
-      tipo: "actividad",
-      mensaje: "5 clientes sin actividad en los últimos 15 días",
-      urgencia: "media",
-    },
-    {
-      id: 3,
-      tipo: "ticket",
-      mensaje: "8 tickets de soporte pendientes de resolución",
-      urgencia: "alta",
-    },
+    ...(calculoVentasBajasDeVendedores() > 0
+      ? [
+          {
+            id: 1,
+            tipo: "meta",
+            mensaje: `${
+              calculoVentasBajasDeVendedores() > 1
+                ? `${calculoVentasBajasDeVendedores()} vendedores estan`
+                : `${calculoVentasBajasDeVendedores()} vendedor esta`
+            } por debajo del 70% de su meta mensual`,
+            urgencia: "alta",
+          },
+        ]
+      : []),
+    ...(clientesSinActividad.length > 0
+      ? [
+          {
+            id: 2,
+            tipo: "actividad",
+            mensaje: `${clientesSinActividad.length} clientes sin actividad en los últimos 15 días`,
+            urgencia: "media",
+          },
+        ]
+      : []),
+    ...(ticketsAbiertos() > 0
+      ? [
+          {
+            id: 3,
+            tipo: "ticket",
+            mensaje: `${ticketsAbiertos()} tickets de soporte pendientes de resolución`,
+            urgencia: "alta",
+          },
+        ]
+      : []),
   ];
 
+  const mesPasado = new Date();
+  mesPasado.setMonth(mesPasado.getMonth() - 1);
+
+  const nombreMesPasado = mesPasado.toLocaleString("default", {
+    month: "long",
+  });
+  const mesAntePasado = new Date();
+  mesAntePasado.setMonth(mesAntePasado.getMonth() - 2);
+
+  const nombreMesAntePasado = mesAntePasado.toLocaleString("default", {
+    month: "long",
+  });
+
   const ventasPorMes = [
-    { mes: "Ene", ventas: 12000 },
-    { mes: "Feb", ventas: 15000 },
-    { mes: "Mar", ventas: 18000 },
+    {
+      mes: nombreMesAntePasado,
+      ventas: ventasCadaMes(pedidos, new Date().getMonth() - 2),
+    },
+    { mes: nombreMesPasado, ventas: ventasCadaMes(pedidos, new Date().getMonth() - 1) },
+    {
+      mes: new Date().toLocaleString("default", { month: "long" }),
+      ventas: ventasCadaMes(pedidos, new Date().getMonth()),
+    },
     // ...etc
   ];
 
   const rendimientoVendedores = [
-    { nombre: "Ana", ventas: 32000 },
-    { nombre: "Carlos", ventas: 28000 },
-    { nombre: "María", ventas: 25000 },
+    ...(Array.isArray(vendedores) ? vendedores : []).map((vendedor) => ({
+      nombre: vendedor.nombre,
+      ventas: calculoVentasVendedores(vendedor.id),
+    })),
+   
     // ...etc
   ];
 
@@ -136,7 +316,7 @@ export const DashboardAdmin: React.FC = () => {
                         : "text-red-600"
                     }`}
                   >
-                    {stat.change} vs mes anterior
+                    {stat.change === "" ? "" : `${stat.change} vs mes anterior`}
                   </p>
                 </div>
                 <div
@@ -207,15 +387,15 @@ export const DashboardAdmin: React.FC = () => {
                       {vendedor.nombre}
                     </p>
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>{vendedor.ventas}</span>
+                      <span>${Number(vendedor.ventas)}</span>
                       <span>•</span>
                       <span>{vendedor.clientes} clientes</span>
                       <span>•</span>
                       <span
                         className={`font-medium ${
-                          vendedor.meta >= 90
+                          Number(vendedor.meta) >= 90
                             ? "text-green-600"
-                            : vendedor.meta >= 75
+                            : Number(vendedor.meta) >= 75
                             ? "text-yellow-600"
                             : "text-red-600"
                         }`}
