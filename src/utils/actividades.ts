@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import {
   Actividad,
   ActividadFormateada,
+  Cliente,
   Meta,
   User,
 } from "../types";
@@ -9,11 +10,16 @@ import { NavigateFunction } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export function formatearActividades(
-  actividades: Actividad[]
+  actividades: Actividad[],
+  clientes: Cliente[],
+  vendedore: User[] | undefined
 ): ActividadFormateada[] {
+
   const ahora = new Date();
 
   return actividades.map((actividad) => {
+    const cliente = clientes?.find(c => c.id === actividad.cliente_id)?.empresa
+    const vendedor = vendedore?.find(v => v.id === actividad.vendedor_id)?.nombre
     const fechaLimite = actividad.fecha_vencimiento ?? actividad.fecha;
     const vencida = !actividad.completado && fechaLimite < ahora;
 
@@ -27,6 +33,9 @@ export function formatearActividades(
       title: actividad.titulo,
       time: dayjs(fechaLimite).fromNow(),
       status,
+      cliente,
+      vendedor
+      
     };
   });
 }

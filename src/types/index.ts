@@ -283,6 +283,8 @@ export type ActividadFormateada = {
   title: string;
   time: string;
   status: 'vencida' | 'completada' | 'pendiente';
+  cliente: string | undefined;
+  vendedor: string | undefined;
 };
 
 export type Mes = {

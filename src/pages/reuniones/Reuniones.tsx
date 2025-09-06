@@ -351,7 +351,7 @@ export const Reuniones: React.FC = () => {
                             <h4 className="font-medium text-gray-900">
                               {reunion.titulo}
                             </h4>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 line-clamp-2">
                               {reunion.descripcion}
                             </p>
                           </div>

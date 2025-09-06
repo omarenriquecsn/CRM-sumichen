@@ -39,6 +39,7 @@ import { clientesActivos } from "../../utils/clientes";
 import { typeChange } from "../../constants/typeCange";
 import { formatearActividades } from "../../utils/actividades";
 import { useGetMetas } from "../../hooks/useMetas";
+import useVendedores from "../../hooks/useVendedores";
 
 dayjs.extend(relativeTime);
 dayjs.locale("es");
@@ -90,6 +91,10 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
   const { data: actividadesData } = supabase.useActividades();
   const { data: reunionesData } = supabase.useReuniones();
   const { data: oportunidadesData } = supabase.useOportunidades();
+  const { data: vendedoresData } = useVendedores();
+
+  const [page, setPage] = React.useState(1);
+  const pageSize = 5; // o el número de actividades que quieras mostrar por página
 
   // Si se pasan props, úsalos. Si no, usa los datos de los hooks.
   const _clientes = clientes ?? clientesData ?? [];
@@ -177,9 +182,18 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
   ];
 
   const actividadesArray = Array.isArray(_actividades) ? _actividades : [];
-  const recentActivities = [...formatearActividades(actividadesArray)];
+  const recentActivities = [
+    ...formatearActividades(actividadesArray, _clientes, vendedoresData),
+  ];
   const reunionesArray = Array.isArray(_reuniones) ? _reuniones : [];
   const upcomingMeetings = [...obtenerReunionesProximas(reunionesArray)];
+
+  // Paginación actividades
+  const totalPages = Math.ceil(recentActivities.length / pageSize);
+  const paginatedActivities = recentActivities.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
     <Layout
@@ -243,12 +257,17 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Actividades recientes */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 min-h-[600px] flex flex-col h-full">
+            <div className="flex items-center gap-36">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Actividades Recientes
             </h3>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Empresa
+            </h3>
+            </div>
+            <div className="space-y-4 flex-1">
+              {paginatedActivities.map((activity) => (
                 <div
                   key={activity.id}
                   className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg"
@@ -276,9 +295,49 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
                     </p>
                     <p className="text-sm text-gray-500">{activity.time}</p>
                   </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {activity.cliente}
+                    </p>
+                    {_currentUser?.rol === "admin" &&
+                      <p className="text-sm text-gray-500">{activity.vendedor}</p>
+                    }
+                  </div>
                 </div>
               ))}
+              {/* Paginación */}
             </div>
+              <div className="flex justify-center items-center gap-4 mt-4 ">
+                <button
+                  className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+                    ${
+                      page === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
+                    }
+                  `}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  ← Anterior
+                </button>
+                <span className="text-gray-700 font-medium">
+                  Página {page} de {totalPages}
+                </span>
+                <button
+                  className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+                    ${
+                      page === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
+                    }
+                  `}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Siguiente →
+                </button>
+              </div>
           </div>
 
           {/* Próximas reuniones */}

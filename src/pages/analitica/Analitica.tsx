@@ -99,7 +99,7 @@ export const Analitica: React.FC = () => {
       color: "blue",
     },
     {
-      titulo: "Tasa de Conversión",
+      titulo: "Tasa de Cierres",
       valor: Number(tasaDeConversion(oportunidades) || 0),
       cambio: Number(incrementoPipeline),
       tipo: typeChange(incrementoPipeline),
@@ -391,7 +391,7 @@ export const Analitica: React.FC = () => {
                     {`${porcentaje(
                       cifraVentasMes(new Date().getMonth()),
                       metasMes?.objetivo_ventas || 0
-                    )}%`}
+                    ).toFixed(2)}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
@@ -401,7 +401,7 @@ export const Analitica: React.FC = () => {
                       width: `${porcentaje(
                         cifraVentasMes(new Date().getMonth()),
                         metasMes?.objetivo_ventas || 0
-                      )}%`,
+                      ).toFixed(2)}%`,
                     }}
                   ></div>
                 </div>
@@ -420,7 +420,7 @@ export const Analitica: React.FC = () => {
                     {`${porcentaje(
                       clientesNuevosMes,
                       objetivoClientesConvertidos(clientes ?? []) || 0
-                    )}%`}
+                    ).toFixed(2)}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
@@ -430,7 +430,7 @@ export const Analitica: React.FC = () => {
                       width: `${porcentaje(
                         clientesNuevosMes,
                         objetivoClientesConvertidos(clientes ?? []) || 0
-                      )}%`,
+                      ).toFixed(2)}%`,
                     }}
                   ></div>
                 </div>
@@ -451,7 +451,7 @@ export const Analitica: React.FC = () => {
                     {`${porcentaje(
                       clientesProspecto,
                       metasMes?.objetivo_clientes || 0
-                    )}%`}
+                    ).toFixed(2)}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
@@ -461,7 +461,7 @@ export const Analitica: React.FC = () => {
                       width: `${porcentaje(
                         clientesProspecto,
                         metasMes?.objetivo_clientes || 0
-                      )}%`,
+                      ).toFixed(2)}%`,
                     }}
                   ></div>
                 </div>
@@ -482,7 +482,7 @@ export const Analitica: React.FC = () => {
                         ? actividades.filter((a) => a.completado).length
                         : 0,
                       totalMetas()
-                    )}%`}
+                    ).toFixed(2)}%`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
