@@ -17,7 +17,13 @@ import {
 import { toast } from "react-toastify";
 import { useSupabase } from "../../hooks/useSupabase";
 import dayjs from "dayjs";
-import { Cliente, Pedido, PedidoData, ProductoPedido } from "../../types";
+import {
+  Cliente,
+  Pedido,
+  PedidoData,
+  ProductoPedido,
+  Vendedor,
+} from "../../types";
 import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import Modal from "../../components/ui/Modal";
@@ -25,6 +31,7 @@ import CrearPedido from "../../components/forms/CrearPedido";
 import SelectCliente from "../../components/ui/SelectCliente";
 import { getEstadoColor, handleCrearPedidoUtil } from "../../utils/pedidos";
 import { handleActualizarPedidoUtil } from "../../utils/pedidos";
+import useVendedores from "../../hooks/useVendedores";
 
 type PedidosProps = {
   pedidosProp?: Pedido[];
@@ -49,9 +56,6 @@ export const Pedidos: React.FC<PedidosProps> = ({
   const [clienteSeleccionado, setClienteSeleccionado] = useState<null | string>(
     null
   );
-  // const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(
-  //   null
-  // );
 
   const [terminoBusqueda, setTerminoBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
@@ -62,6 +66,9 @@ export const Pedidos: React.FC<PedidosProps> = ({
 
   const pedidos = pedidosProp ?? pedidosDb ?? [];
   const clientes = clientesProp ?? clientesDb ?? [];
+
+  //Vendedores
+  const { data: vendedoresDb } = useVendedores();
 
   const { mutate: nuevoPedido, isPending: isCreandoPedido } =
     supabase.useCrearPedido();
@@ -237,7 +244,7 @@ export const Pedidos: React.FC<PedidosProps> = ({
               </span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              ${estadisticas.valorTotal}
+              ${estadisticas.valorTotal.toFixed(2)}
             </p>
           </div>
         </div>
@@ -337,6 +344,20 @@ export const Pedidos: React.FC<PedidosProps> = ({
                           </span>
                         </div>
                       </div>
+                      {currentUser?.rol === "admin" && (
+                        <div className="lg:block md:block hidden">
+                          <p className="text-sm font-medium text-gray-600">
+                            Vendedor
+                          </p>
+                          <p className="text-sm font-medium text-gray-600">
+                            {
+                              vendedoresDb?.find(
+                                (v: Vendedor) => v.id === pedido.vendedor_id
+                              )?.nombre
+                            }
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

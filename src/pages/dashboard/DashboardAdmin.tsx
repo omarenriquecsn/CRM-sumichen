@@ -269,12 +269,15 @@ export const DashboardAdmin: React.FC = () => {
   const ventasPorMes = [
     {
       mes: nombreMesAntePasado,
-      ventas: ventasCadaMes(pedidos, new Date().getMonth() - 2),
+      ventas: ventasCadaMes(pedidos, new Date().getMonth() - 2).toFixed(2),
     },
-    { mes: nombreMesPasado, ventas: ventasCadaMes(pedidos, new Date().getMonth() - 1) },
+    {
+      mes: nombreMesPasado,
+      ventas: ventasCadaMes(pedidos, new Date().getMonth() - 1).toFixed(2),
+    },
     {
       mes: new Date().toLocaleString("default", { month: "long" }),
-      ventas: ventasCadaMes(pedidos, new Date().getMonth()),
+      ventas: ventasCadaMes(pedidos, new Date().getMonth()).toFixed(2),
     },
     // ...etc
   ];

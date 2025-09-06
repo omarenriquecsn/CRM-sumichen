@@ -19,13 +19,15 @@ import {
   Building,
   Check,
   X,
+  VerifiedIcon,
 } from "lucide-react";
 import { Layout } from "../../components/layout/Layout";
 import dayjs from "dayjs";
-import { ProductoPedido } from "../../types";
+import { ProductoPedido, Vendedor } from "../../types";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { getEstadoColor } from "../../utils/pedidos";
 import { handleActualizarPedidoUtil } from "../../utils/pedidos";
+import useVendedores from "../../hooks/useVendedores";
 
 const PedidosDetail = () => {
   const { id } = useParams();
@@ -49,6 +51,9 @@ const PedidosDetail = () => {
     isLoading: loadingClientes,
     error: errorClientes,
   } = supabase.useClientes();
+
+  //Vendedores
+  const { data: vendedores } = useVendedores();
 
   // Actualizar Pedido
 
@@ -200,7 +205,7 @@ const PedidosDetail = () => {
                       </p>
                     </div>
                     <p className="font-semibold text-gray-900">
-                      ${producto.precio_unitario * producto.cantidad}
+                      ${(producto.precio_unitario * producto.cantidad).toFixed(2)}
                     </p>
                   </div>
                 ))}
@@ -315,6 +320,22 @@ const PedidosDetail = () => {
                   <p className="font-medium text-gray-900">{cliente.empresa}</p>
                 </div>
               </div>
+              {currentUser?.rol === "admin" && (
+                <div className="flex items-center space-x-3">
+                  <VerifiedIcon className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="text-gray-500">Vendedor</p>
+                    <p className="font-medium text-gray-900">
+                      {
+                        vendedores?.find(
+                          (vendedor: Vendedor) =>
+                            vendedor.id === pedido.vendedor_id
+                        )?.nombre
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

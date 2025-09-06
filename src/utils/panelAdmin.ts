@@ -43,7 +43,7 @@ const PanelAdmin = () => {
     return Array.isArray(pedidosMes)
       ? pedidosMes
           .filter((pedido) => pedido.vendedor_id === vendedorId)
-          .reduce((total, pedido) => total + pedido.total, 0)
+          .reduce((total, pedido) => total + Number(pedido.total), 0)
       : 0;
   };
 
