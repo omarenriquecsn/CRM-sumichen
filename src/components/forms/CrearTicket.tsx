@@ -45,8 +45,16 @@ const CrearTicket = ({ onSubmit, accion, cliente_id, estado }: CrearTicketProps)
     }));
   };
 
+   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      // Evita el submit si no hay productos seleccionados
+      e.preventDefault();
+    }
+  };
+
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Titulo

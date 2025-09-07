@@ -12,13 +12,22 @@ type props = {
 };
 
 const schema = yup.object({
-  titulo: yup.string().required("El título es obligatorio").default("Actividad"),
+  titulo: yup
+    .string()
+    .required("El título es obligatorio")
+    .default("Actividad"),
   tipo: yup
     .mixed<"email" | "llamada" | "reunion" | "nota" | "tarea">()
-    .oneOf(["email", "llamada", "reunion", "nota", "tarea"], "El tipo es obligatorio")
+    .oneOf(
+      ["email", "llamada", "reunion", "nota", "tarea"],
+      "El tipo es obligatorio"
+    )
     .required("El tipo es obligatorio")
     .default("email"),
-  descripcion: yup.string().required("La descripción es obligatoria").default("Actividad"),
+  descripcion: yup
+    .string()
+    .required("La descripción es obligatoria")
+    .default("Actividad"),
   fecha: yup
     .date()
     .required("La fecha es obligatoria")
@@ -67,7 +76,7 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
   // Adapt form data to Actividad type
   const handleFormSubmit = (data: yup.InferType<typeof schema>) => {
     const actividad: Partial<Actividad> = {
-      ...data, 
+      ...data,
       fecha_creacion: new Date(),
     };
     onSubmit(actividad);
@@ -79,8 +88,19 @@ const CrearActividad = ({ id, onSubmit, accion }: props) => {
     setValue("vendedor_id", currentUser?.id || "");
   }, [id, currentUser, setValue]);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      // Evita el submit si no hay productos seleccionados
+      e.preventDefault();
+    }
+  };
+
   return (
-    <form className="space-y-6" onSubmit={handleSubmit(handleFormSubmit)}>
+    <form
+      className="space-y-6"
+      onSubmit={handleSubmit(handleFormSubmit)}
+      onKeyDown={handleKeyDown}
+    >
       <div className="flex gap-2">
         <div className="flex flex-col w-1/2">
           <label className="block text-sm font-medium text-gray-700 mb-1">

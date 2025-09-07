@@ -77,13 +77,11 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-  if (e.key === "Enter") {
-    // Evita el submit si no hay productos seleccionados
-    if (productosSeleccionados.length === 0) {
+    if (e.key === "Enter") {
+      // Evita el submit si no hay productos seleccionados
       e.preventDefault();
     }
-  }
-};
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -96,7 +94,11 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
     onSubmit(pedidoConProductos);
   };
   return (
-    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      onKeyDown={handleKeyDown}
+      className="space-y-4"
+    >
       <div className="space-y-4 p-6 bg-white">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Crear Nuevo Pedido
@@ -254,7 +256,10 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
         )}
         {/* Sección para cargar archivo */}
         <div>
-          <label htmlFor="archivoAdjunto" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="archivoAdjunto"
+            className="block text-sm font-medium text-gray-700"
+          >
             Adjuntar archivo (opcional)
           </label>
           <input
@@ -267,13 +272,18 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
             multiple
           />
           {archivoAdjunto?.length && (
-            <p className="text-sm text-gray-600 mt-1">Archivos seleccionados: {Array.from(archivoAdjunto).map(file => file.name).join(", ")}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Archivos seleccionados:{" "}
+              {Array.from(archivoAdjunto)
+                .map((file) => file.name)
+                .join(", ")}
+            </p>
           )}
         </div>
         <div className="flex justify-end pt-4">
           <button
             type="submit"
-            disabled={productosSeleccionados.length === 0 }
+            disabled={productosSeleccionados.length === 0}
             className="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-6 py-2 rounded-lg font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             {accion}

@@ -57,8 +57,16 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
     onSubmit(formData);
   };
 
+   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      // Evita el submit si no hay productos seleccionados
+      e.preventDefault();
+    }
+  };
+
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
       <div>
         <label
           htmlFor="cliente"

@@ -78,9 +78,7 @@ const CrearPedido = ({ onSubmit, accion, dataProps }: EditarPedidoProps) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
   if (e.key === "Enter") {
     // Evita el submit si no hay productos seleccionados
-    if (productosSeleccionados.length === 0) {
-      e.preventDefault();
-    }
+    e.preventDefault();
   }
 };
 

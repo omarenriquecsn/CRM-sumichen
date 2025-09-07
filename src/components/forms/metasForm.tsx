@@ -45,8 +45,16 @@ const inputNumberStyle: React.CSSProperties = {
   appearance: "textfield",
 };
 
+ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      // Evita el submit si no hay productos seleccionados
+      e.preventDefault();
+    }
+  };
+
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded shadow mx-auto">
+    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-6 bg-white p-6 rounded shadow mx-auto">
       <h2 className="text-xl font-bold mb-4">Asignar metas a {vendedor.nombre} {vendedor.apellido}</h2>
       <div>
         <label className="block font-medium mb-1">Mes</label>

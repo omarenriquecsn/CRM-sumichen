@@ -74,8 +74,19 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
     }
   }, [initialData?.fecha_creacion, setValue]);
 
+
+   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      // Evita el submit si no hay productos seleccionados
+      e.preventDefault();
+    }
+  };
+
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form
+      onKeyDown={handleKeyDown}
+      onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
