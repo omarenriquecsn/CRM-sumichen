@@ -93,7 +93,7 @@ export const Analitica: React.FC = () => {
     },
     {
       titulo: "Nuevos Clientes",
-      valor: clientesNuevosMes,
+      valor: Number(clientesActualizadosMes(clientes, new Date().getMonth())) || 0,
       cambio: Number(incrementoClientes),
       tipo: typeChange(incrementoClientes),
       icon: Users,
