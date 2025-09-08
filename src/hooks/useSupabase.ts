@@ -8,6 +8,7 @@ import {
   Oportunidad,
   Pedido,
   PedidoDb,
+  Producto,
   // PedidoDb,
   ProductoDb,
   // ProductoPedido,
@@ -383,6 +384,31 @@ export const useSupabase = () => {
       },
       staleTime: 1000 * 60 * 5,
       retry: 1,
+    });
+  };
+
+  //Hook para crear productos
+  const useCrearProducto = () => {
+    return useMutation({
+      mutationFn: async ({
+        productoData,
+      }: {
+        productoData: Partial<Producto>;
+      }) => {
+        const response = await fetch(`${URL}/productos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          credentials: "include",
+          body: JSON.stringify(productoData),
+        });
+        if (!response.ok) {
+          throw new Error("Error al crear el producto");
+        }
+        return response.json();
+      },
     });
   };
 
@@ -877,5 +903,6 @@ export const useSupabase = () => {
     useEliminarActividad,
     useEliminarTicket,
     useEliminarOportunidad,
+    useCrearProducto,
   };
 };

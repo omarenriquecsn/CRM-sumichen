@@ -22,6 +22,7 @@ export interface Cliente {
   etapa_venta: EtapaVenta;
   // rif: number;
   fecha_creacion: Date;
+  fecha_actualizacion: Date;
   notas?: string;
   direccion?: string;
   ciudad?: string;

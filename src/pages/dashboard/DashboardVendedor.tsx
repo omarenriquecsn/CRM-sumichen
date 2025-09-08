@@ -154,7 +154,7 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     },
     {
       title: "Ventas del Mes",
-      value: `${cifraVentasMes(new Date().getMonth())}`,
+      value: `$${cifraVentasMes(new Date().getMonth()).toFixed(2)}`,
       change: `${incrementoVentas.toFixed(2)}%`,
       changeType: `${typeChange(incrementoVentas)}` as const,
       icon: DollarSign,
@@ -162,7 +162,7 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     },
     {
       title: "Pipeline",
-      value: `$${valorPipeline(_oportunidades)}`,
+      value: `$${valorPipeline(_oportunidades).toFixed(2)}`,
       change: `${incrementoPipeline.toFixed(2)}%`,
       changeType: `${typeChange(incrementoPipeline)}` as const,
       icon: TrendingUp,

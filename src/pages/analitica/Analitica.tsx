@@ -24,6 +24,7 @@ import {
   objetivoClientesConvertidos,
   clientesProspectosMes,
   clientesNuevosArray,
+  clientesActualizadosMes,
 } from "../../utils/clientes";
 import { Mes, Meta } from "../../types";
 import { actividadesPoCategoria } from "../../utils/actividades";
@@ -150,6 +151,7 @@ export const Analitica: React.FC = () => {
 
   const porcentaje = (parte: number, total: number) => {
     if (total === 0 || total < 0 || total === undefined) return 0;
+    if( parte > total) return 100;
     return (parte / total) * 100;
   };
 
@@ -418,7 +420,7 @@ export const Analitica: React.FC = () => {
                   </span>
                   <span className="text-sm font-semibold text-gray-900">
                     {`${porcentaje(
-                      clientesNuevosMes,
+                      clientesActualizadosMes(clientes, new Date().getMonth()),
                       objetivoClientesConvertidos(clientes ?? []) || 0
                     ).toFixed(2)}%`}
                   </span>
@@ -428,14 +430,14 @@ export const Analitica: React.FC = () => {
                     className="bg-blue-500 h-3 rounded-full"
                     style={{
                       width: `${porcentaje(
-                        clientesNuevosMes,
+                        clientesActualizadosMes(clientes, new Date().getMonth()),
                         objetivoClientesConvertidos(clientes ?? []) || 0
                       ).toFixed(2)}%`,
                     }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>{clientesNuevosMes || 0}</span>
+                  <span>{clientesActualizadosMes(clientes, new Date().getMonth()) || 0}</span>
                   <span>
                     {objetivoClientesConvertidos(clientes ?? []) || 0}
                   </span>

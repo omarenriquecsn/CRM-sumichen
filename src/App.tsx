@@ -1,4 +1,3 @@
-
 import {
   HashRouter as Router,
   Routes,
@@ -20,13 +19,14 @@ import { Pedidos } from "./pages/pedidos/Pedidos";
 import { Analitica } from "./pages/analitica/Analitica";
 import { Configuracion } from "./pages/configuracion/Configuracion";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import TicketDetail from "./pages/tickets/TicketsDetail";
 import PedidosDetail from "./pages/pedidos/PedidosDetail";
 import { ExcelViewer } from "./pages/productos/Productos";
 import ExcelProductos from "./components/forms/ExcelProductos";
 import Vendedores from "./pages/vendedores/Vendedores";
 import { VendedorPanel } from "./pages/vendedores/VendedorPanel";
+import AgregarProducto from "./components/forms/AgregarProducto";
 
 const queryClientet = new QueryClient();
 
@@ -41,11 +41,34 @@ function App() {
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
               {/* <Route path="/register" element={<Register />} /> */}
-              <Route path="/excel" element={<ExcelProductos />} />
 
               {/* Rutas protegidas */}
 
-              <Route path="/productos" element={<ProtectedRoute><ExcelViewer /></ProtectedRoute>} />
+              <Route
+                path="/excel"
+                element={
+                  <ProtectedRoute>
+                    <ExcelProductos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/crearProductos"
+                element={
+                  <ProtectedRoute>
+                    <AgregarProducto />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/productos"
+                element={
+                  <ProtectedRoute>
+                    <ExcelViewer />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/"
                 element={
@@ -89,7 +112,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
 
               <Route
                 path="/clientes"
@@ -135,7 +157,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+
               <Route
                 path="/tickets/:id"
                 element={
@@ -153,7 +175,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-            
+
               <Route
                 path="/pedidos/:id"
                 element={
@@ -162,7 +184,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-
 
               <Route
                 path="/analitica"
@@ -185,7 +206,7 @@ function App() {
           </div>
         </Router>
       </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={false}/>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

@@ -14,6 +14,8 @@ import {
   Shield,
   Building2,
   X,
+  Plus,
+  Sheet,
 } from 'lucide-react';
 import { UserData } from '../../context/types';
 
@@ -56,6 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userDataProp 
     { to: '/vendedores', icon: Users, label: 'Vendedores' },
     { to: '/clientes', icon: Users, label: 'Clientes' },
     { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos' },
+    { to: '/crearProductos', icon: Plus, label: 'Crear Productos'},
+    { to: '/excel', icon: Sheet, label: 'Excel de Productos' },
 
 
   ];

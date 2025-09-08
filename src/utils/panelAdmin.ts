@@ -29,9 +29,8 @@ const PanelAdmin = () => {
         .reduce((total, pedido) => total + pedido.total, 0)
     : 0;
 
-
   // Calculo de pedidos por vendedor
-    const pedidosMes = Array.isArray(pedidos)
+  const pedidosMes = Array.isArray(pedidos)
     ? pedidos.filter((pedido) => {
         const fechaPedido = new Date(pedido.fecha_creacion);
         const mesPedido = fechaPedido.getMonth();
@@ -125,12 +124,11 @@ const PanelAdmin = () => {
   };
   // Top Vendedores
 
-
   const topVendedores = Array.isArray(vendedores)
     ? vendedores.map((vendedor, index) => ({
         id: index + 1,
         nombre: `${vendedor.nombre} ${vendedor.apellido}`,
-        ventas: calculoVentasVendedores(vendedor.id) || 0,
+        ventas: Number(calculoVentasVendedores(vendedor.id).toFixed(2)) || 0,
         meta:
           metaVentasPorVendedor(vendedor.id) === 0 ||
           calculoVentasVendedores(vendedor.id) === 0
