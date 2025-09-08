@@ -285,7 +285,7 @@ export const DashboardAdmin: React.FC = () => {
   const rendimientoVendedores = [
     ...(Array.isArray(vendedores) ? vendedores : []).map((vendedor) => ({
       nombre: vendedor.nombre,
-      ventas: calculoVentasVendedores(vendedor.id),
+      ventas: calculoVentasVendedores(vendedor.id).toFixed(2),
     })),
    
     // ...etc
