@@ -20,7 +20,6 @@ import {
 } from "../../utils/ventas";
 import { typeChange } from "../../constants/typeCange";
 import {
-  clientesNuevosMes as getClientesNuevosMes,
   objetivoClientesConvertidos,
   clientesProspectosMes,
   clientesNuevosArray,
@@ -70,10 +69,6 @@ export const Analitica: React.FC = () => {
     clientes,
     new Date().getMonth()
   );
-  const clientesNuevosMes = getClientesNuevosMes(
-    clientes,
-    new Date().getMonth()
-  );
 
   const incrementoVentas = calculoIncremento(PedidosProcesados);
   const incrementoClientes = calculoIncremento(clientesNuevosArray(clientes));
@@ -92,9 +87,9 @@ export const Analitica: React.FC = () => {
       color: "green",
     },
     {
-      titulo: "Nuevos Clientes",
-      valor: Number(clientesActualizadosMes(clientes, new Date().getMonth())) || 0,
-      cambio: Number(incrementoClientes),
+      titulo: "Nuevos Prospectos",
+      valor: Number(clientesProspecto) || 0,
+      cambio: 'Number(incrementoClientes)',
       tipo: typeChange(incrementoClientes),
       icon: Users,
       color: "blue",
@@ -102,7 +97,7 @@ export const Analitica: React.FC = () => {
     {
       titulo: "Tasa de Cierres",
       valor: Number(tasaDeConversion(oportunidades) || 0),
-      cambio: Number(incrementoPipeline),
+      cambio: "",
       tipo: typeChange(incrementoPipeline),
       icon: Target,
       color: "purple",
@@ -113,7 +108,7 @@ export const Analitica: React.FC = () => {
         (Array.isArray(actividades) ? actividades : []).filter(
           (a) => a.completado
         ).length || 0,
-      cambio: Number(incrementoActividad),
+      cambio: 'Number(incrementoActividad),',
       tipo: typeChange(incrementoActividad),
       icon: Activity,
       color: "orange",
@@ -151,7 +146,7 @@ export const Analitica: React.FC = () => {
 
   const porcentaje = (parte: number, total: number) => {
     if (total === 0 || total < 0 || total === undefined) return 0;
-    if( parte > total) return 100;
+    if (parte > total) return 100;
     return (parte / total) * 100;
   };
 
@@ -188,11 +183,10 @@ export const Analitica: React.FC = () => {
                     }`}
                   >
                     {typeof metrica.cambio === "number"
-                      ? metrica.cambio.toLocaleString(undefined, {
+                      ? `${metrica.cambio.toLocaleString(undefined, {
                           maximumFractionDigits: 2,
-                        })
-                      : metrica.cambio}{" "}
-                    vs mes anterior
+                        })} % vs mes anterior`
+                      : ""}
                   </p>
                 </div>
                 <div
@@ -430,14 +424,20 @@ export const Analitica: React.FC = () => {
                     className="bg-blue-500 h-3 rounded-full"
                     style={{
                       width: `${porcentaje(
-                        clientesActualizadosMes(clientes, new Date().getMonth()),
+                        clientesActualizadosMes(
+                          clientes,
+                          new Date().getMonth()
+                        ),
                         objetivoClientesConvertidos(clientes ?? []) || 0
                       ).toFixed(2)}%`,
                     }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>{clientesActualizadosMes(clientes, new Date().getMonth()) || 0}</span>
+                  <span>
+                    {clientesActualizadosMes(clientes, new Date().getMonth()) ||
+                      0}
+                  </span>
                   <span>
                     {objetivoClientesConvertidos(clientes ?? []) || 0}
                   </span>
@@ -531,7 +531,7 @@ export const Analitica: React.FC = () => {
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-blue-600">
-                {clientesNuevosMes || 0}
+                {clientesActualizadosMes(clientes, new Date().getMonth()) || 0}
               </p>
               <p className="text-sm text-gray-600">Nuevos clientes este mes</p>
             </div>
