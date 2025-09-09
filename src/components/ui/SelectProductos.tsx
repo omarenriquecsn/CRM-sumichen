@@ -117,7 +117,8 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
                   <input
                     id={`cantidad-${producto.producto_id}`}
                     type="number"
-                    min={1}
+                    min={0}
+                    step="0.01"
                     value={producto.cantidad}
                     onChange={(e) => cambiarCantidad(producto.producto_id, Number(e.target.value))}
                     onFocus={e => {
