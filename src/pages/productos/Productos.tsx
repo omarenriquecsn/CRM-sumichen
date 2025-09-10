@@ -62,12 +62,16 @@ export const ExcelViewer: React.FC = () => {
             className="border px-3 py-2 rounded w-full max-w-md"
           />
         </div>
-        <div>
-          Actualizado : {" "}
-          {new Date(fecha_actualizacion.update_at).toLocaleString("es-ES", {
-            dateStyle: "short",
-            timeStyle: "short",
-          })}
+               <div>
+          {fecha_actualizacion && typeof fecha_actualizacion.update_at === "string" && (
+            <>
+              Ultima Actualizacion :{" "}
+              {new Date(fecha_actualizacion.update_at).toLocaleString("es-ES", {
+                dateStyle: "short",
+                timeStyle: "short",
+              })}
+            </>
+          )}
         </div>
       </div>
       {isLoading ? (
