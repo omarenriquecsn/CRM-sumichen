@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import { Layout } from "../../components/layout/Layout";
 import { useQuery } from "@tanstack/react-query";
+import { useGetActualizacionInventario } from "../../hooks/useExcel";
 
 const EXCEL_URL =
   "https://syaiyhcnqhhzdhmifynh.supabase.co/storage/v1/object/public/inventario//inventario.xlsx";
@@ -33,14 +34,16 @@ export const ExcelViewer: React.FC = () => {
 
   const [search, setSearch] = useState("");
 
+  const { data: fecha_actualizacion } = useGetActualizacionInventario();
+
   const filteredData =
-  excelData && search
-    ? (excelData as Array<Array<string | number>>).filter(row =>
-        row.some(cell =>
-          String(cell).toLowerCase().includes(search.toLowerCase())
+    excelData && search
+      ? (excelData as Array<Array<string | number>>).filter((row) =>
+          row.some((cell) =>
+            String(cell).toLowerCase().includes(search.toLowerCase())
+          )
         )
-      )
-    : excelData;
+      : excelData;
 
   if (error) return <div className="text-red-500">{String(error)}</div>;
 
@@ -49,14 +52,23 @@ export const ExcelViewer: React.FC = () => {
       title="Productos"
       subtitle="Lista de productos disponibles en el inventario."
     >
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Buscar producto..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-full max-w-md"
-        />
+      <div className="mb-4 flex justify-between items-center">
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Buscar producto..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-3 py-2 rounded w-full max-w-md"
+          />
+        </div>
+        <div>
+          Actualizado : {" "}
+          {new Date(fecha_actualizacion.update_at).toLocaleString("es-ES", {
+            dateStyle: "short",
+            timeStyle: "short",
+          })}
+        </div>
       </div>
       {isLoading ? (
         <div>Cargando archivo Excel...</div>

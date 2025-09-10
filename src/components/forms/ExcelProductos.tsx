@@ -1,11 +1,14 @@
 import { toast } from "react-toastify";
 import { Layout } from "../layout/Layout";
 import { useAuth } from "../../context/useAuth";
+import { useInsertSupabase } from "../../hooks/useExcel";
+
 
 const ExcelProductos = () => {
   const URL = import.meta.env.VITE_BACKEND_URL; // Replace with your upload URL
 
   const { userData } = useAuth();
+  const { mutate: actualizarInventario } = useInsertSupabase();
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -24,6 +27,7 @@ const ExcelProductos = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Success:", data);
+        actualizarInventario();
         toast.success("Archivo enviado correctamente.");
       })
       .catch((error) => {
