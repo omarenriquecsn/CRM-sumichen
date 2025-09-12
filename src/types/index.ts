@@ -306,7 +306,5 @@ export type Mes = {
    nombre: string;
    apellido: string;
    telefono: string;
-   meta_mensual_ventas: number;
-   meta_mensual_clientes: number;
     fecha_creacion: Date;
   }

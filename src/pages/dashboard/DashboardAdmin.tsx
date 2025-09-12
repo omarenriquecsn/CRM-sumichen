@@ -88,7 +88,7 @@ export const DashboardAdmin: React.FC = () => {
     : [];
   //meta de ventas del mes actual
   const metaVentasMes = metaMes?.reduce(
-    (total: number, meta: Meta) => total + (meta.objetivo_ventas || 0),
+    (total: number, meta: Meta) => total + Number(meta.objetivo_ventas || 0),
     0
   );
 
@@ -178,7 +178,7 @@ export const DashboardAdmin: React.FC = () => {
         return actividadesDelCliente?.length === 0;
       })
     : [];
-
+    
   const globalStats = [
     {
       title: "Total Vendedores",

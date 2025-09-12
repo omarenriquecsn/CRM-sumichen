@@ -505,7 +505,7 @@ export const Reuniones: React.FC = () => {
         isOpen={modalClienteVisible}
         onClose={() => setModalClienteVisible(false)}
       >
-        <div className="space-y-4">
+        <div className="space-y-4 min-h-[70vh]">
           <h3 className="text-lg font-medium text-gray-900">
             Selecciona un cliente
           </h3>
