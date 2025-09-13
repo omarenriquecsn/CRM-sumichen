@@ -147,7 +147,7 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
                     id={`precio-${producto.producto_id}`}
                     type="number"
                     min={0}
-                    step="0.01"
+                    step="0.0001"
                     value={producto.precio_unitario}
                     onChange={(e) => cambiarPrecio(producto.producto_id, parseFloat(e.target.value))}
                     onFocus={e => {
