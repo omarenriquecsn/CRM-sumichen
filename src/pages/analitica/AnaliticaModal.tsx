@@ -24,16 +24,17 @@ import {
   clientesNuevosArray,
   clientesActualizadosMes,
 } from "../../utils/clientes";
-import { Mes, Meta, Vendedor } from "../../types";
+import { Mes, Meta } from "../../types";
 import { actividadesPoCategoria } from "../../utils/actividades";
 import { getColorClasses } from "../../utils/analitica";
 import { clientePorEtapaAnalitica } from "../../utils/oportunidades";
 import { useGetMetas } from "../../hooks/useMetas";
+import { User } from "@supabase/supabase-js";
 
 interface AnaliticaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  vendedor: Vendedor | null;
+  vendedor: User | null;
 }
 const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
   isOpen,

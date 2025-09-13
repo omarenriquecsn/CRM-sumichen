@@ -38,6 +38,7 @@ function App() {
           <div className="min-h-screen bg-gray-50">
             <Routes>
               {/* Rutas públicas */}
+
               <Route path="/" element={<Login />} />
               <Route path="/login" element={<Login />} />
               {/* <Route path="/register" element={<Register />} /> */}

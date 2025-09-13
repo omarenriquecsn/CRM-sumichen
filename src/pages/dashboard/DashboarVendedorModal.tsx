@@ -2,7 +2,6 @@ import React from "react";
 import {
   MesEnum,
   Meta,
-  User,
 } from "../../types";
 import { useSupabase } from "../../hooks/useSupabase";
 
@@ -31,12 +30,13 @@ import { typeChange } from "../../constants/typeCange";
 import { formatearActividades } from "../../utils/actividades";
 import { useGetMetas } from "../../hooks/useMetas";
 import useVendedores from "../../hooks/useVendedores";
+import { User } from "@supabase/supabase-js";
 
 dayjs.extend(relativeTime);
 dayjs.locale("es");
 
 type DashboardVendedorProps = {
-  vendedor?: User;
+  vendedor: User | null;
   isOpenDashboard?: boolean;
   onClose?: () => void;
 };

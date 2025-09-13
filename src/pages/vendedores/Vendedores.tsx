@@ -1,12 +1,14 @@
 import React from "react";
 import { Layout } from "../../components/layout/Layout";
-import { Link } from "react-router-dom";
-import { User, Phone, DollarSign } from "lucide-react";
+import { Phone, DollarSign, User } from "lucide-react";
 import useVendedores from "../../hooks/useVendedores";
 import { Meta, Vendedor } from "../../types"; // Asegúrate de que la interfaz Vendedor esté definida en tu types.ts
 import Modal from "../../components/ui/Modal";
 import MetasForm from "../../components/forms/metasForm";
-import { usePostMetas } from "../../hooks/useMetas";
+import { useGetMetas, usePostMetas } from "../../hooks/useMetas";
+import { useAuth } from "../../context/useAuth";
+import MenuVendedor from "./menuVendedor";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 const Vendedores: React.FC = () => {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [vendedorSeleccionado, setVendedorSeleccionado] =
@@ -14,8 +16,10 @@ const Vendedores: React.FC = () => {
   const { data: vendedores, isLoading, error } = useVendedores();
   //   const navigate = useNavigate();
 
- // metas
- const {mutate: actualizarMetas} = usePostMetas();
+  // metas
+  const { currentUser } = useAuth();
+  const { mutate: actualizarMetas } = usePostMetas();
+  const { data: metas } = useGetMetas(currentUser?.id ? currentUser.id : "");
 
   if (isLoading)
     return (
@@ -88,17 +92,17 @@ const Vendedores: React.FC = () => {
                       <div className="flex items-center space-x-1">
                         <DollarSign className="h-4 w-4 text-green-600" />
                         <span className="font-medium text-gray-900">
-                          ${vendedor.meta_mensual_ventas.toFixed(2) ?? "0.00"}
+                          $
+                          {(metas &&
+                            metas.find(
+                              (meta: Meta) => meta.vendedor_id === vendedor.id
+                            )?.objetivo_ventas) ||
+                            0}
                         </span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <Link
-                        to={`/vendedores/${vendedor.supabase_id}`}
-                        className="text-blue-600 hover:underline font-medium"
-                      >
-                        Ver Panel
-                      </Link>
+                      <MenuVendedor vendedor={{ id: vendedor.id } as SupabaseUser} />
                     </td>
                     <td className="py-4 px-6">
                       <button
@@ -115,7 +119,7 @@ const Vendedores: React.FC = () => {
           </div>
         </div>
       </div>
-            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
         {vendedorSeleccionado && (
           <MetasForm
             vendedor={vendedorSeleccionado}
@@ -127,7 +131,6 @@ const Vendedores: React.FC = () => {
         )}
       </Modal>
     </Layout>
-    
   );
 };
 

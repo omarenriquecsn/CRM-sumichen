@@ -29,6 +29,7 @@ export function useGetMetas(vendedorId: string) {
   });
 }
 
+
 // Crear o actualizar metas de un vendedor
 export function usePostMetas() {
   const { session } = useAuth();

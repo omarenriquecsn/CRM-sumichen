@@ -69,10 +69,12 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
   //Reuniones
   const { data: reunionesDB } = supabase.useReuniones();
 
+  console.log("Reuniones DB:", reunionesDB);
   const reuniones = Array.isArray(reunionesDB)
     ? reunionesDB.filter((reunion) => reunion.vendedor_id === vendedor.id)
     : [];
 
+    
   //Clientes
   const { data: clientesDB } = supabase.useClientes();
 
