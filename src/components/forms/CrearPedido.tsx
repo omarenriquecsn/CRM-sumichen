@@ -35,7 +35,6 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
     moneda: "usd",
   });
 
-  console.log(formData.fecha_entrega)
 
   // Estado para el archivo adjunto
   const [archivoAdjunto, setArchivoAdjunto] = useState<FileList | null>(null);
