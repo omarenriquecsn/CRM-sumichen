@@ -94,10 +94,16 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
     "Noviembre",
     "Diciembre",
   ];
-  const metasMes =
-    metas?.find(
-      (meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()]
-    ) || [];
+
+  const metasVendedor = Array.isArray(metas)
+    ? metas?.filter((meta: Meta) => meta.vendedor_id === currentUser?.id)
+    : [];
+
+  const metasMes = Array.isArray(metasVendedor)
+    ? metasVendedor?.find(
+        (meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()]
+      )
+    : [];
 
   const clientesProspecto = clientesProspectosMes(
     clientes,

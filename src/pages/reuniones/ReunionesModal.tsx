@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
-import { IFormReunion, Reunion } from "../../types";
+import { IFormReunion, Reunion, ReunionDb } from "../../types";
 import {
   buildClientesMap,
   handleActualizarReunionUtil,
@@ -31,6 +31,7 @@ import CrearReunion from "../../components/forms/CrearReunion";
 import Select from "react-select";
 import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 import { User as UserSupabase } from "@supabase/supabase-js";
+import { ReunionesDetailModal } from "./ReunionesDetailModal";
 
 interface ReunionesModalProps {
   vendedor: UserSupabase;
@@ -65,6 +66,7 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
   const [clienteSeleccionado, setClienteSeleccionado] = useState<string | null>(
     null
   );
+  const [isOpenReunionDetail, setIsOpenReunionDetail] = useState(false);
 
   //Reuniones
   const { data: reunionesDB } = supabase.useReuniones();
@@ -74,7 +76,6 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
     ? reunionesDB.filter((reunion) => reunion.vendedor_id === vendedor.id)
     : [];
 
-    
   //Clientes
   const { data: clientesDB } = supabase.useClientes();
 
@@ -460,10 +461,19 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
                             <button
                               onClick={() => {
                                 setReunionSeleccionada(reunion);
+                                setIsOpenReunionDetail(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                            >
+                              Ver
+                            </button>
+                            <button
+                              onClick={() => {
+                                setReunionSeleccionada(reunion);
 
                                 setModalReunion(true);
                               }}
-                              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                              className="text-green-600 hover:text-green-700 text-sm font-medium"
                             >
                               Editar
                             </button>
@@ -578,6 +588,16 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
               </button>
             </div>
           </Modal>
+          {reunionSeleccionada &&
+            "fecha_creacion" in reunionSeleccionada &&
+            "fecha_actualizacion" in reunionSeleccionada && (
+              <ReunionesDetailModal
+                vendedor={vendedor}
+                reunion={reunionSeleccionada as ReunionDb}
+                isOpen={isOpenReunionDetail}
+                onClose={() => setIsOpenReunionDetail(false)}
+              />
+          )}
         </div>
       </div>
     </div>

@@ -77,9 +77,11 @@ const CrearPedido = ({ onSubmit, accion }: CrearPedidoProps) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === "Enter") {
-      // Evita el submit si no hay productos seleccionados
-      e.preventDefault();
+    const target = e.target as HTMLElement;
+    const isTextarea = target.tagName === "TEXTAREA";
+
+    if (e.key === "Enter" && !isTextarea) {
+      e.preventDefault(); // bloquea Enter solo fuera del textarea
     }
   };
 

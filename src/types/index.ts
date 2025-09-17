@@ -80,6 +80,10 @@ export interface ICrearActividad {
   completado: boolean;
 }
 
+export interface ReunionDb extends Omit<Reunion, 'fecha_inicio' | 'fecha_fin'> {
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
 export interface Reunion {
   id: string;
   cliente_id: string;
