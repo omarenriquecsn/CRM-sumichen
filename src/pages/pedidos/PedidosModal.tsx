@@ -27,6 +27,8 @@ import { handleActualizarPedidoUtil } from "../../utils/pedidos";
 import useVendedores from "../../hooks/useVendedores";
 import { User as UserSupabase } from "@supabase/supabase-js";
 import { PedidosDetailModal } from "./PedidosDetailModal";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 type PedidosProps = {
   vendedor: UserSupabase;
@@ -375,7 +377,7 @@ export const PedidosModal: React.FC<PedidosProps> = ({
                           <div className="flex items-center space-x-1">
                             <Calendar className="h-4 w-4 text-gray-400" />
                             <span className="text-sm text-gray-600">
-                              {dayjs(pedido.fecha_entrega).format("DD/MM/YYYY")}
+                              {dayjs.utc(pedido.fecha_entrega).format("DD/MM/YYYY")}
                             </span>
                           </div>
                         </div>

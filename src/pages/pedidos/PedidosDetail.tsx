@@ -28,6 +28,8 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { getEstadoColor } from "../../utils/pedidos";
 import { handleActualizarPedidoUtil } from "../../utils/pedidos";
 import useVendedores from "../../hooks/useVendedores";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 const PedidosDetail = () => {
   const { id } = useParams();
@@ -205,7 +207,10 @@ const PedidosDetail = () => {
                       </p>
                     </div>
                     <p className="font-semibold text-gray-900">
-                      ${(producto.precio_unitario * producto.cantidad).toFixed(2)}
+                      $
+                      {(producto.precio_unitario * producto.cantidad).toFixed(
+                        2
+                      )}
                     </p>
                   </div>
                 ))}
@@ -298,7 +303,7 @@ const PedidosDetail = () => {
                 <div>
                   <p className="text-gray-500">Fecha de Entrega</p>
                   <p className="font-medium text-gray-900">
-                    {dayjs(pedido.fecha_entrega).format("DD/MM/YYYY")}
+                    {dayjs.utc(pedido.fecha_entrega).format("DD/MM/YYYY")}
                   </p>
                 </div>
               </div>

@@ -27,6 +27,8 @@ import { getEstadoColor } from "../../utils/pedidos";
 import { handleActualizarPedidoUtil } from "../../utils/pedidos";
 import useVendedores from "../../hooks/useVendedores";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 interface PedidosDetailProps {
   vendedor: SupabaseUser;
@@ -307,7 +309,7 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
                   <div>
                     <p className="text-gray-500">Fecha de Entrega</p>
                     <p className="font-medium text-gray-900">
-                      {dayjs(pedido.fecha_entrega).format("DD/MM/YYYY")}
+                      {dayjs.utc(pedido.fecha_entrega).format("DD/MM/YYYY")}
                     </p>
                   </div>
                 </div>
