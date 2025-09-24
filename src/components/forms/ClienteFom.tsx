@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { ClienteFormData } from "../../types";
+// import { cliente } from "../../utils/clientes";
 
 interface Props {
   onSubmit: (data: ClienteFormData) => void;
@@ -173,6 +174,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             >
               <option value="prospecto">Prospecto</option>
               <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
             </select>
             {errors.estado && (
               <p className="text-red-500 text-xs mt-1">{errors.estado.message}</p>

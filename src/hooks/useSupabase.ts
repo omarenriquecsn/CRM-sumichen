@@ -92,11 +92,13 @@ export const useSupabase = () => {
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");
-        if (clienteData.etapa_venta === "cerrado") {
+        if (clienteData.etapa_venta === "cerrado" && clienteData.estado !== "inactivo") {
           clienteData.estado = "activo";
-        }else{
+        }
+        if (clienteData.etapa_venta === "inicial" && clienteData.estado !== "inactivo") {
           clienteData.estado = "prospecto";
         }
+        
         await fetch(`${URL}/clientes/${clienteData.id}`, {
           method: "PUT",
           credentials: "include",
