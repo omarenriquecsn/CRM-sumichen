@@ -10,6 +10,7 @@ import {
   Pedido,
   Reunion,
   User,
+  Vendedor,
 } from "../../types";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useNavigate } from "react-router-dom";
@@ -259,12 +260,12 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
           {/* Actividades recientes */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 min-h-[600px] flex flex-col h-full">
             <div className="flex items-center gap-36">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Actividades Recientes
-            </h3>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Empresa
-            </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Actividades Recientes
+              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Empresa
+              </h3>
             </div>
             <div className="space-y-4 flex-1">
               {paginatedActivities.map((activity) => (
@@ -299,52 +300,59 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
                     <p className="font-medium text-gray-900">
                       {activity.cliente}
                     </p>
-                    {_currentUser?.rol === "admin" &&
-                      <p className="text-sm text-gray-500">{activity.vendedor}</p>
-                    }
+                    {_currentUser?.rol === "admin" && (
+                      <p className="text-sm text-gray-500">
+                        {activity.vendedor}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
               {/* Paginación */}
             </div>
-              <div className="flex justify-center items-center gap-4 mt-4 ">
-                <button
-                  className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+            <div className="flex justify-center items-center gap-4 mt-4 ">
+              <button
+                className={`px-4 py-2 rounded font-semibold transition-colors duration-200
                     ${
                       page === 1
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
                     }
                   `}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  ← Anterior
-                </button>
-                <span className="text-gray-700 font-medium">
-                  Página {page} de {totalPages}
-                </span>
-                <button
-                  className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                ← Anterior
+              </button>
+              <span className="text-gray-700 font-medium">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                className={`px-4 py-2 rounded font-semibold transition-colors duration-200
                     ${
                       page === totalPages
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
                     }
                   `}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  Siguiente →
-                </button>
-              </div>
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Siguiente →
+              </button>
+            </div>
           </div>
 
           {/* Próximas reuniones */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Próximas Reuniones
-            </h3>
+            <div className="flex items-center gap-36">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Próximas Reuniones
+              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Empresa
+              </h3>
+            </div>
             <div className="space-y-4">
               {upcomingMeetings.map((meeting) => (
                 <div
@@ -367,6 +375,12 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
                         "HH:mm"
                       )}
                     </p>
+                  </div>
+                  <div className="flex-1">
+                    <p>{_clientes.find((c) => c.id === meeting.cliente_id)?.empresa || ""}</p>
+                    {_currentUser?.rol === "admin" && (
+                      <p>{vendedoresData.find((v: Vendedor) => v.id === meeting.vendedor_id)?.nombre || ""}</p>
+                    )}
                   </div>
                 </div>
               ))}

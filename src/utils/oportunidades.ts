@@ -47,6 +47,7 @@ export const valorPipeline = (oportunidades: Oportunidad[] | undefined) =>
   ) : 0;
 
 export function obtenerReunionesProximas(reuniones: Reunion[]): Reunion[] {
+  
   if (!reuniones) return [];
   const hoy = new Date();
   const limite = new Date();
