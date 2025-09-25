@@ -377,9 +377,9 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
                     </p>
                   </div>
                   <div className="flex-1">
-                    <p>{_clientes.find((c) => c.id === meeting.cliente_id)?.empresa || ""}</p>
+                    <p>{Array.isArray(clientesData) ? clientesData.find((c) => c.id === meeting.cliente_id)?.empresa : ""}</p>
                     {_currentUser?.rol === "admin" && (
-                      <p>{vendedoresData.find((v: Vendedor) => v.id === meeting.vendedor_id)?.nombre || ""}</p>
+                      <p>{Array.isArray(vendedoresData) ? vendedoresData.find((v: Vendedor) => v.id === meeting.vendedor_id)?.nombre : ""}</p>
                     )}
                   </div>
                 </div>
