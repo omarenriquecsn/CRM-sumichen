@@ -17,6 +17,7 @@ import {
   tasaDeConversion,
   atras5meses,
   arrayMeses,
+  recompras,
 } from "../../utils/ventas";
 import { typeChange } from "../../constants/typeCange";
 import {
@@ -25,7 +26,7 @@ import {
   clientesNuevosArray,
   clientesActualizadosMes,
 } from "../../utils/clientes";
-import { Mes, Meta } from "../../types";
+import { Mes, Meta, Pedido } from "../../types";
 import { actividadesPoCategoria } from "../../utils/actividades";
 import { getColorClasses } from "../../utils/analitica";
 import { clientePorEtapaAnalitica } from "../../utils/oportunidades";
@@ -89,7 +90,7 @@ export const Analitica: React.FC = () => {
     {
       titulo: "Nuevos Prospectos",
       valor: Number(clientesProspecto) || 0,
-      cambio: 'Number(incrementoClientes)',
+      cambio: "Number(incrementoClientes)",
       tipo: typeChange(incrementoClientes),
       icon: Users,
       color: "blue",
@@ -103,12 +104,9 @@ export const Analitica: React.FC = () => {
       color: "purple",
     },
     {
-      titulo: "Actividades Completadas",
-      valor:
-        (Array.isArray(actividades) ? actividades : []).filter(
-          (a) => a.completado
-        ).length || 0,
-      cambio: 'Number(incrementoActividad),',
+      titulo: "Clientes Recurrentes",
+      valor: Number(recompras(pedidos as Pedido[])) || 0,
+      cambio: "Number(incrementoActividad),",
       tipo: typeChange(incrementoActividad),
       icon: Activity,
       color: "orange",
@@ -291,7 +289,15 @@ export const Analitica: React.FC = () => {
                             ? "bg-orange-400"
                             : "bg-green-400"
                         }`}
-                        style={{ width: `${etapa.porcentaje * 2}%` }}
+                        style={{
+                          width: `${
+                            etapa.porcentaje /
+                            (Array.isArray(oportunidades) &&
+                            oportunidades?.length > 0
+                              ? oportunidades.length
+                              : 1)
+                          }%`,
+                        }}
                       ></div>
                     </div>
                     <span className="text-sm font-semibold text-gray-900 w-8">
@@ -507,6 +513,39 @@ export const Analitica: React.FC = () => {
                     ).length || 0}
                   </span>
                   <span>{totalMetas()}</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600">
+                    Meta de Recompras
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {`${porcentaje(
+                      Number(recompras(pedidos as Pedido[])) || 0,
+                      Array.isArray(clientes) ? clientes.length * 0.2 : 10
+                    ).toFixed(2)}%`}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-purple-500 h-3 rounded-full"
+                    style={{
+                      width: `${porcentaje(
+                        Number(recompras(pedidos as Pedido[])) || 0,
+                        Array.isArray(clientes) ? clientes.length * 0.2 : 10
+                      )}%`,
+                    }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>{Number(recompras(pedidos as Pedido[])) || 0}</span>
+                  <span>
+                    {Array.isArray(clientes)
+                      ? Math.round(clientes.length * 0.2)
+                      : 10}
+                  </span>
                 </div>
               </div>
             </div>

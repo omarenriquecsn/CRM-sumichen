@@ -9,10 +9,14 @@ export const calculoIncremento = (
   );
   let incremento: number;
   if (valorInicial.length === 0) {
-    incremento = (Array.isArray(valorFinal) ? valorFinal : []).length > 0 ? 100 : 0;
+    incremento =
+      (Array.isArray(valorFinal) ? valorFinal : []).length > 0 ? 100 : 0;
   } else {
     incremento =
-      ((Array.isArray(valorFinal) ? valorFinal : []).length - valorInicial.length) / valorInicial.length * 100;
+      (((Array.isArray(valorFinal) ? valorFinal : []).length -
+        valorInicial.length) /
+        valorInicial.length) *
+      100;
   }
   return incremento;
 };
@@ -20,10 +24,11 @@ export const calculoIncremento = (
 // Calculo de tasa de conversion
 export const tasaDeConversion = (oportunidades: Oportunidad[] | undefined) => {
   if (!oportunidades) return 0;
-  const totalOportunidades = (Array.isArray(oportunidades) ? oportunidades : []).length;
-  const oportunidadesCerradas = (Array.isArray(oportunidades) ? oportunidades : []).filter(
-    (oportunidad) => oportunidad.etapa === "cerrado"
-  );
+  const totalOportunidades = (Array.isArray(oportunidades) ? oportunidades : [])
+    .length;
+  const oportunidadesCerradas = (
+    Array.isArray(oportunidades) ? oportunidades : []
+  ).filter((oportunidad) => oportunidad.etapa === "cerrado");
 
   const tasaDeConversion =
     (oportunidadesCerradas.length / totalOportunidades) * 100;
@@ -35,12 +40,11 @@ export const ventasPorMes = (
   pedidos: Pedido[] | undefined,
   mes: number
 ): number => {
-  return (
-
-   Array.isArray(pedidos) ? pedidos
-      ?.filter((pedido) => new Date(pedido.fecha_creacion).getMonth() === mes)
-      .reduce((total, pedido) => total + Number(pedido.total), 0) ?? 0 : 0
-  );
+  return Array.isArray(pedidos)
+    ? pedidos
+        ?.filter((pedido) => new Date(pedido.fecha_creacion).getMonth() === mes)
+        .reduce((total, pedido) => total + Number(pedido.total), 0) ?? 0
+    : 0;
 };
 
 export const atras5meses = (ventasPorMes: Mes[]) => {
@@ -82,13 +86,60 @@ export const atras5meses = (ventasPorMes: Mes[]) => {
   return mesesAtras;
 };
 
-export const arrayMeses = (pedidos: Pedido[], clientes: Cliente[] | undefined) =>{
-  const losMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-  const meses = []
+export const arrayMeses = (
+  pedidos: Pedido[],
+  clientes: Cliente[] | undefined
+) => {
+  const losMeses = [
+    "Ene",
+    "Feb",
+    "Mar",
+    "Abr",
+    "May",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dic",
+  ];
+  const meses = [];
   for (let i = 0; i < 12; i++) {
-    meses.push({ mes: losMeses[i], ventas: ventasPorMes(pedidos, i) , clientes: clientesNuevosMes(clientes, i)  })
-
+    meses.push({
+      mes: losMeses[i],
+      ventas: ventasPorMes(pedidos, i),
+      clientes: clientesNuevosMes(clientes, i),
+    });
   }
-  
-  return meses
-}
+
+  return meses;
+};
+
+export const recompras = (pedidos: Pedido[]) => {
+  const pedidosMesActual = Array.isArray(pedidos)
+    ? pedidos.filter(
+        (p) =>
+          new Date(p.fecha_creacion) >=
+            new Date(new Date().getFullYear(), new Date().getMonth(), 1) &&
+          new Date(p.fecha_creacion) <
+            new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
+      )
+    : [];
+
+  const clientesConPedidos = Array.isArray(pedidosMesActual)
+    ? pedidosMesActual.map((p) => p.cliente_id)
+    : [];
+
+  let contador = 0;
+  const verificadorRepetidos: string[] = [];
+  if (!Array.isArray(clientesConPedidos)) return 0;
+  clientesConPedidos.forEach((clienteId: string) => {
+    if (!verificadorRepetidos.includes(clienteId)) {
+      verificadorRepetidos.push(clienteId);
+    } else {
+      contador++;
+    }
+  });
+  return contador;
+};
