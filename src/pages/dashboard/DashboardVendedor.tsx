@@ -125,7 +125,7 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
 
   const ventaMes = cifraVentasMes(new Date().getMonth());
 
-  const porcentajeMeta =
+  let porcentajeMeta =
     Array.isArray(metasDataActual) &&
     metasMesActual?.objetivo_ventas > 0 &&
     ventaMes > 0
@@ -139,6 +139,10 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
           +metasMesAnterior?.objetivo_ventas) *
         100
       : 0;
+
+      if(_currentUser.rol === "admin"){
+        porcentajeMeta = porcentajeMeta / vendedoresData!.length;
+      }
 
   const incremento = calculoIncremento(clientesActivos(_clientes));
   const incrementoVentas = calculoIncremento(PedidosProcesados);
