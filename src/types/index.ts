@@ -311,4 +311,5 @@ export type Mes = {
    apellido: string;
    telefono: string;
     fecha_creacion: Date;
+    rol: "vendedor" | "admin";
   }

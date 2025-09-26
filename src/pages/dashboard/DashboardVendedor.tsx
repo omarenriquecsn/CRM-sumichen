@@ -140,8 +140,9 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
         100
       : 0;
 
-      if(_currentUser.rol === "admin"){
-        porcentajeMeta = porcentajeMeta / vendedoresData!.length;
+      if(_currentUser.rol === "admin" && vendedoresData && vendedoresData.length > 0){
+        const vendedores = Array.isArray(vendedoresData) ? vendedoresData.filter((v: Vendedor) => v.rol !== "admin") : [];
+        porcentajeMeta = porcentajeMeta / vendedores!.length;
       }
 
   const incremento = calculoIncremento(clientesActivos(_clientes));

@@ -147,7 +147,7 @@ export const Login: React.FC = () => {
         {/* Información adicional */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>Sistema CRM para gestión de ventas y clientes</p>
-          <p className="mt-1">Potenciado por Supabase</p>
+          <p>© 2025 CRM Pro. Todos los derechos reservados.</p>
         </div>
       </div>
     </div>
