@@ -27,6 +27,7 @@ import ExcelProductos from "./components/forms/ExcelProductos";
 import Vendedores from "./pages/vendedores/Vendedores";
 import { VendedorPanel } from "./pages/vendedores/VendedorPanel";
 import AgregarProducto from "./components/forms/AgregarProducto";
+import DescargasDB from "./pages/descargas/DescargasDB";
 
 const queryClientet = new QueryClient();
 
@@ -194,6 +195,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/descargas"
+                element={
+                  <ProtectedRoute>
+                    <DescargasDB />
+                  </ProtectedRoute>
+                }
+              />
 
               <Route
                 path="/configuracion"
@@ -203,6 +212,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="*"
+                element={
+                  <div className="flex items-center justify-center h-screen">
+                    <h1 className="text-4xl font-bold">404 - Página no encontrada</h1>
+                  </div>
+                }
+              />
+
             </Routes>
           </div>
         </Router>

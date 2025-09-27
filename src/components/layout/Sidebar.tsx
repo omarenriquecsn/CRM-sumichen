@@ -16,6 +16,7 @@ import {
   X,
   Plus,
   Sheet,
+  Download,
 } from 'lucide-react';
 import { UserData } from '../../context/types';
 
@@ -60,6 +61,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userDataProp 
     { to: '/pedidos', icon: ShoppingCart, label: 'Pedidos' },
     { to: '/crearProductos', icon: Plus, label: 'Crear Productos'},
     { to: '/excel', icon: Sheet, label: 'Excel de Productos' },
+    { to: '/productos', icon: ShoppingCart, label: 'Productos' },
+    { to: '/descargas', icon: Download, label: 'Descargas DB' },
 
 
   ];
