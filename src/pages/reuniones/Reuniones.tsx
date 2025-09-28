@@ -49,6 +49,8 @@ export const Reuniones: React.FC = () => {
   const [reunionSeleccionada, setReunionSeleccionada] =
     useState<Reunion | null>(null);
   const [mostrarToast, setMostrarToast] = useState(false);
+    const [mostrarToastInvitacion, setMostrarToastInvitacion] = useState(false);
+  const [handlers, setHandlers] = useState<{ handleConfirm: () => void; handleCancel: () => void; texto: string } | null>(null);
   const [reunionIdSeleccionada, setReunionIdSeleccionada] = useState<
     string | null
   >(null);
@@ -92,28 +94,43 @@ export const Reuniones: React.FC = () => {
     return;
   }
 
-  const handleCrearReunion = (data: IFormReunion) => {
+   const handleCrearReunion = async (data: IFormReunion) => {
     if (!clienteSeleccionado) {
       toast.error("No hay cliente seleccionado");
       return;
     }
     data.cliente_id = clienteSeleccionado;
-    handleCrearReunionUtil({
-      data,
-      currentUser,
-      navigate,
-      crearReunion,
-      setModalCopen,
+  
+    // Espera la respuesta del usuario
+    const confirmed = await new Promise<boolean>((resolve) => {
+      const handleConfirm = () => {
+        setMostrarToastInvitacion(false);
+        resolve(true);
+      };
+      const handleCancel = () => {
+        setMostrarToastInvitacion(false);
+        resolve(false);
+      };
+      setHandlers({
+        handleConfirm,
+        handleCancel,
+        texto: "¿Deseas invitar al cliente a la reunión en Google Calendar?",
+      });
+      setMostrarToastInvitacion(true);
     });
-
-    const elInvitado = Array.isArray(clientes)
-      ? clientes.find((c) => c.id === clienteSeleccionado)?.email
-      : null;
-
+  
+    // El flujo siempre continúa, solo cambia si hay invitado
+    let elInvitado = null;
+    if (confirmed) {
+      elInvitado = Array.isArray(clientes)
+        ? clientes.find((c) => c.id === clienteSeleccionado)?.email
+        : null;
+    }
+  
     const fechaFormateada = dayjs(data.fecha).format("YYYY-MM-DD");
     const fechaInicio = `${fechaFormateada}T${data.inicio}:00`;
     const fechaFin = `${fechaFormateada}T${data.fin}:00`;
-
+  
     const link = generarGoogleCalendarLink({
       titulo: data.titulo,
       descripcion: data.descripcion,
@@ -123,6 +140,14 @@ export const Reuniones: React.FC = () => {
       invitados: elInvitado ? [elInvitado] : [],
     });
     window.open(link, "_blank");
+  
+    handleCrearReunionUtil({
+      data,
+      currentUser,
+      navigate,
+      crearReunion,
+      setModalCopen,
+    });
   };
 
   const handleCambiarReunion = (data: IFormReunion) => {
@@ -519,6 +544,18 @@ export const Reuniones: React.FC = () => {
         tema="dark"
         modoModal={true}
       />
+          {handlers && (
+        <ConfirmarAccionToast
+          visible={mostrarToastInvitacion}
+          setVisible={setMostrarToastInvitacion}
+          onConfirm={handlers.handleConfirm}
+          onCancel={handlers.handleCancel}
+          texto={handlers.texto}
+          posicion="bottom-right"
+          tema="dark"
+          modoModal={true}
+        />
+      )}
 
       {/* modal para seleccionar cliente */}
       <Modal
