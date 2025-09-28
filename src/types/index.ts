@@ -98,6 +98,11 @@ export interface Reunion {
   recordatorio: boolean;
 }
 
+export interface ReunionCalendario extends Reunion {
+ fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
 export interface ICrearReunion {
   cliente_id: string;
   vendedor_id: string;

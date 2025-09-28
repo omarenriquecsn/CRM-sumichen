@@ -33,6 +33,7 @@ import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 import { User as UserSupabase } from "@supabase/supabase-js";
 import { ReunionesDetailModal } from "./ReunionesDetailModal";
 import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
+import Calendario from "./Calendario";
 
 interface ReunionesModalProps {
   vendedor: UserSupabase;
@@ -516,21 +517,23 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
           )}
 
           {/* Vista de calendario */}
-          {vistaActual === "calendario" && (
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Vista de Calendario
-                  </h3>
-                  <p className="text-gray-500">
-                    La vista de calendario estará disponible próximamente
-                  </p>
+        {vistaActual === "calendario" && (
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 h-[80vh]">
+            <div className="h-[70vh] flex items-center justify-center bg-gray-50 rounded-lg">
+              <div className="text-center">
+                <div>   
+                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Calendario
+                </h3>
                 </div>
+
+                <Calendario />
               </div>
             </div>
-          )}
+          </div>
+        )}
+      
 
           {/* modal Editar */}
           <Modal
