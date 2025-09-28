@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
-import { IFormReunion, Reunion, ReunionDb } from "../../types";
+import { IFormReunion, Reunion, ReunionCalendario } from "../../types";
 import {
   buildClientesMap,
   handleActualizarReunionUtil,
@@ -614,7 +614,7 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
             "fecha_actualizacion" in reunionSeleccionada && (
               <ReunionesDetailModal
                 vendedor={vendedor}
-                reunion={reunionSeleccionada as ReunionDb}
+                reunion={reunionSeleccionada as ReunionCalendario}
                 isOpen={isOpenReunionDetail}
                 onClose={() => setIsOpenReunionDetail(false)}
               />

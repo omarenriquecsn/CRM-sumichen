@@ -12,10 +12,10 @@ import {
 import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 import dayjs from "dayjs";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import { ReunionDb } from "../../types";
+import { ReunionCalendario } from "../../types";
 interface ReunionProps {
   vendedor: SupabaseUser;
-  reunion: ReunionDb;
+  reunion: ReunionCalendario;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -123,7 +123,6 @@ export const ReunionesDetailModal = ({
     }
   };
 
-
   const getEstadoIcon = (estado: string) => {
     const iconProps = { className: "h-8 w-8" };
     switch (estado) {
@@ -223,8 +222,7 @@ export const ReunionesDetailModal = ({
                     <div>
                       <p className="text-gray-500">Cliente</p>
                       <p className="font-medium text-gray-900">
-                        {clientesMap.get(reunion.cliente_id)?.nombre}{" "}
-                        {clientesMap.get(reunion.cliente_id)?.apellido}
+                        {clientesMap.get(reunion.cliente_id)?.empresa}
                       </p>
                     </div>
                   </div>
@@ -242,9 +240,20 @@ export const ReunionesDetailModal = ({
                   <div className="flex items-center space-x-3">
                     <Clock className="h-5 w-5 text-gray-400" />
                     <div>
-                      <p className="text-gray-500">Última actualización</p>
+                      <p className="text-gray-500">Inicio</p>
                       <p className="font-medium text-gray-900">
-                        {dayjs(reunion.fecha_actualizacion).format(
+                        {dayjs(reunion.fecha_inicio).format(
+                          "DD/MM/YYYY HH:mm"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Clock className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <p className="text-gray-500">Fin</p>
+                      <p className="font-medium text-gray-900">
+                        {dayjs(reunion.fecha_fin).format(
                           "DD/MM/YYYY HH:mm"
                         )}
                       </p>
@@ -271,7 +280,6 @@ export const ReunionesDetailModal = ({
                       </span>
                     </button>
                   )}
-                
                 </div>
               </div>
             </div>
