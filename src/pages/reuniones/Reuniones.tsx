@@ -32,6 +32,7 @@ import Modal from "../../components/ui/Modal";
 import CrearReunion from "../../components/forms/CrearReunion";
 import Select from "react-select";
 import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
+import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
 
 export const Reuniones: React.FC = () => {
   const supabase = useSupabase();
@@ -103,6 +104,22 @@ export const Reuniones: React.FC = () => {
       crearReunion,
       setModalCopen,
     });
+
+    const elInvitado = Array.isArray(clientes) ? clientes.find(c => c.id === clienteSeleccionado)?.email : null;
+
+    const fechaFormateada = dayjs(data.fecha).format("YYYY-MM-DD");
+    const fechaInicio = `${fechaFormateada}T${data.inicio}:00`;
+    const fechaFin = `${fechaFormateada}T${data.fin}:00`;
+
+    const link = generarGoogleCalendarLink({
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      ubicacion: data.ubicacion,
+      fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin,
+      invitados: elInvitado ? [elInvitado] : [],
+    });
+    window.open(link, "_blank");
   };
 
   const handleCambiarReunion = (data: IFormReunion) => {
@@ -277,7 +294,6 @@ export const Reuniones: React.FC = () => {
                       <p className="text-xs text-gray-500">
                         {clientesMap.get(reunion.cliente_id)?.empresa ??
                           "Cliente"}{" "}
-                       
                       </p>
                     </div>
                   </div>
@@ -510,10 +526,14 @@ export const Reuniones: React.FC = () => {
             Selecciona un cliente
           </h3>
           <Select
-            options={Array.isArray(clientes) ? clientes.map((c) => ({
-              value: c.id,
-              label: c.empresa,
-            })) : []}
+            options={
+              Array.isArray(clientes)
+                ? clientes.map((c) => ({
+                    value: c.id,
+                    label: c.empresa,
+                  }))
+                : []
+            }
             onChange={(opcion) => setClienteSeleccionado(opcion?.value ?? "")}
             placeholder="Selecciona un cliente"
             isSearchable

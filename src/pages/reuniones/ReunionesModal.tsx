@@ -32,6 +32,7 @@ import Select from "react-select";
 import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 import { User as UserSupabase } from "@supabase/supabase-js";
 import { ReunionesDetailModal } from "./ReunionesDetailModal";
+import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
 
 interface ReunionesModalProps {
   vendedor: UserSupabase;
@@ -120,6 +121,24 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
       crearReunion,
       setModalCopen,
     });
+
+    const elInvitado = Array.isArray(clientes)
+      ? clientes.find((c) => c.id === clienteSeleccionado)?.email
+      : null;
+
+    const fechaFormateada = dayjs(data.fecha).format("YYYY-MM-DD");
+    const fechaInicio = `${fechaFormateada}T${data.inicio}:00`;
+    const fechaFin = `${fechaFormateada}T${data.fin}:00`;
+
+    const link = generarGoogleCalendarLink({
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      ubicacion: data.ubicacion,
+      fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin,
+      invitados: elInvitado ? [elInvitado] : [],
+    });
+    window.open(link, "_blank");
   };
 
   const handleCambiarReunion = (data: IFormReunion) => {
@@ -596,7 +615,7 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
                 isOpen={isOpenReunionDetail}
                 onClose={() => setIsOpenReunionDetail(false)}
               />
-          )}
+            )}
         </div>
       </div>
     </div>

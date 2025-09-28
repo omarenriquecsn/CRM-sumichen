@@ -42,6 +42,7 @@ import { getEstadoColor, getEtapaColor } from "../../utils/clientes";
 import { handleCrearActividadUtil } from "../../utils/actividades";
 import { handleCrearReunionUtil } from "../../utils/reuniones";
 import SelectVendedor from "../../components/ui/SelectVendedot";
+import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
 
 export const ClienteDetalle: React.FC = () => {
   dayjs.locale("es");
@@ -62,17 +63,16 @@ export const ClienteDetalle: React.FC = () => {
   const { data: actividadesTodas, error: errorActividades } =
     supabase.useActividades();
 
-    const { mutate: crearActividad, isPending: pendingActividad } =
-      supabase.useCrearActividad();
-  
-    const {mutate: actualizarActividad} = supabase.useActualizarActividad();
+  const { mutate: crearActividad, isPending: pendingActividad } =
+    supabase.useCrearActividad();
 
-    const {mutate: eliminarActividad} = supabase.useEliminarActividad();
+  const { mutate: actualizarActividad } = supabase.useActualizarActividad();
+
+  const { mutate: eliminarActividad } = supabase.useEliminarActividad();
   // Clientes
   const { data: clientes } = supabase.useClientes();
   const { mutate: editarCliente, isPending: pendigEditar } =
     supabase.useActualizarCliente();
-  
 
   // Pedidos
   const { data: pedidos } = supabase.usePedidos();
@@ -85,7 +85,7 @@ export const ClienteDetalle: React.FC = () => {
 
   // Oportunidades
   const { mutate: editarOportunidad } = supabase.useActualizarOportunidad();
-  const {data: oportunidades} = supabase.useOportunidades();
+  const { data: oportunidades } = supabase.useOportunidades();
 
   if (!currentUser) {
     toast.error("Debes iniciar sesión para ver los pedidos");
@@ -123,8 +123,6 @@ export const ClienteDetalle: React.FC = () => {
     const completarActividad = (actividad: Actividad) => {
       if (!currentUser) return;
 
-      
-
       actualizarActividad({
         ...actividad,
         completado: true,
@@ -155,21 +153,24 @@ export const ClienteDetalle: React.FC = () => {
         etapa_venta: data.etapa_venta as Cliente["etapa_venta"],
       };
 
-     const oportunidad = Array.isArray(oportunidades) && oportunidades?.find(
-        (o) => o.cliente_id === cliente.id
-      );
+      const oportunidad =
+        Array.isArray(oportunidades) &&
+        oportunidades?.find((o) => o.cliente_id === cliente.id);
 
       if (oportunidad) {
         await editarOportunidad({
           OportunidadData: {
             ...oportunidad,
-            etapa: clienteData.etapa_venta as "inicial" | "calificado" | "propuesta" | "negociacion" | "cerrado",
+            etapa: clienteData.etapa_venta as
+              | "inicial"
+              | "calificado"
+              | "propuesta"
+              | "negociacion"
+              | "cerrado",
           },
           currentUser,
         });
       }
-
-
 
       editarCliente(
         {
@@ -191,7 +192,6 @@ export const ClienteDetalle: React.FC = () => {
     };
 
     //Handle para asignar vendedor
- 
 
     // Handle Crear Actividad
     const handleCrearActividad = async (data: Partial<Actividad>) => {
@@ -216,6 +216,19 @@ export const ClienteDetalle: React.FC = () => {
         crearReunion,
         setModalCopen,
       });
+      const fechaFormateada = dayjs(data.fecha).format("YYYY-MM-DD");
+      const fechaInicio = `${fechaFormateada}T${data.inicio}:00`;
+      const fechaFin = `${fechaFormateada}T${data.fin}:00`;
+
+      const link = generarGoogleCalendarLink({
+        titulo: data.titulo,
+        descripcion: data.descripcion,
+        ubicacion: data.ubicacion,
+        fecha_inicio: fechaInicio,
+        fecha_fin: fechaFin,
+        invitados: cliente.email ? [cliente.email] : [],
+      });
+      window.open(link, "_blank");
     };
 
     // Handle Crear Pedido
@@ -272,7 +285,9 @@ export const ClienteDetalle: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-bold text-xl">
-                        {cliente.empresa ? cliente.empresa[0].toUpperCase() : "E"}
+                        {cliente.empresa
+                          ? cliente.empresa[0].toUpperCase()
+                          : "E"}
                       </span>
                     </div>
                     <div>
@@ -446,13 +461,21 @@ export const ClienteDetalle: React.FC = () => {
                                     .toLocaleString()
                                     .slice(0, 10)}
                                 </span>
-                                {!actividad.completado &&
-                                  <button onClick={() => completarActividad(actividad)}>
-                                  <Check className="h-5 w-5  text-green-600 hover:text-green-900" />
-                                </button>
-                                }
+                                {!actividad.completado && (
+                                  <button
+                                    onClick={() =>
+                                      completarActividad(actividad)
+                                    }
+                                  >
+                                    <Check className="h-5 w-5  text-green-600 hover:text-green-900" />
+                                  </button>
+                                )}
                                 <div>
-                                  <button onClick={() => eliminarActividadFn(actividad)}>
+                                  <button
+                                    onClick={() =>
+                                      eliminarActividadFn(actividad)
+                                    }
+                                  >
                                     <Trash className="h-5 w-5 text-red-600 hover:text-red-900" />
                                   </button>
                                 </div>
@@ -515,12 +538,14 @@ export const ClienteDetalle: React.FC = () => {
                     </a>
                   ) : (
                     <button
-                      onClick={() => abrirGmail({
-                        cliente,
-                        currentUser,
-                        navigate,
-                        crearActividad
-                      })}
+                      onClick={() =>
+                        abrirGmail({
+                          cliente,
+                          currentUser,
+                          navigate,
+                          crearActividad,
+                        })
+                      }
                       className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                     >
                       <Mail className="h-4 w-4" />
@@ -542,18 +567,17 @@ export const ClienteDetalle: React.FC = () => {
                     <span>Crear Pedido</span>
                   </button>
                 </div>
-                {
-                  currentUser.rol === "admin" &&
+                {currentUser.rol === "admin" && (
                   <div>
-                  <button
-                    onClick={() => setModalVendedorVisible(true)}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 mt-4"
+                    <button
+                      onClick={() => setModalVendedorVisible(true)}
+                      className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 mt-4"
                     >
-                    <UserCheck className="h-4 w-4" />
-                    <span>Asignar Vendedor</span>
-                  </button>
-                </div>
-                  }
+                      <UserCheck className="h-4 w-4" />
+                      <span>Asignar Vendedor</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Resumen de ventas */}

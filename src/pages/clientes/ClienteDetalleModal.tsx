@@ -40,6 +40,7 @@ import { handleCrearReunionUtil } from "../../utils/reuniones";
 import SelectVendedor from "../../components/ui/SelectVendedot";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
 interface ClienteDetalleModalProps {
   vendedor: User | null;
   cliente: Cliente;
@@ -224,6 +225,19 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
         crearReunion,
         setModalCopen,
       });
+      const fechaFormateada = dayjs(data.fecha).format("YYYY-MM-DD");
+      const fechaInicio = `${fechaFormateada}T${data.inicio}:00`;
+      const fechaFin = `${fechaFormateada}T${data.fin}:00`;
+
+      const link = generarGoogleCalendarLink({
+        titulo: data.titulo,
+        descripcion: data.descripcion,
+        ubicacion: data.ubicacion,
+        fecha_inicio: fechaInicio,
+        fecha_fin: fechaFin,
+        invitados: cliente.email ? [cliente.email] : [],
+      });
+      window.open(link, "_blank");
     };
 
     // Handle Crear Pedido
