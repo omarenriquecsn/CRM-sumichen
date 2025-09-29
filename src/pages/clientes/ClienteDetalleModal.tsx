@@ -41,6 +41,7 @@ import SelectVendedor from "../../components/ui/SelectVendedot";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
+import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 interface ClienteDetalleModalProps {
   vendedor: User | null;
   cliente: Cliente;
@@ -68,6 +69,12 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
   const [isModalCOpen, setModalCopen] = useState(false);
   const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
   const [modalVendedorVisible, setModalVendedorVisible] = useState(false);
+  const [mostrarToastInvitacion, setMostrarToastInvitacion] = useState(false);
+  const [handlers, setHandlers] = useState<{
+    handleConfirm: () => void;
+    handleCancel: () => void;
+    texto: string;
+  } | null>(null);
 
   // Actividades
   const { data: actividadesTodas, error: errorActividades } =
@@ -217,14 +224,31 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
     };
 
     // Handle Crear Reunion
-    const handleCrearReunion = (data: IFormReunion) => {
-      handleCrearReunionUtil({
-        data,
-        currentUser,
-        navigate,
-        crearReunion,
-        setModalCopen,
+    const handleCrearReunion = async (data: IFormReunion) => {
+      // Espera la respuesta del usuario
+      const confirmed = await new Promise<boolean>((resolve) => {
+        const handleConfirm = () => {
+          setMostrarToastInvitacion(false);
+          resolve(true);
+        };
+        const handleCancel = () => {
+          setMostrarToastInvitacion(false);
+          resolve(false);
+        };
+        setHandlers({
+          handleConfirm,
+          handleCancel,
+          texto: "¿Deseas invitar al cliente a la reunión en Google Calendar?",
+        });
+        setMostrarToastInvitacion(true);
       });
+
+      // El flujo siempre continúa, solo cambia si hay invitado
+      let elInvitado = null;
+      if (confirmed) {
+        elInvitado = cliente.email;
+      }
+
       const fechaFormateada = dayjs(data.fecha).format("YYYY-MM-DD");
       const fechaInicio = `${fechaFormateada}T${data.inicio}:00`;
       const fechaFin = `${fechaFormateada}T${data.fin}:00`;
@@ -235,11 +259,18 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
         ubicacion: data.ubicacion,
         fecha_inicio: fechaInicio,
         fecha_fin: fechaFin,
-        invitados: cliente.email ? [cliente.email] : [],
+        invitados: elInvitado ? [elInvitado] : [],
       });
       window.open(link, "_blank");
-    };
 
+      handleCrearReunionUtil({
+        data,
+        currentUser,
+        navigate,
+        crearReunion,
+        setModalCopen,
+      });
+    };
     // Handle Crear Pedido
 
     const handleCrearPedido = (data: PedidoData) => {
@@ -711,6 +742,18 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                 closeModal={() => setModalVendedorVisible(false)}
               />
             </Modal>
+            {handlers && (
+              <ConfirmarAccionToast
+                visible={mostrarToastInvitacion}
+                setVisible={setMostrarToastInvitacion}
+                onConfirm={handlers.handleConfirm}
+                onCancel={handlers.handleCancel}
+                texto={handlers.texto}
+                posicion="bottom-right"
+                tema="dark"
+                modoModal={true}
+              />
+            )}
           </div>
         </div>
       </div>
