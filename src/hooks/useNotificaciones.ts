@@ -10,7 +10,7 @@ export interface Notificacion {
   fecha: string;
   descripcion: string;
 }
-const URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
 // Recibe el token como argumento
 export function useNotificaciones(usuarioId: string) {
