@@ -34,6 +34,7 @@ import SelectCliente from "../../components/ui/SelectCliente";
 import { getEstadoColor, handleCrearPedidoUtil } from "../../utils/pedidos";
 import { handleActualizarPedidoUtil } from "../../utils/pedidos";
 import useVendedores from "../../hooks/useVendedores";
+import { useCrearNotificacion } from "../../hooks/useNotificaciones";
 
 type PedidosProps = {
   pedidosProp?: Pedido[];
@@ -51,6 +52,8 @@ export const Pedidos: React.FC<PedidosProps> = ({
   const { mutate: cancelarPedido } = supabase.useCancelarPedido();
 
   const { mutate: aprobarPedido } = supabase.useActualizarPedido();
+
+  const { mutate: crearNotificacion } = useCrearNotificacion();
 
   const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
 
@@ -83,6 +86,14 @@ export const Pedidos: React.FC<PedidosProps> = ({
 
   const handleCancelarPedido = (id: string) => {
     cancelarPedido(id);
+    const elPedido = Array.isArray(pedidos)
+      ? pedidos.find((p) => p.id === id)
+      : null;
+    crearNotificacion({
+      vendedor_id: elPedido?.vendedor_id || "",
+      tipo: "cancelado",
+      descripcion: `El pedido con ID ${id} ha sido cancelado.`,
+    });
     toast.success("Pedido cancelado exitosamente.");
   };
 
@@ -95,6 +106,11 @@ export const Pedidos: React.FC<PedidosProps> = ({
       data: pedido,
       currentUser,
       actualizarPedido: aprobarPedido,
+    });
+    crearNotificacion({
+      vendedor_id: pedido?.vendedor_id || "",
+      tipo: "aprobado",
+      descripcion: `El pedido Nº ${pedido.numero} ha sido aprobado.`,
     });
     toast.success("Pedido aprobado exitosamente.");
   };

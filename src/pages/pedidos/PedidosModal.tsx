@@ -28,6 +28,7 @@ import useVendedores from "../../hooks/useVendedores";
 import { User as UserSupabase } from "@supabase/supabase-js";
 import { PedidosDetailModal } from "./PedidosDetailModal";
 import utc from "dayjs/plugin/utc";
+import { useCrearNotificacion } from "../../hooks/useNotificaciones";
 dayjs.extend(utc);
 
 type PedidosProps = {
@@ -51,6 +52,9 @@ export const PedidosModal: React.FC<PedidosProps> = ({
   const { mutate: aprobarPedido } = supabase.useActualizarPedido();
 
   const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
+
+    const { mutate: crearNotificacion } = useCrearNotificacion();
+  
 
   const [modalClienteVisible, setModalClienteVisible] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<null | string>(
@@ -89,6 +93,15 @@ export const PedidosModal: React.FC<PedidosProps> = ({
 
   const handleCancelarPedido = (id: string) => {
     cancelarPedido(id);
+    const elPedido = Array.isArray(pedidos)
+      ? pedidos.find((p) => p.id === id)
+      : null;
+    if (!elPedido) return;
+    crearNotificacion({
+      vendedor_id: elPedido.vendedor_id || "",
+      tipo: "pedido_cancelado",
+      descripcion: `El pedido con ID ${id} ha sido cancelado.`,
+    })
     toast.success("Pedido cancelado exitosamente.");
   };
 
@@ -101,6 +114,12 @@ export const PedidosModal: React.FC<PedidosProps> = ({
       data: pedido,
       currentUser,
       actualizarPedido: aprobarPedido,
+    });
+
+    crearNotificacion({
+      vendedor_id: data.vendedor_id || "",
+      tipo: "pedido_aprobado",
+      descripcion: `El pedido Nº ${data.numero} ha sido aprobado.`,
     });
     toast.success("Pedido aprobado exitosamente.");
   };

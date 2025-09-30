@@ -28,6 +28,7 @@ import { handleActualizarPedidoUtil } from "../../utils/pedidos";
 import useVendedores from "../../hooks/useVendedores";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import utc from "dayjs/plugin/utc";
+import { useCrearNotificacion } from "../../hooks/useNotificaciones";
 dayjs.extend(utc);
 
 interface PedidosDetailProps {
@@ -48,13 +49,13 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
 
   const currentUser = vendedor;
   // Pedidos
-  const {
-    isLoading: loadingPedidos,
-    error: errorPedidos,
-  } = supabase.usePedidos();
+  const { isLoading: loadingPedidos, error: errorPedidos } =
+    supabase.usePedidos();
 
   const { mutate: actualizarPedido } = supabase.useActualizarPedido();
   const { mutate: cancelarPedido } = supabase.useCancelarPedido();
+
+  const { mutate: crearNotificacion } = useCrearNotificacion();
 
   // Clientes
   const {
@@ -74,7 +75,6 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
     !currentUser ||
     !session?.user.user_metadata
   ) {
-   
     return;
   }
 
@@ -82,13 +82,13 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
     return <LoadingSpinner />;
   }
 
-  if ( !clientes) {
+  if (!clientes) {
     return;
   }
 
   const cliente = clientes.find((c) => c.id === pedido?.cliente_id);
 
-  if (!pedido ) {
+  if (!pedido) {
     return;
   }
 
@@ -102,11 +102,22 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
       currentUser,
       actualizarPedido,
     });
+    crearNotificacion({
+      vendedor_id: pedido?.vendedor_id || "",
+      tipo: "aprobado",
+      descripcion: `El pedido Nº ${pedido.numero} ha sido aprobado.`,
+    });
+    toast.success("Pedido aprobado exitosamente.");
   };
 
   const handleCancelarPedido = () => {
     const id = pedido.id;
     cancelarPedido(id);
+    crearNotificacion({
+      vendedor_id: pedido?.vendedor_id || "",
+      tipo: "cancelado",
+      descripcion: `El pedido Nº ${pedido.numero} ha sido cancelado.`,
+    });
     toast.success("Pedido cancelado exitosamente.");
     navigate("/pedidos");
   };
@@ -385,4 +396,3 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
     </div>
   );
 };
-

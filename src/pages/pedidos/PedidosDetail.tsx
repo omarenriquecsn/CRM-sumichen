@@ -29,6 +29,7 @@ import { getEstadoColor } from "../../utils/pedidos";
 import { handleActualizarPedidoUtil } from "../../utils/pedidos";
 import useVendedores from "../../hooks/useVendedores";
 import utc from "dayjs/plugin/utc";
+import { useCrearNotificacion } from "../../hooks/useNotificaciones";
 dayjs.extend(utc);
 
 const PedidosDetail = () => {
@@ -46,6 +47,7 @@ const PedidosDetail = () => {
 
   const { mutate: actualizarPedido } = supabase.useActualizarPedido();
   const { mutate: cancelarPedido } = supabase.useCancelarPedido();
+  const { mutate: crearNotificacion } = useCrearNotificacion();
 
   // Clientes
   const {
@@ -107,12 +109,23 @@ const PedidosDetail = () => {
       currentUser,
       actualizarPedido,
     });
+    crearNotificacion({
+      vendedor_id: pedido?.vendedor_id || "",
+      tipo: "aprobado",
+      descripcion: `El pedido Nº ${pedido.numero} ha sido aprobado.`,
+    });
+    toast.success("Pedido aprobado exitosamente.");
   };
 
   const handleCancelarPedido = () => {
     const id = pedido.id;
     cancelarPedido(id);
     toast.success("Pedido cancelado exitosamente.");
+    crearNotificacion({
+      vendedor_id: pedido?.vendedor_id || "",
+      tipo: "cancelado",
+      descripcion: `El pedido Nº ${pedido.numero} ha sido cancelado.`,
+    });
     navigate("/pedidos");
   };
 

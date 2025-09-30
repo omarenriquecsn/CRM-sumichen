@@ -118,7 +118,7 @@ export const handleActualizarPedidoUtil = async ({
         toast.error(errorMsg);
       },
       onSuccess: () => {
-        toast.success("¡Pedido creado exitosamente!");
+        toast.success("¡Pedido actualizado exitosamente!");
       },
     }
   );
