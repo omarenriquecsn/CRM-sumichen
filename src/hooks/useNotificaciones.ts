@@ -73,3 +73,18 @@ export function useCrearNotificacion() {
     },
   });
 }
+
+export function useEliminarNotificaciones(usuarioId: string) {
+  const { session } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await axios.delete(`${URL}/notificaciones/${usuarioId}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notificaciones", usuarioId] });
+    },
+  });
+}

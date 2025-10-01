@@ -102,10 +102,12 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
       currentUser,
       actualizarPedido,
     });
+    //Notificacion
+    const clienteDelPedido = Array.isArray(clientes) ? clientes.find(c => c.id === pedido?.cliente_id) : null;
     crearNotificacion({
       vendedor_id: pedido?.vendedor_id || "",
       tipo: "aprobado",
-      descripcion: `El pedido Nº ${pedido.numero} ha sido aprobado.`,
+      descripcion: `El pedido ${clienteDelPedido?.empresa || 'el cliente'} ha sido aprobado.`,
     });
     toast.success("Pedido aprobado exitosamente.");
   };
@@ -113,10 +115,12 @@ export const PedidosDetailModal: React.FC<PedidosDetailProps> = ({
   const handleCancelarPedido = () => {
     const id = pedido.id;
     cancelarPedido(id);
+//Notificacion
+    const clienteDelPedido = Array.isArray(clientes) ? clientes.find(c => c.id === pedido?.cliente_id) : null;
     crearNotificacion({
       vendedor_id: pedido?.vendedor_id || "",
       tipo: "cancelado",
-      descripcion: `El pedido Nº ${pedido.numero} ha sido cancelado.`,
+      descripcion: `El pedido ${clienteDelPedido?.empresa || 'el cliente'} ha sido cancelado.`,
     });
     toast.success("Pedido cancelado exitosamente.");
     navigate("/pedidos");

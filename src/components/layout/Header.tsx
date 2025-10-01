@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Bell, CheckCircle, Menu, XCircle } from "lucide-react";
 import { useNotificaciones } from "../../hooks/useNotificaciones";
 import { useAuth } from "../../context/useAuth";
+import { useEliminarNotificaciones } from "../../hooks/useNotificaciones";
+// ...
+
 
 interface HeaderProps {
   title: string;
@@ -19,6 +22,34 @@ export const Header: React.FC<HeaderProps> = ({
   const { data: notificaciones } = useNotificaciones(userData?.id ?? ""); // Reemplaza con el ID real del usuario
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { mutate: eliminarNotificaciones } = useEliminarNotificaciones(userData?.id ?? "");
+
+// ...existing code...
+
+  // Cierra el dropdown si se hace click fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setMostrarDropdown(false);
+      }
+    }
+    if (mostrarDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      // Si el dropdown estaba abierto y ahora se cierra, elimina las notificaciones
+      if (mostrarDropdown) {
+        eliminarNotificaciones();
+      }
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [mostrarDropdown, eliminarNotificaciones]);
+
+// ...existing code...
 
   // Cierra el dropdown si se hace click fuera
   useEffect(() => {
@@ -75,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Notificaciones */}
           <button
             className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-            onClick={() => setMostrarDropdown((v) => !v)} // <-- Agrega esto
+            onClick={() => setMostrarDropdown(!mostrarDropdown)} // <-- Agrega esto
           >
             <Bell className="h-6 w-6" />
             <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">

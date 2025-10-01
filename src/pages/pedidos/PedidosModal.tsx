@@ -53,8 +53,7 @@ export const PedidosModal: React.FC<PedidosProps> = ({
 
   const [modalPedidoVisible, setModalPedidoVisible] = useState(false);
 
-    const { mutate: crearNotificacion } = useCrearNotificacion();
-  
+  const { mutate: crearNotificacion } = useCrearNotificacion();
 
   const [modalClienteVisible, setModalClienteVisible] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<null | string>(
@@ -97,11 +96,16 @@ export const PedidosModal: React.FC<PedidosProps> = ({
       ? pedidos.find((p) => p.id === id)
       : null;
     if (!elPedido) return;
+    const clienteDelPedido = Array.isArray(clientes)
+      ? clientes.find((c) => c.id === elPedido.cliente_id)
+      : null;
     crearNotificacion({
       vendedor_id: elPedido.vendedor_id || "",
       tipo: "pedido_cancelado",
-      descripcion: `El pedido con ID ${id} ha sido cancelado.`,
-    })
+      descripcion: `El pedido ${
+        clienteDelPedido?.empresa || "el cliente"
+      } ha sido cancelado.`,
+    });
     toast.success("Pedido cancelado exitosamente.");
   };
 
@@ -115,11 +119,16 @@ export const PedidosModal: React.FC<PedidosProps> = ({
       currentUser,
       actualizarPedido: aprobarPedido,
     });
-
+    //Notificacion
+    const clienteDelPedido = Array.isArray(clientes)
+      ? clientes.find((c) => c.id === data.cliente_id)
+      : null;
     crearNotificacion({
       vendedor_id: data.vendedor_id || "",
       tipo: "pedido_aprobado",
-      descripcion: `El pedido Nº ${data.numero} ha sido aprobado.`,
+      descripcion: `El pedido ${
+        clienteDelPedido?.empresa || "el cliente"
+      } ha sido aprobado.`,
     });
     toast.success("Pedido aprobado exitosamente.");
   };
@@ -194,6 +203,17 @@ export const PedidosModal: React.FC<PedidosProps> = ({
       clienteSeleccionado,
       nuevoPedido,
       setModalPedidoVisible,
+    });
+   
+   const elVendedor = Array.isArray(vendedoresDb) ?
+      vendedoresDb.find((v) => v.id === currentUser.id)
+      : null;
+    crearNotificacion({
+      vendedor_id: '425dd7b1-faef-40d2-9121-1febed7712b6',
+      tipo: "aprobado",
+      descripcion: `${
+        elVendedor?.nombre || "Un vendedor"
+      } ha creado un nuevo pedido.`,
     });
   };
 
@@ -396,7 +416,9 @@ export const PedidosModal: React.FC<PedidosProps> = ({
                           <div className="flex items-center space-x-1">
                             <Calendar className="h-4 w-4 text-gray-400" />
                             <span className="text-sm text-gray-600">
-                              {dayjs.utc(pedido.fecha_entrega).format("DD/MM/YYYY")}
+                              {dayjs
+                                .utc(pedido.fecha_entrega)
+                                .format("DD/MM/YYYY")}
                             </span>
                           </div>
                         </div>

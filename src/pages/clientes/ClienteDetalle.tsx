@@ -44,6 +44,8 @@ import { handleCrearReunionUtil } from "../../utils/reuniones";
 import SelectVendedor from "../../components/ui/SelectVendedot";
 import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
 import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
+import { useCrearNotificacion } from "../../hooks/useNotificaciones";
+import useVendedores from "../../hooks/useVendedores";
 
 export const ClienteDetalle: React.FC = () => {
   dayjs.locale("es");
@@ -93,6 +95,10 @@ export const ClienteDetalle: React.FC = () => {
   // Oportunidades
   const { mutate: editarOportunidad } = supabase.useActualizarOportunidad();
   const { data: oportunidades } = supabase.useOportunidades();
+  const { mutate: crearNotificacion } = useCrearNotificacion();
+
+  // Vendedores
+  const { data: vendedoresDb } = useVendedores();
 
   if (!currentUser) {
     toast.error("Debes iniciar sesión para ver los pedidos");
@@ -216,8 +222,6 @@ export const ClienteDetalle: React.FC = () => {
 
     // Handle Crear Reunion
     const handleCrearReunion = async (data: IFormReunion) => {
-    
-    
       // Espera la respuesta del usuario
       const confirmed = await new Promise<boolean>((resolve) => {
         const handleConfirm = () => {
@@ -239,7 +243,7 @@ export const ClienteDetalle: React.FC = () => {
       // El flujo siempre continúa, solo cambia si hay invitado
       let elInvitado = null;
       if (confirmed) {
-        elInvitado = cliente.email
+        elInvitado = cliente.email;
       }
 
       const fechaFormateada = dayjs(data.fecha).format("YYYY-MM-DD");
@@ -274,6 +278,17 @@ export const ClienteDetalle: React.FC = () => {
         clienteSeleccionado: cliente.id,
         nuevoPedido,
         setModalPedidoVisible,
+      });
+      // Notificación al admin "Mayerlin Flores" y al vendedor asignado al cliente
+      const elVendedor = Array.isArray(vendedoresDb)
+        ? vendedoresDb.find((v) => v.id === cliente.vendedor_id)
+        : null;
+      crearNotificacion({
+        vendedor_id: '425dd7b1-faef-40d2-9121-1febed7712b6',
+        tipo: "aprobado",
+        descripcion: `${
+          elVendedor?.nombre || "Un vendedor"
+        } ha creado un nuevo pedido.`,
       });
     };
 
