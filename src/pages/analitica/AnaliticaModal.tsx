@@ -141,6 +141,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
 
   const totalMetas = () => {
     let total = 0;
+    if (!metasMes) return 0;
     if (metasMes.reuniones) total += metasMes.reuniones;
     if (metasMes.ventas) total += metasMes.ventas;
     if (metasMes.clientes) total += metasMes.clientes;
