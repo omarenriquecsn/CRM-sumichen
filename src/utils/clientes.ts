@@ -101,7 +101,12 @@ export const clientesActualizadosMes = (
   mes: number
 ) => {
   const clientesActivos = Array.isArray(clientes)
-    ? clientes.filter((c) => c.estado === "activo" && (c.estado_anterior === "prospecto" || c.estado_anterior === "inactivo"))
+    ? clientes.filter(
+        (c) =>
+          c.estado === "activo" &&
+          (c.estado_anterior === "prospecto" ||
+            c.estado_anterior === "inactivo")
+      )
     : [];
   const clientesAño = Array.isArray(clientesActivos)
     ? clientesActivos.filter(
@@ -111,13 +116,12 @@ export const clientesActualizadosMes = (
       )
     : [];
 
-
   return Array.isArray(clientesAño)
-    ? clientesAño.filter(
-        (c) => {if(c.fecha_estado && esFechaValida(c.fecha_estado)) return new Date(c.fecha_estado).getMonth() === mes}
-      ).length
+    ? clientesAño.filter((c) => {
+        if (c.fecha_estado && esFechaValida(c.fecha_estado))
+          return new Date(c.fecha_estado).getMonth() === mes;
+      }).length
     : 0;
- 
 };
 
 export const objetivoClientesConvertidos = (clientes: Cliente[]) => {
@@ -158,13 +162,12 @@ export const getEstadoColor = (estado: string) => {
   }
 };
 
-
-
 export function esClienteNuevoEsteMes(cliente: Cliente) {
   const ahora = new Date();
   return (
     cliente.estado === "activo" &&
-    (cliente.estado_anterior === "prospecto" || cliente.estado_anterior === "inactivo") &&
+    (cliente.estado_anterior === "prospecto" ||
+      cliente.estado_anterior === "inactivo") &&
     cliente.fecha_estado &&
     esFechaValida(cliente.fecha_estado) &&
     new Date(cliente.fecha_estado).getMonth() === ahora.getMonth() &&

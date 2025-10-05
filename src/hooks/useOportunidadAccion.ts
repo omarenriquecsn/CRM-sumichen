@@ -58,7 +58,7 @@ export const useOportunidadAccion = () => {
     onClose();
   };
 
-       const probabilidadPorEtapa: Record<string, number> = {
+  const probabilidadPorEtapa: Record<string, number> = {
     inicial: 10,
     calificado: 30,
     propuesta: 50,
@@ -74,8 +74,8 @@ export const useOportunidadAccion = () => {
       | "calificado"
       | "propuesta"
       | "negociacion"
-      | "cerrado"
-
+      | "cerrado",
+    notasEtapa?: string
   ) => {
     if (!currentUser || !oportunidades || !clientes) return;
 
@@ -93,14 +93,15 @@ export const useOportunidadAccion = () => {
       toast.error("Cliente no encontrado");
       return;
     }
-    if(nuevaEtapa === 'cerrado'){
-      cliente.estado = 'activo'
+    if (nuevaEtapa === "cerrado") {
+      cliente.estado = "activo";
     }
 
     actualizarCliente({
       clienteData: {
         ...cliente,
         etapa_venta: nuevaEtapa,
+        notas: notasEtapa || cliente.notas,
       },
       currentUser,
     });

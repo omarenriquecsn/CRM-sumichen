@@ -104,6 +104,7 @@ import { getColorClasses, calcularTotalEtapa } from "../../utils/oportunidades";
 import { useOportunidadAccion } from "../../hooks/useOportunidadAccion";
 import OportunidadCard from "./OportunidadCard";
 import { User } from "@supabase/supabase-js";
+import DetalleInteraccionModal from "../../components/ui/DetalleInteraccion";
 
 type PipelineProps = {
   currentUserProp?: User | null;
@@ -134,8 +135,6 @@ export const Pipeline: React.FC<PipelineProps> = ({
   const { data: OportunidadesDb } = supabase.useOportunidades();
   const { mutate: eliminarOportunidad } = supabase.useEliminarOportunidad();
 
-
-
   const clientes = clientesProp ?? clientesDb ?? [];
   const Oportunidades = OportunidadesProp ?? OportunidadesDb ?? [];
   const currentUser = currentUserProp ?? contextUser;
@@ -144,6 +143,11 @@ export const Pipeline: React.FC<PipelineProps> = ({
   const [oportunidadesOptimista, setOportunidadesOptimista] = useState<
     Oportunidad[] | null
   >(null);
+
+  const [modalInteraccion, setModalInteraccion] = useState({
+    isOpen: false,
+    cliente: null as Cliente | null,
+  });
 
   const { submitOportunidad, actualizarEtapaDrag } = useOportunidadAccion();
 
@@ -167,7 +171,8 @@ export const Pipeline: React.FC<PipelineProps> = ({
   };
 
   const cliente = (cliente_id: string) => {
-    const cliente = clientes?.find((c) => c.id === cliente_id);
+    const cliente =
+      Array.isArray(clientes) && clientes.find((c) => c.id === cliente_id);
     return cliente;
   };
 
@@ -177,9 +182,6 @@ export const Pipeline: React.FC<PipelineProps> = ({
     ? Oportunidades
     : [];
 
-
- 
-
   // onDragEnd handler
   const handleDragStart = (event: { active: { id: string | number } }) => {
     setActiveId(String(event.active.id));
@@ -188,12 +190,13 @@ export const Pipeline: React.FC<PipelineProps> = ({
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-      if (over && over.id === "trash") {
-    setOportunidadesOptimista((prev) => prev?.filter((o) => o.id !== active.id) ?? null);
-    eliminarOportunidad(String(active.id)); // Aquí llamas a tu mutación/backend
-    return;
-  }
-
+    if (over && over.id === "trash") {
+      setOportunidadesOptimista(
+        (prev) => prev?.filter((o) => o.id !== active.id) ?? null
+      );
+      eliminarOportunidad(String(active.id)); // Aquí llamas a tu mutación/backend
+      return;
+    }
 
     setActiveId(null);
     if (!over || active.id === over.id) {
@@ -205,6 +208,7 @@ export const Pipeline: React.FC<PipelineProps> = ({
     const oportunidad = (oportunidadesOptimista || Oportunidades || []).find(
       (o) => o.id === String(active.id)
     );
+
     if (!oportunidad) {
       setOportunidadesOptimista(null);
       return;
@@ -239,15 +243,25 @@ export const Pipeline: React.FC<PipelineProps> = ({
           o.id === oportunidad.id ? { ...o, etapa: etapaDestino } : o
         )
       );
+
+      const cliente =
+        Array.isArray(clientes) &&
+        clientes.find((c) => c.id === oportunidad.cliente_id);
+      setModalInteraccion({ isOpen: true, cliente: cliente || null });
+
       await actualizarEtapaDrag(oportunidad.id, etapaDestino);
       // Limpiar el estado optimista después de un pequeño delay para permitir la animación
-      setTimeout(() => setOportunidadesOptimista(null), 500);
+      setTimeout(() => {
+        setOportunidadesOptimista(null);
+      }, 500);
     } else {
       setOportunidadesOptimista(null);
     }
   };
 
-
+  const handleGuardarInteraccion = () => {
+    setModalInteraccion({ isOpen: false, cliente: null });
+  };
 
   return (
     <Layout
@@ -301,7 +315,7 @@ export const Pipeline: React.FC<PipelineProps> = ({
                   key={etapa.id}
                   etapa={etapa}
                   oportunidadesEtapa={oportunidadesEtapa}
-                  cliente={cliente}
+                  cliente={cliente as (id: string) => Cliente}
                   onAdd={() => {
                     setModalOpen(true);
                     setEtapaSeleccionada(etapa.id);
@@ -397,6 +411,17 @@ export const Pipeline: React.FC<PipelineProps> = ({
           }
         />
       </Modal>
+      <DetalleInteraccionModal
+        isOpen={modalInteraccion.isOpen}
+        cliente={modalInteraccion.cliente as Cliente}
+        onClose={() =>
+          setModalInteraccion({
+            isOpen: false,
+            cliente: null,
+          })
+        }
+        onSubmit={handleGuardarInteraccion}
+      />
     </Layout>
   );
 };
