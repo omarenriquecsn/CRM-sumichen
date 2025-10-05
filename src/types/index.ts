@@ -26,7 +26,8 @@ export interface Cliente {
   notas?: string;
   direccion?: string;
   ciudad?: string;
-
+  fecha_estado?: Date;
+  estado_anterior?: string;
   rif: string;
 }
 

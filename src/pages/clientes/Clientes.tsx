@@ -27,7 +27,7 @@ import {
   Vendedor,
 } from "../../types";
 import { toast } from "react-toastify";
-import { getEtapaColor, getEstadoColor } from "../../utils/clientes";
+import { getEtapaColor, getEstadoColor, esClienteNuevoEsteMes } from "../../utils/clientes";
 import useVendedores from "../../hooks/useVendedores";
 
 type PropsClientes = {
@@ -39,8 +39,10 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
+    const [soloNuevos, setSoloNuevos] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 6; // Puedes cambiar este valor si lo deseas
+
 
   const supabase = useSupabase();
 
@@ -110,7 +112,9 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
     const matchesFilter =
       filterEstado === "todos" || cliente.estado === filterEstado;
 
-    return matchesSearch && matchesFilter;
+    const matchesNuevos = !soloNuevos || esClienteNuevoEsteMes(cliente);
+
+    return matchesSearch && matchesFilter && matchesNuevos;
   });
   const totalPages = Math.ceil(filteredClientes.length / pageSize);
   const paginatedClientes = filteredClientes.slice(
@@ -153,6 +157,7 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
                 <option value="inactivo">Inactivos</option>
               </select>
             </div>
+            
           </div>
 
           {/* Botón agregar cliente */}
@@ -164,7 +169,18 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
             <span>Nuevo Cliente</span>
           </button>
         </div>
-
+                <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="soloNuevos"
+            checked={soloNuevos}
+            onChange={() => setSoloNuevos((v) => !v)}
+            className="mr-1"
+          />
+          <label htmlFor="soloNuevos" className="text-sm text-gray-600">
+            Clientes nuevos este mes
+          </label>
+        </div>
         {/* Lista de clientes */}
         {clientesArray.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">

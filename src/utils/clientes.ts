@@ -92,12 +92,16 @@ export const clientesNuevosMes = (
 };
 
 //Clietes actualizados en el mes
+function esFechaValida(valor: Date): boolean {
+  const fecha = new Date(valor);
+  return !isNaN(fecha.getTime());
+}
 export const clientesActualizadosMes = (
   clientes: Cliente[] | undefined,
   mes: number
 ) => {
   const clientesActivos = Array.isArray(clientes)
-    ? clientes.filter((c) => c.estado === "activo")
+    ? clientes.filter((c) => c.estado === "activo" && (c.estado_anterior === "prospecto" || c.estado_anterior === "inactivo"))
     : [];
   const clientesAño = Array.isArray(clientesActivos)
     ? clientesActivos.filter(
@@ -107,9 +111,10 @@ export const clientesActualizadosMes = (
       )
     : [];
 
+
   return Array.isArray(clientesAño)
     ? clientesAño.filter(
-        (c) => new Date(c.fecha_actualizacion).getMonth() === mes
+        (c) => {if(c.fecha_estado && esFechaValida(c.fecha_estado)) return new Date(c.fecha_estado).getMonth() === mes}
       ).length
     : 0;
  
@@ -152,3 +157,17 @@ export const getEstadoColor = (estado: string) => {
       return "bg-gray-100 text-gray-800";
   }
 };
+
+
+
+export function esClienteNuevoEsteMes(cliente: Cliente) {
+  const ahora = new Date();
+  return (
+    cliente.estado === "activo" &&
+    (cliente.estado_anterior === "prospecto" || cliente.estado_anterior === "inactivo") &&
+    cliente.fecha_estado &&
+    esFechaValida(cliente.fecha_estado) &&
+    new Date(cliente.fecha_estado).getMonth() === ahora.getMonth() &&
+    new Date(cliente.fecha_estado).getFullYear() === ahora.getFullYear()
+  );
+}
