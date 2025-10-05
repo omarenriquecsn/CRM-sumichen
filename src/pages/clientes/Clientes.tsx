@@ -27,7 +27,11 @@ import {
   Vendedor,
 } from "../../types";
 import { toast } from "react-toastify";
-import { getEtapaColor, getEstadoColor, esClienteNuevoEsteMes } from "../../utils/clientes";
+import {
+  getEtapaColor,
+  getEstadoColor,
+  esClienteNuevoEsteMes,
+} from "../../utils/clientes";
 import useVendedores from "../../hooks/useVendedores";
 
 type PropsClientes = {
@@ -39,10 +43,9 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
-    const [soloNuevos, setSoloNuevos] = useState(false);
+  const [soloNuevos, setSoloNuevos] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 6; // Puedes cambiar este valor si lo deseas
-
 
   const supabase = useSupabase();
 
@@ -157,7 +160,6 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
                 <option value="inactivo">Inactivos</option>
               </select>
             </div>
-            
           </div>
 
           {/* Botón agregar cliente */}
@@ -169,7 +171,7 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
             <span>Nuevo Cliente</span>
           </button>
         </div>
-                <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2">
           <input
             type="checkbox"
             id="soloNuevos"
@@ -330,37 +332,37 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
             </table>
           </div>
         </div>
-          <div className="flex justify-center items-center gap-4 mt-6">
-            <button
-              className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <button
+            className={`px-4 py-2 rounded font-semibold transition-colors duration-200
                           ${
                             page === 1
                               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                               : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
                           }
                         `}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              ← Anterior
-            </button>
-            <span className="text-gray-700 font-medium">
-              Página {page} de {totalPages}
-            </span>
-            <button
-              className={`px-4 py-2 rounded font-semibold transition-colors duration-200
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            ← Anterior
+          </button>
+          <span className="text-gray-700 font-medium">
+            Página {page} de {totalPages}
+          </span>
+          <button
+            className={`px-4 py-2 rounded font-semibold transition-colors duration-200
                           ${
                             page === totalPages
                               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                               : "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow"
                           }
                         `}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Siguiente →
-            </button>
-          </div>
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Siguiente →
+          </button>
+        </div>
 
         {/* Estadísticas rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

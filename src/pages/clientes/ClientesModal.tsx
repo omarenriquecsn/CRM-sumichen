@@ -17,9 +17,19 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../context/useAuth";
 import Modal from "../../components/ui/Modal";
 import ClienteForm from "../../components/forms/ClienteFom";
-import { Cliente, ClienteFormData, Estado, EtapaVenta, Vendedor } from "../../types";
+import {
+  Cliente,
+  ClienteFormData,
+  Estado,
+  EtapaVenta,
+  Vendedor,
+} from "../../types";
 import { toast } from "react-toastify";
-import { getEtapaColor, getEstadoColor } from "../../utils/clientes";
+import {
+  getEtapaColor,
+  getEstadoColor,
+  esClienteNuevoEsteMes,
+} from "../../utils/clientes";
 import useVendedores from "../../hooks/useVendedores";
 import { ClienteDetalleModal } from "./ClienteDetalleModal";
 import { User as UserSupabase } from "@supabase/supabase-js";
@@ -36,11 +46,14 @@ export const ClientesModal: React.FC<PropsClientes> = ({
   onClose,
 }) => {
   const [isModalOpen, setModalOpen] = useState(false);
-  const [isOpenCliente , setIsOpenCliente] = useState(false);
-  const [selectedCliente, setSelectedCliente] = useState<Cliente>({} as Cliente);
+  const [isOpenCliente, setIsOpenCliente] = useState(false);
+  const [selectedCliente, setSelectedCliente] = useState<Cliente>(
+    {} as Cliente
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
   const [page, setPage] = useState(1);
+  const [soloNuevos, setSoloNuevos] = useState(false);
 
   const pageSize = 6; // Puedes cambiar este valor si lo deseas
 
@@ -116,7 +129,9 @@ export const ClientesModal: React.FC<PropsClientes> = ({
     const matchesFilter =
       filterEstado === "todos" || cliente.estado === filterEstado;
 
-    return matchesSearch && matchesFilter;
+    const matchesNuevos = !soloNuevos || esClienteNuevoEsteMes(cliente);
+
+    return matchesSearch && matchesFilter && matchesNuevos;
   });
   const totalPages = Math.ceil(filteredClientes.length / pageSize);
   const paginatedClientes = filteredClientes.slice(
@@ -196,7 +211,18 @@ export const ClientesModal: React.FC<PropsClientes> = ({
               <span>Nuevo Cliente</span>
             </button>
           </div>
-
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="soloNuevos"
+              checked={soloNuevos}
+              onChange={() => setSoloNuevos((v) => !v)}
+              className="mr-1"
+            />
+            <label htmlFor="soloNuevos" className="text-sm text-gray-600">
+              Solo clientes nuevos este mes
+            </label>
+          </div>
           {/* Lista de clientes */}
           {clientesArray.length === 0 ? (
             <div className="text-center text-gray-500 mt-10">
