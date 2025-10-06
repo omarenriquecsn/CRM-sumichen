@@ -247,6 +247,8 @@ export const Pipeline: React.FC<PipelineProps> = ({
       const cliente =
         Array.isArray(clientes) &&
         clientes.find((c) => c.id === oportunidad.cliente_id);
+      if (!cliente) return;
+      cliente.etapa_venta = etapaDestino;
       setModalInteraccion({ isOpen: true, cliente: cliente || null });
 
       await actualizarEtapaDrag(oportunidad.id, etapaDestino);
