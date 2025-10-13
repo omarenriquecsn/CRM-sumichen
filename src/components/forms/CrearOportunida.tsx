@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Oportunidad } from "../../types";
 import { useSupabase } from "../../hooks/useSupabase";
 
@@ -40,6 +40,31 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
   });
 
   const { data: clientes } = supabase.useClientes();
+  const [clienteSearch, setClienteSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement | null>(null);
+
+   const filteredClientes = useMemo(() => {
+    if (!Array.isArray(clientes)) return [];
+    const q = clienteSearch.trim().toLowerCase();
+    if (!q) return clientes;
+    return clientes.filter((c) => {
+      const empresa = (c.empresa || "").toLowerCase();
+      const nombreCompleto = `${(c.nombre || "").toLowerCase()} ${(c.apellido || "").toLowerCase()}`;
+      return empresa.includes(q) || nombreCompleto.includes(q);
+    });
+  }, [clientes, clienteSearch]);
+
+    useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handledChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -76,20 +101,53 @@ const CrearOportunidad = ({ onSubmit, accion, etapa }: props) => {
         >
           Cliente
         </label>
-        <select
-          name="cliente_id"
-          id="cliente"
-          value={formData.cliente_id}
-          onChange={handledChange}
-          className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
-        >
-          <option value="">Seleccione un cliente</option>
-          {clientes?.map((cliente) => (
-            <option key={cliente.rif} value={cliente.id}>
-              {cliente.empresa}
-            </option>
-          ))}
-        </select>
+      <div ref={searchRef} className="relative">
+          <input
+            id="cliente"
+            name="cliente_search"
+            type="text"
+            value={clienteSearch}
+            onChange={(e) => {
+              const val = e.target.value;
+              setClienteSearch(val);
+              setShowSuggestions(true);
+              // si hay match exacto por empresa asigna cliente_id automáticamente
+              const match = clientes?.find(
+                (c) => (c.empresa || "").toLowerCase() === val.trim().toLowerCase()
+              );
+              setFormData((prev) => ({
+                ...prev,
+                cliente_id: match ? match.id : prev.cliente_id || "",
+              }));
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="Escribe nombre o empresa para buscar..."
+            className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm bg-white"
+            autoComplete="off"
+          />
+
+          {showSuggestions && filteredClientes.length > 0 && (
+            <ul className="absolute z-20 left-0 right-0 mt-1 bg-white border rounded shadow max-h-56 overflow-auto">
+              {filteredClientes.map((c) => (
+                <li
+                  key={c.id}
+                  className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                  onMouseDown={(ev) => {
+                    // onMouseDown para evitar que el input pierda foco antes del click
+                    ev.preventDefault();
+                    const label = c.empresa || `${c.nombre} ${c.apellido}`;
+                    setClienteSearch(label);
+                    setFormData((prev) => ({ ...prev, cliente_id: c.id }));
+                    setShowSuggestions(false);
+                  }}
+                >
+                  <div className="text-sm font-medium">{c.empresa || `${c.nombre} ${c.apellido}`}</div>
+                  
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <label className="block text-sm font-medium text-gray-700 mb-1">
