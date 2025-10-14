@@ -318,4 +318,5 @@ export type Mes = {
    telefono: string;
     fecha_creacion: Date;
     rol: "vendedor" | "admin";
+    monto_negociacion_mes?: number;
   }
