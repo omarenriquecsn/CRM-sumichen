@@ -404,6 +404,15 @@ export const ClienteDetalle: React.FC = () => {
                         </p>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Dirección de Entrega</p>
+                        <p className="font-medium text-gray-900">
+                          {cliente?.direccion_entrega}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -441,8 +450,20 @@ export const ClienteDetalle: React.FC = () => {
                         </p>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Google Maps</p>
+                        <p className="font-medium text-gray-900">
+                          <a className="text-blue-600 hover:text-orange-500" href={cliente?.google_maps} target="_blank" rel="noopener noreferrer">
+                            {'Mapa'}
+                          </a>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                
 
                 {cliente?.notas && (
                   <div className="mt-6 pt-6 border-t border-gray-200">

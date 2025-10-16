@@ -29,6 +29,8 @@ export interface Cliente {
   fecha_estado?: Date;
   estado_anterior?: string;
   rif: string;
+  direccion_entrega?: string;
+  google_maps?: string;
 }
 
 export type Estado = "prospecto" | "activo" | "inactivo";
@@ -54,6 +56,8 @@ export interface ClienteFormData {
   notas: string;
   direccion: string;
   ciudad: string;
+  direccion_entrega: string;
+  google_maps: string;
 }
 
 export interface Actividad {
