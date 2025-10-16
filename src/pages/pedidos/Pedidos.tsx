@@ -150,6 +150,11 @@ export const Pedidos: React.FC<PedidosProps> = ({
     return clientes.find((c) => c.id === cliente_id);
   };
 
+  const vendedor = (vendedor_id: string) => {
+    if (!Array.isArray(vendedoresDb)) return undefined;
+    return vendedoresDb.find((v) => v.id === vendedor_id);
+  };
+
   const pedidosFiltrados = (Array.isArray(pedidos) ? pedidos : [])
     .filter((pedido) => {
       if (filtroEstado === "todos") return true;
@@ -164,13 +169,19 @@ export const Pedidos: React.FC<PedidosProps> = ({
             cliente(pedido.cliente_id)?.apellido ?? ""
           }`.toLowerCase()
         : "";
+      const nombreVendedor = vendedor(pedido.vendedor_id)
+        ? `${vendedor(pedido.vendedor_id)?.nombre ?? ""} ${
+            vendedor(pedido.vendedor_id)?.apellido ?? ""
+          }`.toLowerCase()
+        : "";
       return (
         pedido.numero?.toString().toLowerCase().includes(busquedaLower) ||
         pedido.cliente_id?.toLowerCase().includes(busquedaLower) ||
         pedido.estado?.toLowerCase().includes(busquedaLower) ||
         pedido.total?.toString().toLowerCase().includes(busquedaLower) ||
         empresa.includes(busquedaLower) ||
-        nombreCliente.includes(busquedaLower)
+        nombreCliente.includes(busquedaLower) ||
+        nombreVendedor.includes(busquedaLower)
       );
     });
 
@@ -197,12 +208,12 @@ export const Pedidos: React.FC<PedidosProps> = ({
       nuevoPedido,
       setModalPedidoVisible,
     });
- 
-    const elVendedor = Array.isArray(vendedoresDb) ?
-      vendedoresDb.find((v) => v.id === currentUser.id)
+
+    const elVendedor = Array.isArray(vendedoresDb)
+      ? vendedoresDb.find((v) => v.id === currentUser.id)
       : null;
     crearNotificacion({
-      vendedor_id: '425dd7b1-faef-40d2-9121-1febed7712b6',
+      vendedor_id: "425dd7b1-faef-40d2-9121-1febed7712b6",
       tipo: "aprobado",
       descripcion: `${
         elVendedor?.nombre || "Un vendedor"
