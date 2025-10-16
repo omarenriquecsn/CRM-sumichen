@@ -463,7 +463,7 @@ export const ClienteDetalle: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            {"Mapa"}
+                            {cliente?.google_maps ? "Mapa" : "Sin Mapa"}
                           </a>
                         </p>
                       </div>
