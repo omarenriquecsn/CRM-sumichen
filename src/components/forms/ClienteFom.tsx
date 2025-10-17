@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { ClienteFormData } from "../../types";
+import { useAuth } from "../../context/useAuth";
+import dayjs from "dayjs";
 // import { cliente } from "../../utils/clientes";
 
 interface Props {
@@ -80,12 +82,23 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
     },
   });
 
+   const [fechaStr, setFechaStr] = React.useState<string>(
+    () =>
+      initialData?.fecha_creacion
+        ? dayjs.utc(initialData.fecha_creacion).format("YYYY-MM-DD")
+        : dayjs.utc().format("YYYY-MM-DD")
+  );
+  const currentUser = useAuth().currentUser;
   // Si el usuario edita, mantener la fecha de creación intacta
   React.useEffect(() => {
-    if (initialData?.fecha_creacion) {
-      setValue("fecha_creacion", new Date(initialData.fecha_creacion));
-    }
-  }, [initialData?.fecha_creacion, setValue]);
+    register("fecha_creacion"); // registrar el campo sin atarlo al input
+    const date = initialData?.fecha_creacion
+      ? new Date(initialData.fecha_creacion)
+      : new Date();
+    setValue("fecha_creacion", date, { shouldDirty: false, shouldValidate: false });
+    setFechaStr(dayjs.utc(date).format("YYYY-MM-DD"));
+  }, [initialData, register, setValue]);
+
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     const target = e.target as HTMLElement;
@@ -261,16 +274,19 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
               </label>
               <input
                 type="date"
-                {...register("fecha_creacion")}
-                value={
-                  initialData?.fecha_creacion
-                    ? new Date(initialData.fecha_creacion)
-                        .toISOString()
-                        .split("T")[0]
-                    : new Date().toISOString().split("T")[0]
-                }
-                disabled
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${
+                value={fechaStr}
+                onChange={(e) => {
+                  const v = e.target.value; // "YYYY-MM-DD"
+                  setFechaStr(v);
+                  // guardar Date en el estado del form (manteniendo types como Date)
+                  setValue(
+                    "fecha_creacion",
+                    v ? dayjs(v, "YYYY-MM-DD").toDate() : new Date(),
+                    { shouldValidate: true, shouldDirty: true }
+                  );
+                }}
+                disabled={currentUser?.rol !== "admin"} // Solo admin puede editar
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white ${
                   errors.fecha_creacion ? "border-red-500" : "border-gray-300"
                 }`}
               />
