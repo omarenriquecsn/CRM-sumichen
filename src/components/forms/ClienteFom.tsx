@@ -82,11 +82,10 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
     },
   });
 
-   const [fechaStr, setFechaStr] = React.useState<string>(
-    () =>
-      initialData?.fecha_creacion
-        ? dayjs.utc(initialData.fecha_creacion).format("YYYY-MM-DD")
-        : dayjs.utc().format("YYYY-MM-DD")
+  const [fechaStr, setFechaStr] = React.useState<string>(() =>
+    initialData?.fecha_creacion
+      ? dayjs.utc(initialData.fecha_creacion).format("YYYY-MM-DD")
+      : dayjs().format("YYYY-MM-DD")
   );
   const currentUser = useAuth().currentUser;
   // Si el usuario edita, mantener la fecha de creación intacta
@@ -95,10 +94,16 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
     const date = initialData?.fecha_creacion
       ? new Date(initialData.fecha_creacion)
       : new Date();
-    setValue("fecha_creacion", date, { shouldDirty: false, shouldValidate: false });
-    setFechaStr(dayjs.utc(date).format("YYYY-MM-DD"));
+    setValue("fecha_creacion", date, {
+      shouldDirty: false,
+      shouldValidate: false,
+    });
+    if (!initialData?.fecha_creacion) {
+      setFechaStr(dayjs(date).format("YYYY-MM-DD"));
+    } else {
+      setFechaStr(dayjs.utc(date).format("YYYY-MM-DD"));
+    }
   }, [initialData, register, setValue]);
-
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     const target = e.target as HTMLElement;
