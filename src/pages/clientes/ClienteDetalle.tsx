@@ -17,6 +17,7 @@ import {
   Check,
   Trash,
   UserCheck,
+  PencilLineIcon,
 } from "lucide-react";
 import {
   Actividad,
@@ -46,6 +47,7 @@ import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
 import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 import { useCrearNotificacion } from "../../hooks/useNotificaciones";
 import useVendedores from "../../hooks/useVendedores";
+import ActualizarActividadModal from "../../components/forms/ActualizarActividad";
 
 export const ClienteDetalle: React.FC = () => {
   dayjs.locale("es");
@@ -56,6 +58,7 @@ export const ClienteDetalle: React.FC = () => {
 
   const navigate = useNavigate();
 
+  const [isModalActualizarOpen, setModalActualizarOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const [isModalBOpen, setModalBOpen] = useState(false);
   const [isModalCOpen, setModalCopen] = useState(false);
@@ -67,6 +70,7 @@ export const ClienteDetalle: React.FC = () => {
     handleCancel: () => void;
     texto: string;
   } | null>(null);
+const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | null>(null);
 
   // Actividades
   const { data: actividadesTodas, error: errorActividades } =
@@ -143,6 +147,10 @@ export const ClienteDetalle: React.FC = () => {
       toast.success("Actividad completada");
     };
 
+    const actualizarActividadFn = (actividad: Actividad) => {
+      setActividadSeleccionada(actividad);
+      setModalActualizarOpen(true);
+    };
     // Eliminar actividad
     const eliminarActividadFn = (actividad: Actividad) => {
       if (!currentUser) return;
@@ -555,6 +563,10 @@ export const ClienteDetalle: React.FC = () => {
                                     <Trash className="h-5 w-5 text-red-600 hover:text-red-900" />
                                   </button>
                                 </div>
+                                <PencilLineIcon
+                                  className="h-5 w-5 text-gray-600 hover:text-gray-900"
+                                  onClick={() => actualizarActividadFn(actividad)}
+                                />
                               </div>
                             </div>
                             <p className="text-gray-600 mt-1">
@@ -567,7 +579,7 @@ export const ClienteDetalle: React.FC = () => {
                                     ? "bg-green-100 text-green-800"
                                     : "bg-yellow-100 text-yellow-800"
                                 }`}
-                              >
+                              >  
                                 {actividad.completado
                                   ? "Completado"
                                   : "Pendiente"}
@@ -772,6 +784,11 @@ export const ClienteDetalle: React.FC = () => {
             modoModal={true}
           />
         )}
+        <ActualizarActividadModal
+          isOpen={isModalActualizarOpen}
+          onClose={() => setModalActualizarOpen(false)}
+          actividad={actividadSeleccionada}
+        />
       </Layout>
     );
   }
