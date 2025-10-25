@@ -88,7 +88,7 @@ export const useSupabase = () => {
         clienteData,
         currentUser,
       }: {
-        clienteData: Cliente;
+        clienteData: Partial<Cliente>;
         currentUser: User;
       }) => {
         if (!currentUser) throw new Error("Usuario no autenticado");

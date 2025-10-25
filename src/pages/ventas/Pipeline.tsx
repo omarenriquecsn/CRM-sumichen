@@ -147,6 +147,7 @@ export const Pipeline: React.FC<PipelineProps> = ({
   const [modalInteraccion, setModalInteraccion] = useState({
     isOpen: false,
     cliente: null as Cliente | null,
+    oportunidad: null as Oportunidad | null,
   });
 
   const { submitOportunidad, actualizarEtapaDrag } = useOportunidadAccion();
@@ -249,7 +250,7 @@ export const Pipeline: React.FC<PipelineProps> = ({
         clientes.find((c) => c.id === oportunidad.cliente_id);
       if (!cliente) return;
       cliente.etapa_venta = etapaDestino;
-      setModalInteraccion({ isOpen: true, cliente: cliente || null });
+      setModalInteraccion({ isOpen: true, cliente: cliente || null, oportunidad: oportunidad || null });
 
       await actualizarEtapaDrag(oportunidad.id, etapaDestino);
       // Limpiar el estado optimista después de un pequeño delay para permitir la animación
@@ -262,7 +263,7 @@ export const Pipeline: React.FC<PipelineProps> = ({
   };
 
   const handleGuardarInteraccion = () => {
-    setModalInteraccion({ isOpen: false, cliente: null });
+    setModalInteraccion({ isOpen: false, cliente: null , oportunidad: null });
   };
 
   return (
@@ -416,10 +417,12 @@ export const Pipeline: React.FC<PipelineProps> = ({
       <DetalleInteraccionModal
         isOpen={modalInteraccion.isOpen}
         cliente={modalInteraccion.cliente as Cliente}
+        oportunidad={modalInteraccion.oportunidad as Oportunidad}
         onClose={() =>
           setModalInteraccion({
             isOpen: false,
             cliente: null,
+            oportunidad: null,
           })
         }
         onSubmit={handleGuardarInteraccion}
