@@ -143,14 +143,17 @@ export const DashboardAdmin: React.FC = () => {
 
   // cálculo de vendedores con ventas bajas
   const calculoVentasBajasDeVendedores = () => {
-    return Array.isArray(vendedores)
-      ? vendedores.map(
-          (vendedor) =>
-            calculoVentasVendedores(vendedor.id) <
-            metaVentasPorVendedor(vendedor.id) * 0.7
-        ).length
-      : 0;
-  };
+    let sumaVendedoresBajos = 0
+   if (Array.isArray(vendedores)) {
+       vendedores.map(
+          (vendedor) =>{
+            if (calculoVentasVendedores(vendedor.id) < metaVentasPorVendedor(vendedor.id) * 0.7) {
+              sumaVendedoresBajos += 1;
+            }
+          }
+        );
+    return sumaVendedoresBajos || 0;
+  } }; 
 
   //Actividades
   const { data: actividades } = useSupabase().useActividades();
@@ -217,13 +220,13 @@ export const DashboardAdmin: React.FC = () => {
   const topVendedores = [...VendedoresTop];
 
   const alertas = [
-    ...(calculoVentasBajasDeVendedores() > 0
+    ...(calculoVentasBajasDeVendedores() as number > 0
       ? [
           {
             id: 1,
             tipo: "meta",
             mensaje: `${
-              calculoVentasBajasDeVendedores() > 1
+              calculoVentasBajasDeVendedores() as number > 1
                 ? `${calculoVentasBajasDeVendedores()} vendedores estan`
                 : `${calculoVentasBajasDeVendedores()} vendedor esta`
             } por debajo del 70% de su meta mensual`,

@@ -44,6 +44,7 @@ export const Clientes: React.FC<PropsClientes> = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
   const [soloNuevos, setSoloNuevos] = useState(false);
+  
   const [page, setPage] = useState(1);
   const pageSize = 6; // Puedes cambiar este valor si lo deseas
 

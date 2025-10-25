@@ -35,8 +35,12 @@ export const useOportunidadAccion = () => {
       return;
     }
 
-    if (clientes) {
+    if (Array.isArray(clientes)) {
       const cliente = clientes.find((c) => c.id === data.cliente_id);
+      if(cliente?.estado === 'activo') {
+        toast.error("Solo se pueden crear pipelines para prospectos");
+        return;
+      }
       if (cliente) {
         actualizarCliente({
           clienteData: {
