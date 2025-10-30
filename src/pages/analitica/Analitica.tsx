@@ -61,10 +61,10 @@ export const Analitica: React.FC = () => {
     "Noviembre",
     "Diciembre",
   ];
-  const metasMes =
+  const metasMes: Meta =
     metas?.find(
       (meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()]
-    ) || [];
+    ) || {};
 
   const clientesProspecto = clientesProspectosMes(
     clientes,
@@ -137,8 +137,9 @@ export const Analitica: React.FC = () => {
   const totalMetas = () => {
     let total = 0;
     if (metasMes.reuniones) total += metasMes.reuniones;
-    if (metasMes.ventas) total += metasMes.ventas;
-    if (metasMes.clientes) total += metasMes.clientes;
+    if (metasMes.llamadas) total += metasMes.llamadas;
+    if (metasMes.emails) total += metasMes.emails;
+    if (metasMes.tareas) total += metasMes.tareas;
     return total;
   };
 
@@ -222,7 +223,15 @@ export const Analitica: React.FC = () => {
                     <div className="flex-1 bg-gray-200 rounded-full h-2 w-32">
                       <div
                         className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${(mes.ventas / 50000) * 100}%` }}
+                        style={{
+                          width: `${
+                            (mes.ventas /
+                              (metasMes.objetivo_ventas < mes.ventas
+                                ? mes.ventas
+                                : metasMes.objetivo_ventas)) *
+                            100
+                          }%`,
+                        }}
                       ></div>
                     </div>
                   </div>
