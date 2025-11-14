@@ -3,7 +3,6 @@ import { Layout } from "../layout/Layout";
 import { useAuth } from "../../context/useAuth";
 import { useInsertSupabase } from "../../hooks/useExcel";
 
-
 const ExcelProductos = () => {
   const URL = import.meta.env.VITE_BACKEND_URL; // Replace with your upload URL
 
@@ -60,7 +59,10 @@ const ExcelProductos = () => {
               type="file"
               name="file"
               accept=".xlsx, .xls"
-              className="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full sm:w-auto text-sm text-gray-500
+         file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+         file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700
+         hover:file:bg-blue-100"
             />
             <button
               type="submit"

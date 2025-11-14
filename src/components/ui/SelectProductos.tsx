@@ -14,7 +14,7 @@ type ProductoSelectOption = Producto & {
 type SelectorDeProductosProps = { 
   productos: Producto[];
   onSeleccionar: (
-    seleccion: { producto_id: string; cantidad: number; precio_unitario: number, nombre: string, descripcion: string }[]
+    seleccion: { producto_id: string; cantidad: number; precio_unitario: number, nombre: string, descripcion: string, precio_base?: number }[]
     ) => void;
 };
 
@@ -49,6 +49,7 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
           precio_unitario: 0, // Default price to 0, to be edited by user
           nombre: producto.nombre,
           descripcion: producto.descripcion,
+          precio_base: producto.precio_base || 0
         },
       ]);
     }
@@ -83,6 +84,7 @@ const SelectorDeProductos = ({ productos, onSeleccionar }: SelectorDeProductosPr
     }
   };
 
+  console.log(seleccion)
   return (
     <div className="space-y-4">
       <Select<ProductoSelectOption>

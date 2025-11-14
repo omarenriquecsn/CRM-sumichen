@@ -246,6 +246,7 @@ export interface Producto {
   descripcion: string;
   unidad_medida: string;
   fecha_creacion: string;
+  precio_base?: number
 }
 export type formProducto = {
   producto_id: string;
@@ -253,6 +254,7 @@ export type formProducto = {
   precio_unitario: number;
   nombre: string;
   descripcion: string;
+  precio_base?: number
 };
 
 export interface PedidoData extends Pedido {
