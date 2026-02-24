@@ -571,7 +571,8 @@ export const Analitica: React.FC = () => {
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-green-600">{`+${
-                incrementoVentas > 0 ? incrementoVentas : 0
+                incrementoVentas > 0 ? incrementoVentas.toLocaleString(undefined, {
+                          maximumFractionDigits: 2}) : 0
               }%`}</p>
               <p className="text-sm text-gray-600">Crecimiento en ventas</p>
             </div>
