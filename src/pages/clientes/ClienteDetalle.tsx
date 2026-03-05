@@ -609,7 +609,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                 <div className="space-y-3">
                   {isMobile && cliente.telefono && (
                     <a href={`tel:${cliente.telefono}`}>
-                      <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                      <button onClick={()=>crearActividad({actividadData:{titulo:"Llamada", fecha:new Date(),cliente_id:cliente.id,descripcion:'Se ha llamado al cliente ',tipo:"llamada",completado:true}, currentUser:currentUser})} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
                         <Phone className="h-4 w-4" />
                         <span>Llamar</span>
                       </button>
@@ -619,7 +619,8 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                     <a
                       href={`mailto:${cliente.email}?subject=Contacto desde CRM&body=Hola ${cliente.nombre},`}
                     >
-                      <button className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+                      <button
+                      onClick={()=>crearActividad({actividadData:{titulo:"Email", fecha:new Date(),cliente_id:cliente.id,descripcion:'Se ha enviado un correo al cliente ',tipo:"email",completado:true}, currentUser:currentUser})} className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
                         <Mail className="h-4 w-4" />
                         <span>Enviar Email</span>
                       </button>

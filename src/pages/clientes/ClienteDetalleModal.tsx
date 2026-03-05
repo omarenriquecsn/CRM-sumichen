@@ -117,7 +117,7 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
     // Cliente filtrado
 
     const cliente = (Array.isArray(clientes) ? clientes : []).find(
-      (c) => c.id === id
+      (c) => c.id === id,
     );
     const actividades = (
       Array.isArray(actividadesTodas) ? actividadesTodas : []
@@ -132,7 +132,7 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
 
     const { pedidosFiltrados, ultimaCompra, abrirGmail } = utilsPedidos(
       pedidos as Pedido[],
-      cliente
+      cliente,
     );
 
     // Completando actividad
@@ -203,7 +203,7 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
               toast.error("Error al editar cliente");
             }
           },
-        }
+        },
       );
     };
 
@@ -353,7 +353,7 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                         <div className="flex items-center space-x-3 mt-2">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEstadoColor(
-                              cliente?.estado ? cliente.estado : "inactivo"
+                              cliente?.estado ? cliente.estado : "inactivo",
                             )}`}
                           >
                             {cliente?.estado}
@@ -362,7 +362,7 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEtapaColor(
                               cliente?.etapa_venta
                                 ? cliente.etapa_venta
-                                : "inicial"
+                                : "inicial",
                             )}`}
                           >
                             {cliente?.etapa_venta}
@@ -605,7 +605,22 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                   <div className="space-y-3">
                     {isMobile && cliente.telefono && (
                       <a href={`tel:${cliente.telefono}`}>
-                        <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                        <button
+                          onClick={() =>
+                            crearActividad({
+                              actividadData: {
+                                titulo: "Llamada",
+                                fecha: new Date(),
+                                cliente_id: cliente.id,
+                                descripcion: "Se ha llamado al cliente ",
+                                tipo: "llamada",
+                                completado: true,
+                              },
+                              currentUser: currentUser,
+                            })
+                          }
+                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                        >
                           <Phone className="h-4 w-4" />
                           <span>Llamar</span>
                         </button>
@@ -615,7 +630,23 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                       <a
                         href={`mailto:${cliente.email}?subject=Contacto desde CRM&body=Hola ${cliente.nombre},`}
                       >
-                        <button className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+                        <button
+                          onClick={() =>
+                            crearActividad({
+                              actividadData: {
+                                titulo: "Email",
+                                fecha: new Date(),
+                                cliente_id: cliente.id,
+                                descripcion:
+                                  "Se ha enviado un correo al cliente ",
+                                tipo: "email",
+                                completado: true,
+                              },
+                              currentUser: currentUser,
+                            })
+                          }
+                          className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                        >
                           <Mail className="h-4 w-4" />
                           <span>Enviar Email</span>
                         </button>
@@ -678,8 +709,8 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                           ? Number(
                               pedidosFiltrados()?.reduce(
                                 (total, pedido) => total + Number(pedido.total),
-                                0
-                              )
+                                0,
+                              ),
                             ).toLocaleString()
                           : "0"}
                       </p>
@@ -697,7 +728,7 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                       <p className="text-sm text-gray-900">
                         {ultimaCompra?.fecha_creacion
                           ? dayjs(ultimaCompra.fecha_creacion).format(
-                              "D [de] MMMM [de] YYYY"
+                              "D [de] MMMM [de] YYYY",
                             )
                           : "No ha comprado"}
                       </p>
