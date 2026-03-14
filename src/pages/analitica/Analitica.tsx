@@ -26,7 +26,7 @@ import {
   clientesNuevosArray,
   clientesActualizadosMes,
 } from "../../utils/clientes";
-import { Mes, Meta, Pedido } from "../../types";
+import { Actividad, Mes, Meta, Pedido } from "../../types";
 import { actividadesPoCategoria } from "../../utils/actividades";
 import { getColorClasses } from "../../utils/analitica";
 import { clientePorEtapaAnalitica } from "../../utils/oportunidades";
@@ -119,6 +119,10 @@ export const Analitica: React.FC = () => {
   // Funcion para obtener los ultimos 5 meses
   const ventasPorMes = atras5meses(ventasPorMeses);
 
+  const actividadesPorMes: Actividad[]  = Array.isArray(actividades) ? actividades.filter((actividad: Actividad) => {
+    return new Date(actividad.fecha).getMonth() ===   new Date().getMonth() && new Date(actividad.fecha).getFullYear() === new Date().getFullYear()
+  }): [];
+
   const clientesPorEtapa = [
     clientePorEtapaAnalitica(oportunidades, "inicial"),
     clientePorEtapaAnalitica(oportunidades, "calificado"),
@@ -128,10 +132,10 @@ export const Analitica: React.FC = () => {
   ];
 
   const actividadesPorTipo = [
-    actividadesPoCategoria(actividades, "llamada", metas),
-    actividadesPoCategoria(actividades, "email", metas),
-    actividadesPoCategoria(actividades, "reunion", metas),
-    actividadesPoCategoria(actividades, "tarea", metas),
+    actividadesPoCategoria(actividadesPorMes, "llamada", metas),
+    actividadesPoCategoria(actividadesPorMes, "email", metas),
+    actividadesPoCategoria(actividadesPorMes, "reunion", metas),
+    actividadesPoCategoria(actividadesPorMes, "tarea", metas),
   ];
 
   const totalMetas = () => {
@@ -589,7 +593,7 @@ export const Analitica: React.FC = () => {
               <Calendar className="h-8 w-8 text-purple-600 mx-auto mb-2" />
               <p className="text-2xl font-bold text-purple-600">
                 {(Array.isArray(actividades) ? actividades : []).filter(
-                  (a) => a.completado
+                  (a) => a.completado && new Date(a.fecha).getMonth() === new Date().getMonth() && new Date(a.fecha).getFullYear() === new Date().getFullYear() 
                 ).length || 0}
               </p>
               <p className="text-sm text-gray-600">Actividades completadas</p>
