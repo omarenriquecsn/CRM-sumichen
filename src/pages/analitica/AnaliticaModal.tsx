@@ -102,13 +102,13 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
 
   const metasMes = Array.isArray(metasVendedor)
     ? metasVendedor?.find(
-        (meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()]
+        (meta: Meta) => meta.mes === arrayMeses2[new Date().getMonth()],
       )
     : [];
 
   const clientesProspecto = clientesProspectosMes(
     clientes,
-    new Date().getMonth()
+    new Date().getMonth(),
   );
 
   const incrementoVentas = calculoIncremento(PedidosProcesados);
@@ -124,9 +124,14 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
   // Funcion para obtener los ultimos 5 meses
   const ventasPorMes = atras5meses(ventasPorMeses);
 
-   const actividadesPorMes: Actividad[]  = Array.isArray(actividades) ? actividades.filter((actividad: Actividad) => {
-      return new Date(actividad.fecha).getMonth() ===   new Date().getMonth() && new Date(actividad.fecha).getFullYear() === new Date().getFullYear()
-    }): [];
+  const actividadesPorMes: Actividad[] = Array.isArray(actividades)
+    ? actividades.filter((actividad: Actividad) => {
+        return (
+          new Date(actividad.fecha).getMonth() === new Date().getMonth() &&
+          new Date(actividad.fecha).getFullYear() === new Date().getFullYear()
+        );
+      })
+    : [];
 
   const clientesPorEtapa = [
     clientePorEtapaAnalitica(oportunidades, "inicial"),
@@ -249,7 +254,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                   </div>
                   <div
                     className={`p-3 rounded-full ${getColorClasses(
-                      metrica.color
+                      metrica.color,
                     )}`}
                   >
                     <metrica.icon className="h-6 w-6" />
@@ -323,12 +328,12 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                           index === 0
                             ? "bg-gray-400"
                             : index === 1
-                            ? "bg-blue-400"
-                            : index === 2
-                            ? "bg-yellow-400"
-                            : index === 3
-                            ? "bg-orange-400"
-                            : "bg-green-400"
+                              ? "bg-blue-400"
+                              : index === 2
+                                ? "bg-yellow-400"
+                                : index === 3
+                                  ? "bg-orange-400"
+                                  : "bg-green-400"
                         }`}
                       ></div>
                       <span className="text-sm font-medium text-gray-900">
@@ -342,12 +347,12 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                             index === 0
                               ? "bg-gray-400"
                               : index === 1
-                              ? "bg-blue-400"
-                              : index === 2
-                              ? "bg-yellow-400"
-                              : index === 3
-                              ? "bg-orange-400"
-                              : "bg-green-400"
+                                ? "bg-blue-400"
+                                : index === 2
+                                  ? "bg-yellow-400"
+                                  : index === 3
+                                    ? "bg-orange-400"
+                                    : "bg-green-400"
                           }`}
                           style={{
                             width: `${
@@ -396,10 +401,10 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                           index === 0
                             ? "bg-blue-400"
                             : index === 1
-                            ? "bg-green-400"
-                            : index === 2
-                            ? "bg-purple-400"
-                            : "bg-orange-400"
+                              ? "bg-green-400"
+                              : index === 2
+                                ? "bg-purple-400"
+                                : "bg-orange-400"
                         }`}
                       ></div>
                       <span className="text-sm font-medium text-gray-900">
@@ -413,10 +418,10 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                             index === 0
                               ? "bg-blue-400"
                               : index === 1
-                              ? "bg-green-400"
-                              : index === 2
-                              ? "bg-purple-400"
-                              : "bg-orange-400"
+                                ? "bg-green-400"
+                                : index === 2
+                                  ? "bg-purple-400"
+                                  : "bg-orange-400"
                           }`}
                           style={{ width: `${actividad.porcentaje * 2}%` }}
                         ></div>
@@ -452,7 +457,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                     <span className="text-sm font-semibold text-gray-900">
                       {`${porcentaje(
                         cifraVentasMes(new Date().getMonth()),
-                        metasMes?.objetivo_ventas || 0
+                        metasMes?.objetivo_ventas || 0,
                       ).toFixed(2)}%`}
                     </span>
                   </div>
@@ -462,7 +467,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                       style={{
                         width: `${porcentaje(
                           cifraVentasMes(new Date().getMonth()),
-                          metasMes?.objetivo_ventas || 0
+                          metasMes?.objetivo_ventas || 0,
                         ).toFixed(2)}%`,
                       }}
                     ></div>
@@ -482,9 +487,9 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                       {`${porcentaje(
                         clientesActualizadosMes(
                           clientes,
-                          new Date().getMonth()
+                          new Date().getMonth(),
                         ),
-                        objetivoClientesConvertidos(clientes ?? []) || 0
+                        objetivoClientesConvertidos(clientes ?? []) || 0,
                       ).toFixed(2)}%`}
                     </span>
                   </div>
@@ -495,9 +500,9 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                         width: `${porcentaje(
                           clientesActualizadosMes(
                             clientes,
-                            new Date().getMonth()
+                            new Date().getMonth(),
                           ),
-                          objetivoClientesConvertidos(clientes ?? []) || 0
+                          objetivoClientesConvertidos(clientes ?? []) || 0,
                         ).toFixed(2)}%`,
                       }}
                     ></div>
@@ -506,7 +511,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                     <span>
                       {clientesActualizadosMes(
                         clientes,
-                        new Date().getMonth()
+                        new Date().getMonth(),
                       ) || 0}
                     </span>
                     <span>
@@ -523,7 +528,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                     <span className="text-sm font-semibold text-gray-900">
                       {`${porcentaje(
                         clientesProspecto,
-                        metasMes?.objetivo_clientes || 0
+                        metasMes?.objetivo_clientes || 0,
                       ).toFixed(2)}%`}
                     </span>
                   </div>
@@ -533,7 +538,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                       style={{
                         width: `${porcentaje(
                           clientesProspecto,
-                          metasMes?.objetivo_clientes || 0
+                          metasMes?.objetivo_clientes || 0,
                         ).toFixed(2)}%`,
                       }}
                     ></div>
@@ -554,7 +559,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                         Array.isArray(actividades)
                           ? actividades.filter((a) => a.completado).length
                           : 0,
-                        totalMetas()
+                        totalMetas(),
                       ).toFixed(2)}%`}
                     </span>
                   </div>
@@ -566,7 +571,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                           Array.isArray(actividades)
                             ? actividades.filter((a) => a.completado).length
                             : 0,
-                          totalMetas()
+                          totalMetas(),
                         )}%`,
                       }}
                     ></div>
@@ -574,7 +579,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>
                       {(Array.isArray(actividades) ? actividades : []).filter(
-                        (a) => a.completado
+                        (a) => a.completado,
                       ).length || 0}
                     </span>
                     <span>{totalMetas()}</span>
@@ -588,7 +593,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                     <span className="text-sm font-semibold text-gray-900">
                       {`${porcentaje(
                         Number(recompras(pedidos as Pedido[])) || 0,
-                        Array.isArray(clientes) ? clientes.length * 0.2 : 10
+                        Array.isArray(clientes) ? clientes.length * 0.2 : 10,
                       ).toFixed(2)}%`}
                     </span>
                   </div>
@@ -598,7 +603,7 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                       style={{
                         width: `${porcentaje(
                           Number(recompras(pedidos as Pedido[])) || 0,
-                          Array.isArray(clientes) ? clientes.length * 0.2 : 10
+                          Array.isArray(clientes) ? clientes.length * 0.2 : 10,
                         )}%`,
                       }}
                     ></div>
@@ -626,7 +631,11 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-green-600">{`+${
-                  incrementoVentas > 0 ? incrementoVentas : 0
+                  incrementoVentas > 0
+                    ? incrementoVentas.toLocaleString(undefined, {
+                        maximumFractionDigits: 2,
+                      })
+                    : 0
                 }%`}</p>
                 <p className="text-sm text-gray-600">Crecimiento en ventas</p>
               </div>
@@ -646,7 +655,11 @@ const AnaliticaModal: React.FC<AnaliticaModalProps> = ({
                 <Calendar className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-purple-600">
                   {(Array.isArray(actividades) ? actividades : []).filter(
-                    (a) => a.completado
+                    (a) =>
+                      a.completado &&
+                      new Date(a.fecha).getMonth() === new Date().getMonth() &&
+                      new Date(a.fecha).getFullYear() ===
+                        new Date().getFullYear(),
                   ).length || 0}
                 </p>
                 <p className="text-sm text-gray-600">Actividades completadas</p>

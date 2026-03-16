@@ -33,7 +33,8 @@ import { ConfirmarAccionToast } from "../../components/ui/ConfirmarAccionToast";
 import { User as UserSupabase } from "@supabase/supabase-js";
 import { ReunionesDetailModal } from "./ReunionesDetailModal";
 import generarGoogleCalendarLink from "../../utils/googleCalendarLink";
-import Calendario from "./Calendario";
+import CalendarioModal from "./CalendarioModal";
+import { UUID } from "crypto";
 
 interface ReunionesModalProps {
   vendedor: UserSupabase;
@@ -553,7 +554,9 @@ export const ReunionesModal: React.FC<ReunionesModalProps> = ({
                     </h3>
                   </div>
 
-                  <Calendario />
+                  <CalendarioModal 
+                  Userid = {vendedor.id as UUID}
+                  />
                 </div>
               </div>
             </div>
