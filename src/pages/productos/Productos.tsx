@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useGetActualizacionInventario } from "../../hooks/useExcel";
 
 const EXCEL_URL =
-  "https://syaiyhcnqhhzdhmifynh.supabase.co/storage/v1/object/public/inventario//inventario.xlsx";
+  "https://syaiyhcnqhhzdhmifynh.supabase.co/storage/v1/object/public/inventario/inventario.xlsx";
 
 export async function ExportExcel() {
   // Agrega parámetro único para evitar caché
