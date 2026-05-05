@@ -9,6 +9,15 @@ import { useGetMetas, usePostMetas } from "../../hooks/useMetas";
 import { useAuth } from "../../context/useAuth";
 import MenuVendedor from "./menuVendedor";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+
+function recenciaMetaMs(meta: Meta): number {
+  const t = (v: Date | string) => {
+    const ms = new Date(v).getTime();
+    return Number.isFinite(ms) ? ms : 0;
+  };
+  return Math.max(t(meta.fecha_creacion), t(meta.fecha_actualizacion));
+}
+
 const Vendedores: React.FC = () => {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [vendedorSeleccionado, setVendedorSeleccionado] =
@@ -33,6 +42,19 @@ const Vendedores: React.FC = () => {
         <div>Error al cargar vendedores</div>
       </Layout>
     );
+
+  const metasPorVendedor: Meta[] = Array.isArray(metas)
+    ? Object.values(
+        metas.reduce((acc: Record<string, Meta>, meta: Meta) => {
+          const vendedorId = meta.vendedor_id;
+          const prev = acc[vendedorId];
+          if (!prev || recenciaMetaMs(meta) > recenciaMetaMs(prev)) {
+            acc[vendedorId] = meta;
+          }
+          return acc;
+        }, {})
+      )
+    : [];
 
   const abrirModalMetas = (vendedor: Vendedor) => {
     setVendedorSeleccionado(vendedor);
@@ -93,11 +115,9 @@ const Vendedores: React.FC = () => {
                         <DollarSign className="h-4 w-4 text-green-600" />
                         <span className="font-medium text-gray-900">
                           $
-                          {(metas &&
-                            metas.find(
-                              (meta: Meta) => meta.vendedor_id === vendedor.id
-                            )?.objetivo_ventas) ||
-                            0}
+                          {metasPorVendedor.find(
+                            (meta: Meta) => meta.vendedor_id === vendedor.id
+                          )?.objetivo_ventas ?? 0}
                         </span>
                       </div>
                     </td>

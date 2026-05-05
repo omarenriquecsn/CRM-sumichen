@@ -197,6 +197,8 @@ export interface Meta {
   reuniones: number;
   emails: number;
   tareas: number;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;
 }
 
 export interface Metrica {
