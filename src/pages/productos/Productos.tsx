@@ -20,7 +20,7 @@ export async function ExportExcel() {
 }
 
 export const ExcelViewer: React.FC = () => {
-  const encabezado = ["CODIGO", "DESCRIPCION", "GLOBALCA", "WMS", "TOTAL"];
+  const encabezado = ["CODIGO", "DESCRIPCION", "GLOBALCA", "WMS", "TOTAL", "LOTE"];
   const {
     data: excelData,
     isLoading,
@@ -126,3 +126,4 @@ export const ExcelViewer: React.FC = () => {
     </Layout>
   );
 };
+
