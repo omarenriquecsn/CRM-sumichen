@@ -31,6 +31,7 @@ export interface Cliente {
   rif: string;
   direccion_entrega?: string;
   google_maps?: string;
+  sector?: CustomerSector;
 }
 
 export type Estado = "prospecto" | "activo" | "inactivo";
@@ -58,6 +59,7 @@ export interface ClienteFormData {
   ciudad: string;
   direccion_entrega: string;
   google_maps: string;
+  sector: string;
 }
 
 export interface Actividad {
@@ -328,3 +330,14 @@ export type Mes = {
     rol: "vendedor" | "admin";
     monto_negociacion_mes?: number;
   }
+
+  export enum CustomerSector {
+  ALIMENTOS_Y_BEBIDAS = 'Alimentos y Bebidas',
+  NUTRICION_ANIMAL = 'Nutricion Animal',
+  COSMETICA = 'Cosmetica',
+  CUIDADO_PERSONAL = 'Cuidado Personal y del Hogar',
+  PINTURA = 'Pintura',
+  POLIMEROS = 'Polimeros y Material de Empaque',
+  INDUSTRIA_FARMACEUTICA = 'Industria farmaceutica',
+  INDUSTRIA_PETROLERA = 'Industria Petrolera',
+}

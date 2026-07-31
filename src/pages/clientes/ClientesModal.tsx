@@ -20,6 +20,7 @@ import ClienteForm from "../../components/forms/ClienteFom";
 import {
   Cliente,
   ClienteFormData,
+  CustomerSector,
   Estado,
   EtapaVenta,
   Vendedor,
@@ -91,6 +92,7 @@ export const ClientesModal: React.FC<PropsClientes> = ({
           ...user,
           estado: user.estado as Estado,
           etapa_venta: user.etapa_venta as EtapaVenta,
+          sector: user.sector as CustomerSector
         },
         currentUser,
       },

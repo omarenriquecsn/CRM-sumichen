@@ -41,6 +41,15 @@ import { typeChange } from "../../constants/typeCange";
 import { formatearActividades } from "../../utils/actividades";
 import { useGetMetas } from "../../hooks/useMetas";
 import useVendedores from "../../hooks/useVendedores";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
 dayjs.extend(relativeTime);
 dayjs.locale("es");
@@ -200,6 +209,32 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
     (page - 1) * pageSize,
     page * pageSize
   );
+
+  const mesPasado = new Date();
+  mesPasado.setMonth(mesPasado.getMonth() - 1);
+  const nombreMesPasado = mesPasado.toLocaleString("default", {
+    month: "long",
+  });
+  const mesAntePasado = new Date();
+  mesAntePasado.setMonth(mesAntePasado.getMonth() - 2);
+  const nombreMesAntePasado = mesAntePasado.toLocaleString("default", {
+    month: "long",
+  });
+
+  const ventasMensuales = [
+    {
+      mes: nombreMesAntePasado,
+      ventas: cifraVentasMes(new Date().getMonth() - 2),
+    },
+    {
+      mes: nombreMesPasado,
+      ventas: cifraVentasMes(new Date().getMonth() - 1),
+    },
+    {
+      mes: new Date().toLocaleString("default", { month: "long" }),
+      ventas: cifraVentasMes(new Date().getMonth()),
+    },
+  ];
 
   return (
     <Layout
@@ -398,10 +433,23 @@ export const DashboardVendedor: React.FC<DashboardVendedorProps> = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Rendimiento de Ventas
           </h3>
-          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-            <p className="text-gray-500">
-              Gráfico de ventas mensuales (próximamente)
-            </p>
+          <div className="h-64 bg-gray-50 rounded-lg">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={ventasMensuales}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value: number) =>
+                    `$${value.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  }
+                />
+                <Bar dataKey="ventas" fill="#16A34A" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

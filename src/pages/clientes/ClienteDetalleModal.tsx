@@ -19,6 +19,7 @@ import {
   Actividad,
   Cliente,
   ClienteFormData,
+  CustomerSector,
   IFormReunion,
   Pedido,
   PedidoData,
@@ -167,6 +168,7 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
         ...data,
         estado: data.estado as Cliente["estado"],
         etapa_venta: data.etapa_venta as Cliente["etapa_venta"],
+        sector: data.sector as CustomerSector,
       };
 
       const oportunidad =
@@ -445,6 +447,17 @@ export const ClienteDetalleModal: React.FC<ClienteDetalleModalProps> = ({
                           </p>
                           <p className="font-medium text-gray-900">
                             {cliente?.rif}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* NUEVO CAMPO: Sector */}
+                      <div className="flex items-center space-x-3">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-500">Sector</p>
+                          <p className="font-medium text-gray-900">
+                            {cliente?.sector || "No especificado"}
                           </p>
                         </div>
                       </div>

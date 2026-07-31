@@ -39,6 +39,7 @@ const schema = yup.object().shape({
   empresa: yup.string().required("La Empresa es obligatoria"),
   estado: yup.string().required().default("prospecto"),
   etapa_venta: yup.string().required().default("inicial"),
+  sector: yup.string().optional().defined(), // <-- Nuevo campo sector
   rif: yup
     .string()
     .required("El RIF es obligatorio")
@@ -70,6 +71,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
       empresa: initialData?.empresa || "",
       estado: initialData?.estado || "prospecto",
       etapa_venta: initialData?.etapa_venta || "inicial",
+      sector: initialData?.sector || "", // <-- Valor por defecto
       rif: initialData?.rif || "",
       fecha_creacion: initialData?.fecha_creacion
         ? new Date(initialData.fecha_creacion)
@@ -88,6 +90,7 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
       : dayjs().format("YYYY-MM-DD")
   );
   const currentUser = useAuth().currentUser;
+
   // Si el usuario edita, mantener la fecha de creación intacta
   React.useEffect(() => {
     register("fecha_creacion"); // registrar el campo sin atarlo al input
@@ -209,6 +212,33 @@ const ClienteForm: React.FC<Props> = ({ onSubmit, initialData, accion }) => {
             {errors.empresa && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.empresa.message}
+              </p>
+            )}
+          </div>
+          {/* NUEVO: Campo Sector del Cliente */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sector del Cliente
+            </label>
+            <select
+              {...register("sector")}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 ${
+                errors.sector ? "border-red-500" : "border-gray-300"
+              }`}
+            >
+              <option value="">Seleccione un sector (Opcional)</option>
+              <option value="Alimentos y Bebidas">Alimentos y Bebidas</option>
+              <option value="Nutricion Animal">Nutricion Animal</option>
+              <option value="Cosmetica">Cosmetica</option>
+              <option value="Cuidado Personal y del Hogar">Cuidado Personal y del Hogar</option>
+              <option value="Pintura">Pintura</option>
+              <option value="Polimeros y Material de Empaque">Polimeros y Material de Empaque</option>
+              <option value="Industria farmaceutica">Industria farmaceutica</option>
+              <option value="Industria Petrolera">Industria Petrolera</option>
+            </select>
+            {errors.sector && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.sector.message}
               </p>
             )}
           </div>

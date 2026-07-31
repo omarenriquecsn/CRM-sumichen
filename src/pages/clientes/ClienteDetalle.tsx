@@ -23,6 +23,7 @@ import {
   Actividad,
   Cliente,
   ClienteFormData,
+  CustomerSector,
   IFormReunion,
   Pedido,
   PedidoData,
@@ -70,7 +71,8 @@ export const ClienteDetalle: React.FC = () => {
     handleCancel: () => void;
     texto: string;
   } | null>(null);
-const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | null>(null);
+  const [actividadSeleccionada, setActividadSeleccionada] =
+    useState<Actividad | null>(null);
 
   // Actividades
   const { data: actividadesTodas, error: errorActividades } =
@@ -117,7 +119,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
     // Cliente filtrado
 
     const cliente = (Array.isArray(clientes) ? clientes : []).find(
-      (c) => c.id === id
+      (c) => c.id === id,
     );
     const actividades = (
       Array.isArray(actividadesTodas) ? actividadesTodas : []
@@ -133,7 +135,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
 
     const { pedidosFiltrados, ultimaCompra, abrirGmail } = utilsPedidos(
       pedidos as Pedido[],
-      cliente
+      cliente,
     );
 
     // Completando actividad
@@ -172,6 +174,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
         ...data,
         estado: data.estado as Cliente["estado"],
         etapa_venta: data.etapa_venta as Cliente["etapa_venta"],
+        sector: data.sector as CustomerSector
       };
 
       const oportunidad =
@@ -208,7 +211,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
               toast.error("Error al editar cliente");
             }
           },
-        }
+        },
       );
     };
 
@@ -355,7 +358,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                       <div className="flex items-center space-x-3 mt-2">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEstadoColor(
-                            cliente?.estado ? cliente.estado : "inactivo"
+                            cliente?.estado ? cliente.estado : "inactivo",
                           )}`}
                         >
                           {cliente?.estado}
@@ -364,7 +367,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getEtapaColor(
                             cliente?.etapa_venta
                               ? cliente.etapa_venta
-                              : "inicial"
+                              : "inicial",
                           )}`}
                         >
                           {cliente?.etapa_venta}
@@ -445,6 +448,16 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                         <p className="text-sm text-gray-500">Rif de Empresa</p>
                         <p className="font-medium text-gray-900">
                           {cliente?.rif}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Sector</p>
+                        <p className="font-medium text-gray-900">
+                          {cliente?.sector || "No especificado"}
                         </p>
                       </div>
                     </div>
@@ -565,7 +578,9 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                                 </div>
                                 <PencilLineIcon
                                   className="h-5 w-5 text-gray-600 hover:text-gray-900"
-                                  onClick={() => actualizarActividadFn(actividad)}
+                                  onClick={() =>
+                                    actualizarActividadFn(actividad)
+                                  }
                                 />
                               </div>
                             </div>
@@ -579,7 +594,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                                     ? "bg-green-100 text-green-800"
                                     : "bg-yellow-100 text-yellow-800"
                                 }`}
-                              >  
+                              >
                                 {actividad.completado
                                   ? "Completado"
                                   : "Pendiente"}
@@ -609,7 +624,22 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                 <div className="space-y-3">
                   {isMobile && cliente.telefono && (
                     <a href={`tel:${cliente.telefono}`}>
-                      <button onClick={()=>crearActividad({actividadData:{titulo:"Llamada", fecha:new Date(),cliente_id:cliente.id,descripcion:'Se ha llamado al cliente ',tipo:"llamada",completado:true}, currentUser:currentUser})} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                      <button
+                        onClick={() =>
+                          crearActividad({
+                            actividadData: {
+                              titulo: "Llamada",
+                              fecha: new Date(),
+                              cliente_id: cliente.id,
+                              descripcion: "Se ha llamado al cliente ",
+                              tipo: "llamada",
+                              completado: true,
+                            },
+                            currentUser: currentUser,
+                          })
+                        }
+                        className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                      >
                         <Phone className="h-4 w-4" />
                         <span>Llamar</span>
                       </button>
@@ -620,7 +650,22 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                       href={`mailto:${cliente.email}?subject=Contacto desde CRM&body=Hola ${cliente.nombre},`}
                     >
                       <button
-                      onClick={()=>crearActividad({actividadData:{titulo:"Email", fecha:new Date(),cliente_id:cliente.id,descripcion:'Se ha enviado un correo al cliente ',tipo:"email",completado:true}, currentUser:currentUser})} className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+                        onClick={() =>
+                          crearActividad({
+                            actividadData: {
+                              titulo: "Email",
+                              fecha: new Date(),
+                              cliente_id: cliente.id,
+                              descripcion:
+                                "Se ha enviado un correo al cliente ",
+                              tipo: "email",
+                              completado: true,
+                            },
+                            currentUser: currentUser,
+                          })
+                        }
+                        className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                      >
                         <Mail className="h-4 w-4" />
                         <span>Enviar Email</span>
                       </button>
@@ -683,8 +728,8 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                         ? Number(
                             pedidosFiltrados()?.reduce(
                               (total, pedido) => total + Number(pedido.total),
-                              0
-                            )
+                              0,
+                            ),
                           ).toLocaleString()
                         : "0"}
                     </p>
@@ -700,7 +745,7 @@ const [actividadSeleccionada, setActividadSeleccionada] = useState<Actividad | n
                     <p className="text-sm text-gray-900">
                       {ultimaCompra?.fecha_creacion
                         ? dayjs(ultimaCompra.fecha_creacion).format(
-                            "D [de] MMMM [de] YYYY"
+                            "D [de] MMMM [de] YYYY",
                           )
                         : "No ha comprado"}
                     </p>
